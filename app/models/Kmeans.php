@@ -28,24 +28,43 @@
 			$this->counter = 0;
 		}
 
-		public function Clustering($k)
+		public function Clustering($k, $n)
 		{
+			$this->centroid=array();
 			$this->RandomFirstCentroid($k);
 			$this->prevCrentroid = $this->centroid;
 			
 			do{
 				$this->ResetResult($k);
-				for ($i=0; $i <7 ; $i++) { 
+				for ($i=0; $i <$n ; $i++) { 
 				//foreach ($this->dokumenData as $key => $dokumen) {
 					$dokumen = $this->dokumenData[$i];
 					$idx = $this->FindClosestCluster($dokumen);
 					array_push($this->resultCluster[$idx], $dokumen);
 				}
-				//make $centroid like an empty array
-				//$this->centroid=array();
+				
 				$this->CalculateMeanCentroid();
 			}while ($this->CheckStoppingCriteria($this->prevCrentroid, $this->centroid));
 
+		}
+
+		public function SaveProcess($ndoc, $time){
+			$result = array();
+			for ($i=0; $i <$this->k_number ; $i++) { 
+				$result[$i] = array();
+				foreach ($this->resultCluster[$i] as $key => $rst) {
+					array_push($result[$i], $rst->nrp);
+				}
+			}
+
+			$saveKmeans = new KmeansTime();
+			$saveKmeans->jumlah_kluster = $this->k_number;
+			$saveKmeans->id_kluster = json_encode($this->idcentroid);
+			$saveKmeans->jumlah_dokumen = $ndoc;
+			$saveKmeans->hasil_kluster = json_encode($result);
+			$saveKmeans->jumlah_iterasi = $this->counter."/".$this->MAXiteration;
+			$saveKmeans->lama_eksekusi = $time;
+			$saveKmeans->save();
 		}
 		
 		public function RandomFirstCentroid($k)

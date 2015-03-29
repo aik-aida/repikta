@@ -272,8 +272,9 @@ Route::get('clustering',function(){
 	
 	$kmeans = new Kmeans;
 	$k = 3;
+	$n = 4;
 	
-	$kmeans->Clustering($k);
+	$kmeans->Clustering($k, $n);
 	for ($i=0; $i < count($kmeans->centroid); $i++) { 
 		echo "Kluster ".($i+1)."<br />";
 		if(count($kmeans->resultCluster[$i])>0){
@@ -288,7 +289,8 @@ Route::get('clustering',function(){
 	}
 	echo "iterasi ".$kmeans->counter."<br />";
 	$endTime = $counter->getTime();
-	echo ($endTime-$startTime)."<br />";
+	echo ($endTime-$startTime)."detik <br />";
+	$kmeans->SaveProcess($n,($endTime-$startTime));
 
 	
 	// var_dump($doc->RandomFirstCentroid($k));
