@@ -13,12 +13,14 @@
 
 Route::get('/', function()
 {
-	return View::make('hello');
+	return View::make('home');
 });
 
 Route::get('hai', function(){
 	return View::make('test');
 });
+
+
 
 //get TA data (sw 110 111)
 Route::get('data', function()
