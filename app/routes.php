@@ -16,6 +16,10 @@ Route::get('/', function()
 	return View::make('hello');
 });
 
+Route::get('hai', function(){
+	return View::make('test');
+});
+
 //get TA data (sw 110 111)
 Route::get('data', function()
 {
@@ -272,7 +276,7 @@ Route::get('clustering',function(){
 	
 	$kmeans = new Kmeans;
 	$k = 3;
-	$n = 4;
+	$n = 187;
 	
 	$kmeans->Clustering($k, $n);
 	for ($i=0; $i < count($kmeans->centroid); $i++) { 
