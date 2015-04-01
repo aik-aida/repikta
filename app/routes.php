@@ -281,6 +281,7 @@ Route::get('clustering',function(){
 	$n = 187;
 	
 	$kmeans->Clustering($k, $n);
+	
 	for ($i=0; $i < count($kmeans->centroid); $i++) { 
 		echo "Kluster ".($i+1)."<br />";
 		if(count($kmeans->resultCluster[$i])>0){
@@ -296,7 +297,12 @@ Route::get('clustering',function(){
 	echo "iterasi ".$kmeans->counter."<br />";
 	$endTime = $counter->getTime();
 	echo ($endTime-$startTime)."detik <br />";
-	$kmeans->SaveProcess($n,($endTime-$startTime));
+	// var_dump($kmeans->prevCentroid==$kmeans->centroid);
+	// echo "<br />";
+	// var_dump($kmeans->prevCentroid);
+	// echo "<br />";
+	// var_dump($kmeans->centroid);
+	//$kmeans->SaveProcess($n,($endTime-$startTime));
 
 	
 	// var_dump($doc->RandomFirstCentroid($k));
@@ -304,6 +310,7 @@ Route::get('clustering',function(){
 	// var_dump($doc->centroid);
 	//echo(count($doc->dokumenData)-1);
 	//var_dump($doc->RandomFirstCentroid($k));
+
 });
 
 //route for trying anything
@@ -420,12 +427,35 @@ Route::get('coba', function()
 	 // var_dump($v);
 
 	//check indentic array
-	// $v1 = (object) array('satu'=>'1', 'dua'=>'2', 'tiga'=>'3');
-	// $v2 = (object) array('satu'=>'1', 'dua'=>'2', 'tiga'=>'3');
-	// $v3 = (object) array('dua'=>'2', 'tiga'=>'3', 'satu'=>'1');
+	$v1 = (object) array('satu'=>'1', 'dua'=>'2', 'tiga'=>'3');
+	$v2 = (object) array('satu'=>'1', 'dua'=>'2', 'tiga'=>'3');
+	$v3 = (object) array('dua'=>'2', 'tiga'=>'3', 'satu'=>'1');
+	$v4 = (object) array('tiga'=>'3', 'satu'=>'1', 'dua'=>'2');
 
-	// echo($v1==$v3);
-	// if($v1==$v2)
+	$vvv = array();
+	array_push($vvv, $v1);
+	array_push($vvv, $v3);
+	array_push($vvv, $v4);
+
+	$www = $vvv;
+
+	//var_dump($www);
+
+	$vvv[0] = $v1;
+	$vvv[1] = $v1;
+	$vvv[2] = $v1;
+
+	//var_dump($www);
+	//var_dump($vvv[0]);
+
+	for ($i=0; $i < count($vvv); $i++) { 
+		foreach ($vvv[$i] as $key => $value) {
+			var_dump($value);
+		}
+	}
+
+	//echo($v1==$v3);
+	// if($vvv==$www)
 	// 	echo "betul";
 	// else
 	// 	echo "salah";

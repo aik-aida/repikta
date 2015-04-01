@@ -9,7 +9,7 @@
 		public $k_number;
 		public $idcentroid;
 		public $centroid;
-		public $prevCrentroid;
+		public $prevCentroid;
 		public $resultCluster;
 		public $stopMarking;
 		public $MAXiteration;
@@ -22,30 +22,73 @@
 			$this->kamus = KamusKata::all();
 			$this->idcentroid = array();
 			$this->centroid = array();
-			$this->prevCrentroid = array();
+			$this->prevCentroid = array();			
 			$this->resultCluster = array();
-			$this->MAXiteration = 1;
-			$this->counter = 0;
+			$this->MAXiteration = 5;
+			$this->counter = 1;
 		}
 
 		public function Clustering($k, $n)
 		{
+			// for ($i=0; $i < 3; $i++) { 
+			// 	$this->centroid[$i]=array('satu'=>'1', 'dua'=>'2', 'tiga'=>'3');
+			// }
+			// var_dump($this->centroid);
+			// $this->prevCentroid = $this->centroid;
+			// var_dump($this->prevCentroid);
+			// for ($i=0; $i < 3; $i++) { 
+			// 	$this->centroid[$i]=array('satu'=>'satu', 'dua'=>'dua', 'tiga'=>'tiga');
+			// }
+			// var_dump($this->prevCentroid);
+			// var_dump($this->centroid);
+			
+			$counter = new TimeExecution;
+
 			$this->centroid=array();
 			$this->RandomFirstCentroid($k);
-			$this->prevCrentroid = $this->centroid;
+			
 			
 			do{
+				$A = $counter->getTime();
+
+				$this->prevCentroid = array();
+				$this->prevCentroid = $this->centroid;
+				/*for ($i=0; $i < count($this->centroid); $i++) { 
+					//$this->prevCentroid[$i] = $this->centroid[$i];
+					$this->prevCentroid[$i] = array();
+					// foreach ($this->kamus as $key => $kata) {
+					// 	$term = $kata->kata_dasar;
+					// 	//$this->prevCentroid[$i]->$term = $this->centroid[$i]->$term;
+					// 	//echo $this->centroid[$i]->$term."<br />";
+					// 	var
+					// }
+					foreach ($variable as $key => $value) {
+						# code...
+					}
+				}*/
+				//$aaa = $this->centroid;
+				//var_dump($this->prevCentroid);
+				echo "Iterasi ".$this->counter."<br />";
 				$this->ResetResult($k);
 				for ($i=0; $i <$n ; $i++) { 
 				//foreach ($this->dokumenData as $key => $dokumen) {
 					$dokumen = $this->dokumenData[$i];
 					$idx = $this->FindClosestCluster($dokumen);
+					//echo $idx."<br />";
 					array_push($this->resultCluster[$idx], $dokumen);
 				}
 				
 				$this->CalculateMeanCentroid();
-			}while ($this->CheckStoppingCriteria($this->prevCrentroid, $this->centroid));
-
+				$Z = $counter->getTime();
+				$this->SaveProcess($n,($Z-$A));
+				// for ($i=0; $i <count($this->centroid) ; $i++) { 
+				// 	foreach ($this->kamus as $key => $kata) {
+				// 		$term = $kata->kata_dasar;
+				// 		echo $term." : ".$aaa[$i]->$term." -- ".$this->prevCentroid[$i]->$term." -- ".$this->centroid[$i]->$term."<br />";
+				// 	}
+				// }
+			}while ($this->CheckStoppingCriteria($this->prevCentroid, $this->centroid));
+			
 		}
 
 		public function SaveProcess($ndoc, $time){
@@ -116,13 +159,15 @@
 		public function FindClosestCluster($doc)
 		{
 			//echo(count($this->centroid));
+			//echo "doc ".$doc->nrp;
 			$cossineArray = array();
 			$vectorDoc = json_decode($doc->nilai_tfidf);
 
 			for ($i=0; $i < count($this->centroid); $i++) { 
 				$cossineArray[$i] = $this->CossineSimilarity($this->centroid[$i], $vectorDoc);
 			}
-
+			//var_dump($cossineArray);
+			//echo "<br />";
 			return array_search(max($cossineArray), $cossineArray);
 		}
 
@@ -153,19 +198,45 @@
 
 		public function CalculateMeanCentroid()
 		{
+			// echo "string<br />";
+			// echo count($this->centroid)." : ";
+			// foreach ($this->resultCluster as $key => $value) {
+			// 	echo count($value).",";
+			// }
+			// echo "string<br />";
+			$newCentroid = array();
 			for ($i=0; $i < count($this->centroid); $i++) { 
-				$n = count($this->centroid[$i]);
+				$newCentroid[$i] = (object) array();
+				$n = count($this->resultCluster[$i]);
 				foreach ($this->kamus as $key => $kata) {
 					$term = $kata->kata_dasar;
 					$sum = 0.0;
-					foreach ($this->resultCluster[$i] as $key => $dokumen) {
-						$vectorDoc = json_decode($dokumen->nilai_tfidf);
-						$sum += $vectorDoc->$term;
+					// echo $n.".".$term." : ";
+					// echo "cls ".$i." [".$this->counter."] ";
+					// echo $this->prevCentroid[$i]->$term." == ";
+					// echo $this->centroid[$i]->$term." -> (";
+					if($n > 0) {
+						foreach ($this->resultCluster[$i] as $key => $dokumen) {
+							$vectorDoc = json_decode($dokumen->nilai_tfidf);
+							$sum += $vectorDoc->$term;
+							//echo $vectorDoc->$term.",";
+						}
+						$avg = $sum/$n;
+						//$this->centroid[$i]->$term = $avg;
+						$newCentroid[$i]->$term = $avg;
 					}
-					$avg = $sum/$n;
-					$this->centroid[$i]->term = $avg;
+					else {
+						$newCentroid[$i]->$term = $this->centroid[$i]->$term;
+					}
+					//echo ") = ".$sum." / ".$n. " ==>> ";
+					//echo "stringhitungcek<br />";
+					//echo $term." : ".$newCentroid[$i]->$term."><".$this->prevCentroid[$i]->$term."<br />";
 				}
+				
+				//echo "<br />-------------------------------------------------------------------------------<br />";
 			}
+			$this->centroid=array();
+			$this->centroid = $newCentroid;
 		}
 	}
 ?>
