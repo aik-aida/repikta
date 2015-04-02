@@ -14,18 +14,26 @@
 		public $stopMarking;
 		public $MAXiteration;
 		public $counter;
+		public $dokumenID;
+		public $gencen;
 
 
 		public function __construct()
 		{
 			$this->dokumenData = Dokumen::all();
 			$this->kamus = KamusKata::all();
+			$this->gencen = CentroidGenerated::all();
 			$this->idcentroid = array();
 			$this->centroid = array();
 			$this->prevCentroid = array();			
 			$this->resultCluster = array();
 			$this->MAXiteration = 101;
 			$this->counter = 1;
+
+			$this->dokumenID = array();
+			foreach ($this->dokumenData as $key => $doc) {
+				array_push($this->dokumenID, $doc->nrp);
+			}
 		}
 
 		public function Clustering($k, $n)
@@ -45,7 +53,8 @@
 			$counter = new TimeExecution;
 
 			$this->centroid=array();
-			$this->RandomFirstCentroid($k);
+			//$this->RandomFirstCentroid($k);
+			$this->GenerateCentroidMean($k);
 			
 			
 			do{
@@ -102,7 +111,8 @@
 
 			$saveKmeans = new KmeansTime();
 			$saveKmeans->jumlah_kluster = $this->k_number;
-			$saveKmeans->id_kluster = json_encode($this->idcentroid);
+			//$saveKmeans->id_kluster = json_encode($this->idcentroid);
+			$saveKmeans->id_kluster = $this->idcentroid;
 			$saveKmeans->jumlah_dokumen = $ndoc;
 			$saveKmeans->hasil_kluster = json_encode($result);
 			$saveKmeans->jumlah_iterasi = $this->counter."/".$this->MAXiteration;
@@ -237,6 +247,63 @@
 			}
 			$this->centroid=array();
 			$this->centroid = $newCentroid;
+		}
+
+		public function GenerateCentroidMean($k)
+		{
+			$this->k_number = $k;
+			$generated = false;
+
+			if(count($this->gencen)==0){
+				$generated = false;
+			}
+			else{
+				foreach ($this->gencen as $key => $data) {
+					if(json_decode($data->dokumen)==$this->dokumenID && $data->k===$k){
+						$getcentroid = array();
+						$getcentroid = json_decode($data->centroid);
+						$this->centroid = $getcentroid;
+						//$this->idcentroid = json_decode($data->centroid);
+						$this->idcentroid = $data->id;
+						$generated = true;
+					}
+				}
+			}
+			if(!$generated){ 
+				$centroid_arr = array();
+				for ($i=0; $i <$k ; $i++) { 
+					$centroid_arr[$i] = (object) array();
+				}
+
+				//$kata = KamusKata::find('muslim');
+				//echo $kata->min_value." - ".$kata->max_value."<br />";
+				foreach ($this->kamus as $key => $kata) {
+					$term = $kata->kata_dasar;
+					$min = $kata->min_value;
+					$max = $kata->max_value;
+					$skala = ($max-$min)/$k;
+					$tengah = $skala/2;
+					//echo($tengah);
+
+					for ($i=0; $i <$k ; $i++) { 
+						$mean = ($i*$skala)+$tengah;
+						$centroid_arr[$i]->$term = $mean;
+						//echo $mean."<br />";
+					}
+
+				}
+
+				$saveCentroid = new CentroidGenerated;
+				$saveCentroid->k = $k;
+				$saveCentroid->dokumen = json_encode($this->dokumenID);
+				$saveCentroid->centroid = json_encode($centroid_arr);
+				$saveCentroid->save();
+
+				$data = CentroidGenerated::where('k','=',$k)->where('dokumen','=',json_encode($this->dokumenID))->get();
+
+				$this->centroid = $centroid_arr;
+				$this->idcentroid = $data[0]->id;
+			}
 		}
 	}
 ?>

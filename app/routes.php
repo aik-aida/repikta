@@ -242,8 +242,9 @@ Route::get('minmax', function(){
 	$kamus = KamusKata::all();
 	$corpus = Dokumen::all();
 	$timer = new TimeExecution;
-	
+	echo "string";
 	//$term = 'al-quran';
+	$count = 0;
 	$A = $timer->getTime();
 	foreach ($kamus as $key => $kata) {
 		$term = $kata->kata_dasar;
@@ -252,7 +253,7 @@ Route::get('minmax', function(){
 			$vector = json_decode($doc->nilai_tfidf);
 			array_push($minmax , $vector->$term);
 		}
-		echo($term); echo "<br />";
+		echo($count++); echo " - "; echo($term); echo "<br />";
 		//var_dump($minmax);
 		//echo(count($minmax));
 		//echo($term);
@@ -263,8 +264,10 @@ Route::get('minmax', function(){
 		$updateMinMax->save();
 	}
 	$Z = $timer->getTime();
-	echo "sudaaah, yeay! ".$Z-$A." detik";
+	echo "sudaaah, yeay! ".($Z-$A)." detik";
 });
+
+
 
 Route::get('cosine', function(){
 
@@ -305,7 +308,7 @@ Route::get('clustering',function(){
 	$startTime = $counter->getTime();
 	
 	$kmeans = new Kmeans;
-	$k = 5;
+	$k = 8;
 	$n = 187;
 	
 	$kmeans->Clustering($k, $n);
@@ -455,38 +458,61 @@ Route::get('coba', function()
 	 // var_dump($v);
 
 	//check indentic array
-	$v1 = (object) array('satu'=>'1', 'dua'=>'2', 'tiga'=>'3');
-	$v2 = (object) array('satu'=>'1', 'dua'=>'2', 'tiga'=>'3');
-	$v3 = (object) array('dua'=>'2', 'tiga'=>'3', 'satu'=>'1');
-	$v4 = (object) array('tiga'=>'3', 'satu'=>'1', 'dua'=>'2');
+	// $v1 = (object) array('satu'=>'1', 'dua'=>'2', 'tiga'=>'3');
+	// $v2 = (object) array('satu'=>'1', 'dua'=>'2', 'tiga'=>'3');
+	// $v3 = (object) array('dua'=>'2', 'tiga'=>'3', 'satu'=>'1');
+	// $v4 = (object) array('tiga'=>'3', 'satu'=>'1', 'dua'=>'2');
 
-	$vvv = array();
-	array_push($vvv, $v1);
-	array_push($vvv, $v3);
-	array_push($vvv, $v4);
+	// $vvv = array();
+	// array_push($vvv, $v1);
+	// array_push($vvv, $v3);
+	// array_push($vvv, $v4);
 
-	$www = $vvv;
+	// $www = $vvv;
 
-	//var_dump($www);
+	// //var_dump($www);
 
-	$vvv[0] = $v1;
-	$vvv[1] = $v1;
-	$vvv[2] = $v1;
+	// $vvv[0] = $v1;
+	// $vvv[1] = $v1;
+	// $vvv[2] = $v1;
 
-	//var_dump($www);
-	//var_dump($vvv[0]);
+	// //var_dump($www);
+	// //var_dump($vvv[0]);
 
-	for ($i=0; $i < count($vvv); $i++) { 
-		foreach ($vvv[$i] as $key => $value) {
-			var_dump($value);
-		}
-	}
+	// for ($i=0; $i < count($vvv); $i++) { 
+	// 	foreach ($vvv[$i] as $key => $value) {
+	// 		var_dump($value);
+	// 	}
+	// }
 
 	//echo($v1==$v3);
 	// if($vvv==$www)
 	// 	echo "betul";
 	// else
 	// 	echo "salah";
+
+	//make a centroid
+	// $timer = new TimeExecution;
+	// $kmeans = new Kmeans;
+	// $start = $timer->getTime();
+	// $kmeans->GenerateCentroidMean(3);
+	// $end = $timer->getTime();
+	// echo "<br />Waktu : ".($end-$start)." detik ";
+
+	//check kmeans result
+	//$corpus = Dokumen::all();
+	// for ($i=59; $i <=62 ; $i++) {
+	// 	$now = KmeansTime::find($i);
+	// 	$bef = KmeansTime::find($i-1);
+	// 	$v_now = json_decode($now->hasil_kluster);
+	// 	$v_bef = json_decode($bef->hasil_kluster);
+	// 	echo ($i-1)." dengan ".$i." = ";
+	// 	if($v_now==$v_bef)
+	// 		echo "SAMA"."<br /><br />";
+	// 	else
+	// 		echo "NO"."<br /><br />";
+	// }
+
 });
 
 
