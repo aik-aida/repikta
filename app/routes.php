@@ -214,7 +214,7 @@ Route::get('count_tf', function()
 	echo "alhamdulillah";
 });
 
-Route::get('tf-idf',function(){
+Route::get('tf-idf', function(){
 	$dokumens = Dokumen::all();
 	$words = KamusKata::all();
 	//$dokumen = Dokumen::find('5109100003');
@@ -236,6 +236,34 @@ Route::get('tf-idf',function(){
 		echo $dokumen->nrp."<br />";
 	}
 	echo "alhamdulillah";
+});
+
+Route::get('minmax', function(){
+	$kamus = KamusKata::all();
+	$corpus = Dokumen::all();
+	$timer = new TimeExecution;
+	
+	//$term = 'al-quran';
+	$A = $timer->getTime();
+	foreach ($kamus as $key => $kata) {
+		$term = $kata->kata_dasar;
+		$minmax = array();
+		foreach ($corpus as $key => $doc) {
+			$vector = json_decode($doc->nilai_tfidf);
+			array_push($minmax , $vector->$term);
+		}
+		echo($term); echo "<br />";
+		//var_dump($minmax);
+		//echo(count($minmax));
+		//echo($term);
+
+		$updateMinMax = KamusKata::find($term);
+		$updateMinMax->min_value = min($minmax);
+		$updateMinMax->max_value = max($minmax);
+		$updateMinMax->save();
+	}
+	$Z = $timer->getTime();
+	echo "sudaaah, yeay! ".$Z-$A." detik";
 });
 
 Route::get('cosine', function(){
