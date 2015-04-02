@@ -277,7 +277,7 @@ Route::get('clustering',function(){
 	$startTime = $counter->getTime();
 	
 	$kmeans = new Kmeans;
-	$k = 3;
+	$k = 5;
 	$n = 187;
 	
 	$kmeans->Clustering($k, $n);

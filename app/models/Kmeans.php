@@ -24,7 +24,7 @@
 			$this->centroid = array();
 			$this->prevCentroid = array();			
 			$this->resultCluster = array();
-			$this->MAXiteration = 5;
+			$this->MAXiteration = 101;
 			$this->counter = 1;
 		}
 
