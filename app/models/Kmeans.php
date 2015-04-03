@@ -305,5 +305,14 @@
 				$this->idcentroid = $data[0]->id;
 			}
 		}
+
+		public function PickOfTerm($n)
+		{
+			$pick50 = array();
+			$dokumen = Dokumen::find('5109100005');
+			$vector = json_decode($dokumen->nilai_tfidf);
+			asort($vector);
+			$var_dump($vector);
+		}
 	}
 ?>

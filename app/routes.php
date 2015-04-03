@@ -513,6 +513,18 @@ Route::get('coba', function()
 	// 		echo "NO"."<br /><br />";
 	// }
 
+	//get range value biggest
+	//$a = array(3,5,6,1,23,6,78,99);
+	//$a = array(10,5,9,13,5,20,1,5,3,6,8,0,1,8,6,13);
+	// $a = array('tiga'=>'3', 'satu'=>'1', 'dua'=>'2', 'empat'=>'4', 'nol'=>'0', 'delapan'=>'8', 'sepuluh'=>'10');
+	// asort($a);
+	// $b = array_slice($a, -4);
+	// arsort($b);
+	// var_dump($b);
+	$kmeans = new Kmeans;
+	$kmeans->PickOfTerm(50);
+	
+
 });
 
 
