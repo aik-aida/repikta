@@ -492,7 +492,7 @@ Route::get('coba', function()
 	// 	echo "salah";
 
 	//make a centroid
-	// $timer = new TimeExecution;
+	 $timer = new TimeExecution;
 	// $kmeans = new Kmeans;
 	// $start = $timer->getTime();
 	// $kmeans->GenerateCentroidMean(3);
@@ -521,8 +521,16 @@ Route::get('coba', function()
 	// $b = array_slice($a, -4);
 	// arsort($b);
 	// var_dump($b);
+
+	$a = $timer->getTime();
 	$kmeans = new Kmeans;
 	$kmeans->PickOfTerm(50);
+	$z = $timer->getTime();
+	echo "<br />waktu : ".($z-$a)." detik <br />";
+
+	// $a = array("aida", "muflichah", "aaa");
+	// $b = array("aida");
+	// var_dump(array_diff($a, $b));
 	
 
 });

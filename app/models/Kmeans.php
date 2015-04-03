@@ -22,7 +22,7 @@
 		{
 			$this->dokumenData = Dokumen::all();
 			$this->kamus = KamusKata::all();
-			$this->gencen = CentroidGenerated::all();
+			//$this->gencen = CentroidGenerated::all();
 			$this->idcentroid = array();
 			$this->centroid = array();
 			$this->prevCentroid = array();			
@@ -308,11 +308,100 @@
 
 		public function PickOfTerm($n)
 		{
-			$pick50 = array();
-			$dokumen = Dokumen::find('5109100005');
+			$allTermPick50 =array();
+			$count = 0;
+			echo "BISMILLAH!! <br />";
+			//var_dump($this->dokumenData);
+			//$dokumen = Dokumen::find('5109100005');
+			
+			foreach ($this->dokumenData as $key => $dokumen) {	
+				//$allTermPick50[$count] = array();
+				
+				$pick50 = array();
+				$arr_tfidf = array();
+				$urut = array();
+				$keys = array();
+				$vector = json_decode($dokumen->nilai_tfidf);
+				for ($i=0; $i <count($this->kamus) ; $i++) { 
+					$term = $this->kamus[$i]->kata_dasar;
+					$arr_tfidf[$term] = $vector->$term;
+				}
+				//$urut = 
+				asort($arr_tfidf);
+				$pick50 = array_slice($arr_tfidf, -50);
+				$keys = array_keys($pick50);
+
+				
+				
+				//$allTermPick50[$count] = $keys;
+				$count++;
+				// echo $count." - ".$dokumen->nrp." - ".count($allTermPick50)."<br />";
+
+				if($count == 1){
+					//$diff = $keys;
+					foreach ($keys as $key => $value) {										
+							array_push($allTermPick50, $value);
+					}
+				}
+				else{
+					//$diff = array_diff($allTermPick50, $keys);	
+					foreach ($keys as $key => $value) {
+						if(in_array($value, $allTermPick50)){
+							echo "false<br />";
+						}
+						else{
+							array_push($allTermPick50, $value);
+						}
+					}
+				}
+				
+				// foreach ($diff as $key => $value) {
+				// 	array_push($allTermPick50, $value);
+				// }
+				
+				//var_dump($allTermPick50);	
+			}
+			
+			//var_dump(array_diff($allTermPick50,$a));
+			echo "all : ".count($allTermPick50)."<br />";
+			$term50 = array();
+			$term50 = array_unique($allTermPick50);
+			echo "distinct : ".count($term50)."<br />";
+
+			// foreach ($allTermPick50 as $key => $value) {
+			// 	echo $key." - ".count($value)."<br />";
+			// }
+
+			// var_dump($allTermPick50);
+
+			/*$dokumen = Dokumen::find('5109100005');
 			$vector = json_decode($dokumen->nilai_tfidf);
-			asort($vector);
-			$var_dump($vector);
+
+			foreach ($vector as $key => $tfidf) {
+				//array_push($arr_tfidf, $tfidf);
+			}
+
+			
+			
+
+			//echo(array_search(0.040568598679134, $arr_tfidf));
+
+			
+			//var_dump($arr_tfidf);
+			
+			arsort($pick50);
+			//var_dump($pick50);
+			$en = json_encode($pick50);
+			//var_dump(json_decode($en));
+			//echo(array_search(0.040568598679134, $arr_tfidf));
+			var_dump(array_keys($pick50));
+
+
+			// $aaa = json_encode($arr_tfidf);
+			// //var_dump($arr_tfidf);
+			// $bbb = json_decode($aaa);
+			// var_dump($bbb);*/
+
 		}
 	}
 ?>
