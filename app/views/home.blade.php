@@ -33,36 +33,34 @@
                             {{ Form::file('file','',array('id'=>'','class'=>'', 'align' => 'right')) }}
                         </div>
                             {{ Form::submit('Upload Transkrip', array('class' => 'btn btn-round btn-info')) }}
+                            {{ Form::close() }}
                         <br />
                         <br />
                         <br />
                         <h2><a data-toggle="modal" href="#myModal"><i class="fa fa-user fa-3x"></i></a></h2>
                         <p>admin LOGIN</p>
-                        
+                            
                           <!-- Modal -->
-                          
-                          <div aria-hidden="true" aria-labelledby="myModalLabel" role="dialog" tabindex="0" id="myModal" class="modal fade">
+                          {{ Form::open(array('url' => 'autentifikasi', 'method' => 'post', 'class' => 'form-login')) }}
+                          <div aria-hidden="true" aria-labelledby="myModalLabel" role="dialog" tabindex="-1" id="myModal" class="modal fade">
                               <div class="modal-dialog">
                                   <div class="modal-content">
-                                    <form class="form-login" action="index.html">
                                       <div class="modal-header">
                                           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                          <h2 class="form-login-heading">admin log-in</h2>
+                                          <h3 class="form-login-heading">admin log-in</h3>
                                       </div>
                                       <div class="modal-body">
                                           <p class="centered"><img class="img-circle" width="80" src="assets/img/ui-sam.jpg"></p>
+                                          
                                           <div class="login-wrap">
-                                            <input type="text" class="form-control" placeholder="User ID" autofocus>
+                                            
+                                            {{Form::text('username', null,array('class' => 'form-control', 'placeholder' => 'Username'))}}
                                             <br>
-                                            <input type="password" class="form-control" placeholder="Password">
-                                            <label class="checkbox">
-                                                <span class="pull-right">
-                                                    <a data-toggle="modal" href="login.html#myModal"> Forgot Password?</a>
-                                                </span>
-                                            </label>
-                                            <button class="btn btn-theme btn-block" href="index.html" type="submit"><!-- <i class="fa  fa-lock"></i> --> SIGN IN</button>
+                                            {{Form::password('password',array('class' => 'form-control', 'placeholder' => 'Password'))}}
+                                            <br>
+                                            {{ Form::submit('SIGN IN', array('class' => 'btn btn-theme btn-block')) }} 
                                             <hr>
-                                
+                                            {{ Form::close() }}
                                         </div>
                 
                                       </div>

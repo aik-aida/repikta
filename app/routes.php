@@ -22,6 +22,8 @@ Route::get('hai', function(){
 
 Route::post('read_transkrip', 'TranskripController@read');
 
+Route::post('autentifikasi', 'BaseController@login');
+
 
 //get TA data (sw 110 111)
 Route::get('data', function()

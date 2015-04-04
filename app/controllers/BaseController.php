@@ -15,4 +15,18 @@ class BaseController extends Controller {
 		}
 	}
 
+	protected function login()
+	{
+		$data = Input::only(['username', 'password']);
+		$uname = $data['username'];
+		$pass = $data['password'];
+		
+		if($uname=='repikta' && $pass=='aidasw112'){
+			return View::make('test');
+		} else {
+			return View::make('home');
+		}
+
+	}
+
 }
