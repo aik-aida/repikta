@@ -18,6 +18,7 @@
         
     {{ HTML::style('assets/css/style-responsive.css') }}
     {{ HTML::style('assets/css/style.css') }}
+    {{ HTML::style('assets/css/to-do.css') }}
   </head>
 
   <body>

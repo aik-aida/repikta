@@ -20,6 +20,7 @@ Route::get('hai', function(){
 	return View::make('test');
 });
 
+Route::post('read_transkrip', 'TranskripController@read');
 
 
 //get TA data (sw 110 111)
