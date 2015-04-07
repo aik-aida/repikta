@@ -22,7 +22,7 @@
 		{
 			$this->dokumenData = Dokumen::all();
 			$this->kamus = KamusKata::all();
-			//$this->gencen = CentroidGenerated::all();
+			$this->gencen = CentroidGenerated::all();
 			$this->idcentroid = array();
 			$this->centroid = array();
 			$this->prevCentroid = array();			
@@ -54,7 +54,8 @@
 
 			$this->centroid=array();
 			//$this->RandomFirstCentroid($k);
-			$this->GenerateCentroidMean($k);
+			$this->GenerateCentroidMean($k, $n);
+			
 			
 			
 			do{
@@ -62,19 +63,19 @@
 
 				$this->prevCentroid = array();
 				$this->prevCentroid = $this->centroid;
-				/*for ($i=0; $i < count($this->centroid); $i++) { 
-					//$this->prevCentroid[$i] = $this->centroid[$i];
-					$this->prevCentroid[$i] = array();
-					// foreach ($this->kamus as $key => $kata) {
-					// 	$term = $kata->kata_dasar;
-					// 	//$this->prevCentroid[$i]->$term = $this->centroid[$i]->$term;
-					// 	//echo $this->centroid[$i]->$term."<br />";
-					// 	var
-					// }
-					foreach ($variable as $key => $value) {
-						# code...
-					}
-				}*/
+				// for ($i=0; $i < count($this->centroid); $i++) { 
+				// 	//$this->prevCentroid[$i] = $this->centroid[$i];
+				// 	$this->prevCentroid[$i] = array();
+				// 	// foreach ($this->kamus as $key => $kata) {
+				// 	// 	$term = $kata->kata_dasar;
+				// 	// 	//$this->prevCentroid[$i]->$term = $this->centroid[$i]->$term;
+				// 	// 	//echo $this->centroid[$i]->$term."<br />";
+				// 	// 	var
+				// 	// }
+				// 	foreach ($variable as $key => $value) {
+				// 		# code...
+				// 	}
+				// }
 				//$aaa = $this->centroid;
 				//var_dump($this->prevCentroid);
 				echo "Iterasi ".$this->counter."<br />";
@@ -97,6 +98,7 @@
 				// 	}
 				// }
 			}while ($this->CheckStoppingCriteria($this->prevCentroid, $this->centroid));
+			
 			
 		}
 
@@ -169,16 +171,20 @@
 		public function FindClosestCluster($doc)
 		{
 			//echo(count($this->centroid));
-			//echo "doc ".$doc->nrp;
+			echo "doc ".$doc->nrp." |";
 			$cossineArray = array();
 			$vectorDoc = json_decode($doc->nilai_tfidf);
 
 			for ($i=0; $i < count($this->centroid); $i++) { 
 				$cossineArray[$i] = $this->CossineSimilarity($this->centroid[$i], $vectorDoc);
+				echo $cossineArray[$i]."|";
 			}
+
+			$index = array_search(max($cossineArray), $cossineArray);
 			//var_dump($cossineArray);
 			//echo "<br />";
-			return array_search(max($cossineArray), $cossineArray);
+			echo " -> ".$index."<br /><br />";
+			return $index;
 		}
 
 		public function CossineSimilarity($v1, $v2)
@@ -249,38 +255,77 @@
 			$this->centroid = $newCentroid;
 		}
 
-		public function GenerateCentroidMean($k)
+		public function GenerateCentroidMean($k, $n)
 		{
 			$this->k_number = $k;
+			$dokumenIDx = array();
 			$generated = false;
-
+					for ($i=0; $i < $n; $i++) { 
+						$doc = $this->dokumenData[$i];
+						array_push($dokumenIDx, $doc->nrp);
+					}
+			//echo count($this->gencen)."string";
 			if(count($this->gencen)==0){
 				$generated = false;
+				echo "<br /><br />*** CENTROID BARU ***<br /><br />";
 			}
 			else{
 				foreach ($this->gencen as $key => $data) {
-					if(json_decode($data->dokumen)==$this->dokumenID && $data->k===$k){
+					//if(json_decode($data->dokumen)==$this->dokumenID && $data->k==$k && $data->jumlah_dokumen==$n){
+					if(json_decode($data->dokumen)==$dokumenIDx && $data->k==$k && $data->jumlah_dokumen==$n){
 						$getcentroid = array();
 						$getcentroid = json_decode($data->centroid);
 						$this->centroid = $getcentroid;
 						//$this->idcentroid = json_decode($data->centroid);
 						$this->idcentroid = $data->id;
 						$generated = true;
+						echo "<br /><br />*** CENTROID DATABASE ID=".$data->id." ***<br /><br />";
 					}
 				}
 			}
+
+			// if($generated)
+			// 	echo "<br /><br />*** CENTROID DATABASE ID=".$data->id." ***<br /><br />";
+			// else
+			// 	echo "<br /><br />*** CENTROID BARU ***<br /><br />";
+
+			
 			if(!$generated){ 
 				$centroid_arr = array();
+				
 				for ($i=0; $i <$k ; $i++) { 
 					$centroid_arr[$i] = (object) array();
 				}
 
 				//$kata = KamusKata::find('muslim');
 				//echo $kata->min_value." - ".$kata->max_value."<br />";
+				// foreach ($this->kamus as $key => $kata) {
+				// 	$term = $kata->kata_dasar;
+				// 	$min = $kata->min_value;
+				// 	$max = $kata->max_value;
+				// 	$skala = ($max-$min)/$k;
+				// 	$tengah = $skala/2;
+				// 	//echo($tengah);
+
+				// 	for ($i=0; $i <$k ; $i++) { 
+				// 		$mean = ($i*$skala)+$tengah;
+				// 		$centroid_arr[$i]->$term = $mean;
+				// 		//echo $mean."<br />";
+				// 	}
+
+				// }
+
 				foreach ($this->kamus as $key => $kata) {
 					$term = $kata->kata_dasar;
-					$min = $kata->min_value;
-					$max = $kata->max_value;
+					$minmax = array();
+
+					for ($i=0; $i < $n; $i++) { 
+						$doc = $this->dokumenData[$i];
+						$vector = json_decode($doc->nilai_tfidf);
+						array_push($minmax , $vector->$term);
+					}
+					$min = min($minmax);
+					$max = max($minmax);
 					$skala = ($max-$min)/$k;
 					$tengah = $skala/2;
 					//echo($tengah);
@@ -291,19 +336,39 @@
 						//echo $mean."<br />";
 					}
 
+					//echo($count++); echo " - "; echo($term); echo "<br />";
+					//var_dump($minmax);
+					//echo(count($minmax));
+					//echo($term);
+
+					// $updateMinMax = KamusKata::find($term);
+					// $updateMinMax->min_value = min($minmax);
+					// $updateMinMax->max_value = max($minmax);
+					// $updateMinMax->save();
 				}
+	
+
+				
 
 				$saveCentroid = new CentroidGenerated;
 				$saveCentroid->k = $k;
-				$saveCentroid->dokumen = json_encode($this->dokumenID);
+				$saveCentroid->jumlah_dokumen = $n;
+				//$saveCentroid->dokumen = json_encode($this->dokumenID);
+				$saveCentroid->dokumen = json_encode($dokumenIDx);
 				$saveCentroid->centroid = json_encode($centroid_arr);
 				$saveCentroid->save();
 
-				$data = CentroidGenerated::where('k','=',$k)->where('dokumen','=',json_encode($this->dokumenID))->get();
+				//$data = CentroidGenerated::where('k','=',$k)->where('dokumen','=',json_encode($this->dokumenID))->where('jumlah_dokumen','=',$n)->get();
+				$data = CentroidGenerated::where('k','=',$k)->where('dokumen','=',json_encode($dokumenIDx))->where('jumlah_dokumen','=',$n)->get();
 
 				$this->centroid = $centroid_arr;
 				$this->idcentroid = $data[0]->id;
+				echo "<br /><br />--- First Centroid ---<br />";
+				var_dump($centroid_arr);
+				echo "<br />----------------------------<br /><br />";
 			}
+			
+			
 		}
 
 		public function PickOfTerm($n)
