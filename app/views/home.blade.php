@@ -36,20 +36,6 @@
                             {{ Form::close() }}
                         <br />
                         <br />
-<<<<<<< HEAD
-                        <!--
-                        <div class="col-lg-8 col-lg-offset-4 btn-group btn-group" align="center">
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-theme">Unggah Dokumen Transkrip</button>
-                            </div>
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-theme">Lihat Rekomendasi Topik</button>
-                            </div>
-                        </div>                      
-                        -->
-                        
-                        {{ Form::open(array('url'=>'proses','files'=>true)) }}
-                        {{ Form::file('file','',array('id'=>'','class'=>'btn btn-round btn-success')) }}
                         <br />
                         <h2><a data-toggle="modal" href="#myModal"><i class="fa fa-user fa-3x"></i></a></h2>
                         <p>admin LOGIN</p>
