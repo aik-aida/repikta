@@ -20,6 +20,9 @@ Route::get('hai', function(){
 	return View::make('test');
 });
 
+Route::post('read_transkrip', 'TranskripController@read');
+
+Route::post('autentifikasi', 'BaseController@login');
 
 
 //get TA data (sw 110 111)
@@ -76,20 +79,25 @@ Route::get('data', function()
 //preprocessing all dokumen
 Route::get('preprocessing', function()
 {
+	//mengambil seluruh data dokumen
 	$dokumens = Dokumen::all();
-	$count=0;
+
+	//pra proses untuk setiap dokumen
 	foreach ($dokumens as $key => $value) {
 		$teks = (object) array("input","afstemming","afremoval","output");
 		$teks->input = $value->abstraksi_ta;
 
+		//tokenizing dan stemming sastrawi
 		$stemmerFactory = new \Sastrawi\Stemmer\StemmerFactory();
 		$stemmer  = $stemmerFactory->createStemmer();
 		$teks->afstemming = $stemmer->stem($teks->input);
 
+		//stopword removal sastrawi
 		$stopwordRemoval= new \Sastrawi\StopWordRemover\StopWordRemoverFactory();
 		$removal  = $stopwordRemoval->createStopWordRemover();
 		$teks->afremoval = $removal->remove($teks->afstemming);
 
+		//prose tambahan penghilangan teks angka
 		$content = explode(" ", $teks->afremoval);
 		$delword = array();
 		foreach ($content as $key => $val) {
@@ -111,11 +119,10 @@ Route::get('preprocessing', function()
 		array_push($delword, '9');
 		$teks->output = str_replace($delword, '', $teks->afremoval);
 
+		//menyimpan hasil pra proses dokumen
 		$update_preprocessing = Dokumen::find($value->nrp);
 		$update_preprocessing->abstrak_af_preproc = $teks->output;
 		$update_preprocessing->save();
-		$count++;
-		echo "preprocessing".$count."<br />";	
 	}
 });
 
@@ -522,17 +529,59 @@ Route::get('coba', function()
 	// arsort($b);
 	// var_dump($b);
 
-	$a = $timer->getTime();
-	$kmeans = new Kmeans;
-	$kmeans->PickOfTerm(50);
-	$z = $timer->getTime();
-	echo "<br />waktu : ".($z-$a)." detik <br />";
+	// $a = $timer->getTime();
+	// $kmeans = new Kmeans;
+	// $kmeans->PickOfTerm(50);
+	// $z = $timer->getTime();
+	// echo "<br />waktu : ".($z-$a)." detik <br />";
 
 	// $a = array("aida", "muflichah", "aaa");
 	// $b = array("aida");
 	// var_dump(array_diff($a, $b));
 	
+	// $dokumen = Dokumen::find('5109100005');
+	// // echo "Dokumen teks abstraksi : <br />"."<br />";
+	// // echo $dokumen->abstraksi_ta."<br />"."<br />";
 
+	// 	$stemmerFactory = new \Sastrawi\Stemmer\StemmerFactory();
+	// 	$stemmer  = $stemmerFactory->createStemmer();
+	// 	$afstemming = $stemmer->stem($dokumen->abstraksi_ta);
+	// // echo "Dokumen teks setelah Tokenizing dan Stemming : <br />"."<br />";
+	// // echo $afstemming."<br />"."<br />";
+
+	// 	$stopwordRemoval= new \Sastrawi\StopWordRemover\StopWordRemoverFactory();
+	// 	$removal  = $stopwordRemoval->createStopWordRemover();
+	// 	$afremoval = $removal->remove($afstemming);
+	// // echo "Dokumen teks setelah Stopword Removal : <br />"."<br />";
+	// // echo $afremoval."<br />"."<br />";
+
+	$afremoval = "0-6 mbps 50 kualitas 6 1-7 5 jadi 70";
+		$content = explode(" ", $afremoval);
+		$delword = array();
+		foreach ($content as $key => $val) {
+			$get_number = preg_replace("/[^0-9]/","",$val);
+			echo " - |".$get_number." : ";
+			if(is_numeric($get_number))
+			{
+				array_push($delword, $val);
+				echo $val."<br />";
+			}
+
+		}
+		array_push($delword, '0');
+		array_push($delword, '1');
+		array_push($delword, '2');
+		array_push($delword, '3');
+		array_push($delword, '4');
+		array_push($delword, '5');
+		array_push($delword, '6');
+		array_push($delword, '7');
+		array_push($delword, '8');
+		array_push($delword, '9');
+		$output = str_replace($delword, '', $afremoval);
+
+	echo "Dokumen teks setelah penyempurnaan penghilangan karakter dan angka : <br />"."<br />";
+	echo $output."<br />"."<br />";
 });
 
 

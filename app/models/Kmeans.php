@@ -350,6 +350,8 @@
 							echo "false<br />";
 						}
 						else{
+
+							
 							array_push($allTermPick50, $value);
 						}
 					}
