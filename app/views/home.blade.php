@@ -46,8 +46,7 @@
                         -->
                         
                         {{ Form::open(array('url'=>'proses','files'=>true)) }}
-                        {{ Form::label('file','File',array('id'=>'','class'=>'')) }}
-                        {{ Form::file('file','',array('id'=>'','class'=>'')) }}
+                        {{ Form::file('file','',array('id'=>'','class'=>'btn btn-round btn-success')) }}
                         <br />
 		  				<h2><a data-toggle="modal" href="#myModal"><i class="fa fa-lock"></i></a></h2>
 		  				<p>UNLOCK</p>
