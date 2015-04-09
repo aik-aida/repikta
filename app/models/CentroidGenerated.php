@@ -5,7 +5,7 @@
 	class CentroidGenerated extends Eloquent 
 	{
 		protected $connection = 'repikta';
-		protected $table = 'generate_centroid';
+		protected $table = 'generated_centroid';
 		public $timestamps = false;
 		protected $primaryKey = 'id';
 	}

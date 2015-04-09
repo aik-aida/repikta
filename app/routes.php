@@ -24,6 +24,19 @@ Route::post('read_transkrip', 'TranskripController@read');
 
 Route::post('autentifikasi', 'BaseController@login');
 
+Route::get('centroid', 'AdminController@centroid_list');
+
+Route::post('centroid/detail', 'AdminController@centroid_detail');
+
+Route::get('kamus', 'AdminController@kamus_list');
+
+Route::get('dokumen', 'AdminController@dokumen_list');
+
+Route::post('dokumen/detail', 'AdminController@dokumen_detail');
+
+Route::post('dokumen/nilai_tf', 'AdminController@dokumen_tf');
+
+Route::post('dokumen/nilai_tfidf', 'AdminController@dokumen_tfidf');
 
 //get TA data (sw 110 111)
 Route::get('data', function()
@@ -315,8 +328,8 @@ Route::get('clustering',function(){
 	$startTime = $counter->getTime();
 	
 	$kmeans = new Kmeans;
-	$k = 8;
-	$n = 187;
+	$k = 2;
+	$n = 5;
 	echo "n=".$n." - k=".$k."<br />"."<br />";
 	$kmeans->Clustering($k, $n);
 	
@@ -330,7 +343,7 @@ Route::get('clustering',function(){
 		else{
 			echo "Kosong <br />";
 		}
-		echo "<br /><br /><br />";
+		echo "<br />";
 	}
 	echo "iterasi ".$kmeans->counter."<br />";
 	$endTime = $counter->getTime();

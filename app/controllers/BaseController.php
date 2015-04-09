@@ -22,7 +22,8 @@ class BaseController extends Controller {
 		$pass = $data['password'];
 		
 		if($uname=='repikta' && $pass=='aidasw112'){
-			return View::make('test');
+			return View::make('test')
+					->with('nama', '-- Aida Muflichah --');
 		} else {
 			return View::make('home');
 		}

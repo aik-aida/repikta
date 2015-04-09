@@ -16,6 +16,7 @@
 		public $counter;
 		public $dokumenID;
 		public $gencen;
+		public $idIndukResult;
 
 
 		public function __construct()
@@ -28,7 +29,7 @@
 			$this->prevCentroid = array();			
 			$this->resultCluster = array();
 			$this->MAXiteration = 101;
-			$this->counter = 1;
+			$this->counter = 0;
 
 			$this->dokumenID = array();
 			foreach ($this->dokumenData as $key => $doc) {
@@ -90,19 +91,34 @@
 				
 				$this->CalculateMeanCentroid();
 				$Z = $counter->getTime();
-				$this->SaveProcess($n,($Z-$A));
+				
+
 				// for ($i=0; $i <count($this->centroid) ; $i++) { 
 				// 	foreach ($this->kamus as $key => $kata) {
 				// 		$term = $kata->kata_dasar;
 				// 		echo $term." : ".$aaa[$i]->$term." -- ".$this->prevCentroid[$i]->$term." -- ".$this->centroid[$i]->$term."<br />";
 				// 	}
 				// }
-			}while ($this->CheckStoppingCriteria($this->prevCentroid, $this->centroid));
+				
+			}while ($this->CheckStoppingCriteria($this->prevCentroid, $this->centroid, ($Z-$A), $n));
 			
 			
 		}
 
 		public function SaveProcess($ndoc, $time){
+			
+			$dt = new DateTime;
+			$kmeansNow = KmeansResult::get();
+			if($this->counter==1)
+			{
+				if(count($kmeansNow)==0){
+					$this->idIndukResult = 1;
+				}
+				else{
+					$maxID = DB::table('kmeans_result')->max('id_group');
+					$this->idIndukResult = ($maxID+1);
+				}
+			}
 			$result = array();
 			for ($i=0; $i <$this->k_number ; $i++) { 
 				$result[$i] = array();
@@ -111,14 +127,16 @@
 				}
 			}
 
-			$saveKmeans = new KmeansTime();
+			$saveKmeans = new KmeansResult();
+			$saveKmeans->id_group = $this->idIndukResult;
 			$saveKmeans->jumlah_kluster = $this->k_number;
 			//$saveKmeans->id_kluster = json_encode($this->idcentroid);
-			$saveKmeans->id_kluster = $this->idcentroid;
+			$saveKmeans->centroid_awal = $this->idcentroid;
 			$saveKmeans->jumlah_dokumen = $ndoc;
 			$saveKmeans->hasil_kluster = json_encode($result);
-			$saveKmeans->jumlah_iterasi = $this->counter."/".$this->MAXiteration;
+			$saveKmeans->keterangan_iterasi = $this->counter."/".$this->MAXiteration;
 			$saveKmeans->lama_eksekusi = $time;
+			$saveKmeans->waktu_simpan = $dt->format('m-d-y H:i:s');
 			$saveKmeans->save();
 		}
 		
@@ -153,9 +171,10 @@
 			}
 		}
 
-		public function CheckStoppingCriteria($prev, $now)
+		public function CheckStoppingCriteria($prev, $now, $time, $n)
 		{
 			$this->counter++;
+			$this->SaveProcess($n, $time);
 			if($this->counter >= $this->MAXiteration){
 				return false;
 			}
@@ -183,7 +202,7 @@
 			$index = array_search(max($cossineArray), $cossineArray);
 			//var_dump($cossineArray);
 			//echo "<br />";
-			echo " -> ".$index."<br /><br />";
+			echo " -> ".$index."<br />";
 			return $index;
 		}
 
@@ -260,10 +279,10 @@
 			$this->k_number = $k;
 			$dokumenIDx = array();
 			$generated = false;
-					for ($i=0; $i < $n; $i++) { 
-						$doc = $this->dokumenData[$i];
-						array_push($dokumenIDx, $doc->nrp);
-					}
+			for ($i=0; $i < $n; $i++) { 
+				$doc = $this->dokumenData[$i];
+				array_push($dokumenIDx, $doc->nrp);
+			}
 			//echo count($this->gencen)."string";
 			if(count($this->gencen)==0){
 				$generated = false;
@@ -363,9 +382,17 @@
 
 				$this->centroid = $centroid_arr;
 				$this->idcentroid = $data[0]->id;
-				echo "<br /><br />--- First Centroid ---<br />";
-				var_dump($centroid_arr);
-				echo "<br />----------------------------<br /><br />";
+				foreach ($this->centroid as $key => $cen) {
+					echo "<br />";
+					for ($i=0; $i < 5; $i++) { 
+						echo $cen[$i]."<br />";
+					}
+					echo "----------------------------------<br />";
+				}
+					
+				// echo "<br /><br />--- First Centroid ---<br />";
+				// var_dump($centroid_arr);
+				// echo "<br />----------------------------<br /><br />";
 			}
 			
 			
