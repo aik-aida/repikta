@@ -12,7 +12,7 @@
                               <tr>
                                   <th class="numeric">ID</th>
                                   <th>Term</th>
-                                  <th class="numeric">Nilai Tf Term pada Dokumen {{ $id }}</th>
+                                  <th class="numeric">Nilai Tf-Idf Term pada Dokumen {{ $id }}</th>
                               </tr>
                               </thead>
                               <tbody>

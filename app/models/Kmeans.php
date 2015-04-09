@@ -226,7 +226,7 @@
 			return (float) $dotprod;
 		}
 
-		public function Similarity_Magnitude($vector)
+		public function Similarity_Magnitude($vector)	
 		{
 			return (float) sqrt($this->Similarity_DotProduct($vector, $vector));
 		}
@@ -380,15 +380,16 @@
 				//$data = CentroidGenerated::where('k','=',$k)->where('dokumen','=',json_encode($this->dokumenID))->where('jumlah_dokumen','=',$n)->get();
 				$data = CentroidGenerated::where('k','=',$k)->where('dokumen','=',json_encode($dokumenIDx))->where('jumlah_dokumen','=',$n)->get();
 
-				$this->centroid = $centroid_arr;
+				$this->centroid = json_decode($data[0]->centroid);
+				//$this->centroid = $centroid_arr;
 				$this->idcentroid = $data[0]->id;
-				foreach ($this->centroid as $key => $cen) {
-					echo "<br />";
-					for ($i=0; $i < 5; $i++) { 
-						echo $cen[$i]."<br />";
-					}
-					echo "----------------------------------<br />";
-				}
+				// foreach ($this->centroid as $key => $cen) {
+				// 	echo "<br />";
+				// 	for ($i=0; $i < 5; $i++) { 
+				// 		echo $cen[$i]."<br />";
+				// 	}
+				// 	echo "----------------------------------<br />";
+				// }
 					
 				// echo "<br /><br />--- First Centroid ---<br />";
 				// var_dump($centroid_arr);
