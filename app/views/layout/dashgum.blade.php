@@ -77,17 +77,14 @@
                   </li>
 
                   <li class="sub-menu">
-                      <a href={{ URL::to('kluster')}} >
+                      <a href="javascript:;" >
                           <i class="fa fa-cogs"></i>
                           <span>Kluster Dokumen</span>
                       </a>
-                      <!-- 
                       <ul class="sub">
-                          <li><a  href="calendar.html">Calendar</a></li>
-                          <li><a  href="gallery.html">Gallery</a></li>
-                          <li><a  href="todo_list.html">Todo List</a></li>
+                          <li><a  href={{ URL::to('kamus')}}>Eksekusi Kluster Baru</a></li>
+                          <li><a  href={{ URL::to('kluster')}}>Daftar Kluster</a></li>
                       </ul>
-                       -->
                   </li>
                   <li class="sub-menu">
                       <a href="javascript:;" >

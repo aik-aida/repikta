@@ -67,13 +67,19 @@
 			$kamus = KamusKata::get();
 			$centroid_obj = CentroidGenerated::find($id);
 			$centroid = json_decode($centroid_obj->centroid);
+			$corpus = json_decode($centroid_obj->dokumen);
 			// echo count($centroid_obj)."<br />";
 			// var_dump($centroid);
 
 			return View::make('centroid_detail')
 					->with('id', $id)
 					->with('data', $centroid)
+					->with('corpus', $corpus)
 					->with('kamus', $kamus);
+		}
+
+		public function kluster_list(){
+			return View::make('kmeans_main');
 		}
 	}
 ?>

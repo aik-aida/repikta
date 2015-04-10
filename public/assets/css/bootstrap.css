@@ -3760,6 +3760,8 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 }
 .tab-content > .active {
   display: block;
+  padding-right: 15px;
+  padding-left: 15px;
 }
 .nav-tabs .dropdown-menu {
   margin-top: -1px;

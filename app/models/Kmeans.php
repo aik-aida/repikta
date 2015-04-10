@@ -132,6 +132,8 @@
 			$saveKmeans->jumlah_kluster = $this->k_number;
 			//$saveKmeans->id_kluster = json_encode($this->idcentroid);
 			$saveKmeans->centroid_awal = $this->idcentroid;
+			$saveKmeans->centroid_step = json_encode($this->prevCentroid);
+			$saveKmeans->centroid_next = json_encode($this->centroid);
 			$saveKmeans->jumlah_dokumen = $ndoc;
 			$saveKmeans->hasil_kluster = json_encode($result);
 			$saveKmeans->keterangan_iterasi = $this->counter."/".$this->MAXiteration;

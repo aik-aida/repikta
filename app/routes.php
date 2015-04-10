@@ -38,6 +38,8 @@ Route::post('dokumen/nilai_tf', 'AdminController@dokumen_tf');
 
 Route::post('dokumen/nilai_tfidf', 'AdminController@dokumen_tfidf');
 
+Route::get('kluster', 'AdminController@kluster_list');
+
 //get TA data (sw 110 111)
 Route::get('data', function()
 {
@@ -328,8 +330,8 @@ Route::get('clustering',function(){
 	$startTime = $counter->getTime();
 	
 	$kmeans = new Kmeans;
-	$k = 2;
-	$n = 5;
+	$k = 5;
+	$n = 20;
 	echo "n=".$n." - k=".$k."<br />"."<br />";
 	$kmeans->Clustering($k, $n);
 	
