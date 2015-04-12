@@ -33,13 +33,13 @@
                   <div class="fa fa-bars tooltips" data-placement="right" data-original-title="Toggle Navigation"></div>
               </div>
             <!--logo start-->
-            <a href="index.html" class="logo"><b>DASHGUM FREE</b></a>
+            <a href="index.html" class="logo"><b>Rekomendasi Topik TA</b></a>
             <!--logo end-->
             
             <div class="top-menu">
-            	<ul class="nav pull-right top-menu">
-                    <li><a class="logout" href="login.html">Logout</a></li>
-            	</ul>
+              <ul class="nav pull-right top-menu">
+                    <li><a class="logout" href={{ URL::to('/')}}>Beranda Awal</a></li>
+              </ul>
             </div>
         </header>
       <!--header end-->
