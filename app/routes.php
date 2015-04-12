@@ -17,7 +17,7 @@ Route::get('/', function()
 });
 
 Route::get('hai', function(){
-	return View::make('test');
+	return View::make('tabpanel');
 });
 
 Route::post('read_transkrip', 'TranskripController@read');
@@ -40,6 +40,7 @@ Route::post('dokumen/nilai_tfidf', 'AdminController@dokumen_tfidf');
 
 Route::get('kluster', 'AdminController@kluster_list');
 
+Route::post('kluster/detail', 'AdminController@kluster_detail');
 //get TA data (sw 110 111)
 Route::get('data', function()
 {

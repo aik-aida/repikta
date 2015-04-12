@@ -79,7 +79,80 @@
 		}
 
 		public function kluster_list(){
-			return View::make('kmeans_main');
+			
+			$jumlah_iterasi = array();
+			$total_waktu = array();
+			$kluster = array();
+			$id_first = array();
+
+
+			$data = KmeansResult::get();
+
+			$id_kluster = DB::table('kmeans_result')->select('id_group')->distinct()->get();
+
+			foreach ($id_kluster as $key => $dt) {
+				$id = DB::table('kmeans_result')->where('id_group', '=' , $dt->id_group)->min('id');
+				$kls = DB::table('kmeans_result')->where('id', '=' , $id)->get();
+				$jumlah = DB::table('kmeans_result')->where('id_group', '=' , $dt->id_group)->count();
+				$dum_kluster = DB::table('kmeans_result')->where('id_group', '=' , $dt->id_group)->get();
+
+				$sum = 0.0;
+				foreach ($dum_kluster as $key => $dataone) {
+					$sum += $dataone->lama_eksekusi;
+				}
+
+				array_push($total_waktu, $sum);
+				array_push($kluster, $kls[0]);
+				array_push($jumlah_iterasi, $jumlah);
+				array_push($id_first, $id);
+			}
+
+			$n = count($id_kluster);
+
+			return View::make('kmeans_main')
+					->with('jumlah', $n)
+					->with('data', $kluster)
+					->with('niterasi', $jumlah_iterasi)
+					->with('nwaktu', $total_waktu)
+					->with('iddata', $id_first);
+		}
+
+		public function kluster_detail(){
+			$data = Input::only(['idkluster']);
+			$id = $data['idkluster'];
+			$penamaan = array();
+
+			$data_first = DB::table('kmeans_result')->where('id', '=' , $id)->get();
+			$detail_iterasi = DB::table('kmeans_result')->where('id_group', '=' , $data_first[0]->id_group)->get();
+			$idresult = DB::table('kmeans_result')->where('id_group', '=' , $data_first[0]->id_group)->max('id');
+			$data_last = DB::table('kmeans_result')->where('id', '=' , $idresult)->get();
+
+			$sum = 0.0;
+			foreach ($detail_iterasi as $key => $dt) {
+				$sum += $dt->lama_eksekusi;
+			}
+
+
+			$hasil_kluster = json_decode($data_last[0]->hasil_kluster);
+
+			for ($i=0; $i < count($hasil_kluster); $i++) { 
+				$penamaan[$i]['nama'] = 'KLUSTER '.($i+1);
+				$penamaan[$i]['kode'] = 'kluster'.($i+1);
+				$penamaan[$i]['href'] = '#kluster'.($i+1);
+				$penamaan[$i]['file'] = array();
+				foreach ($hasil_kluster[$i] as $key => $iddoc) {
+					$dokumen = DB::table('dokumen')->select('nrp', 'nama', 'judul_ta')->where('nrp', '=' , $iddoc)->get();
+					array_push($penamaan[$i]['file'], $dokumen[0]);
+				}
+			}
+
+			return View::make('kmeans_detail')
+					->with('datamain', $data_first[0])
+					->with('niterasi', count($detail_iterasi))
+					->with('nlama', $sum)
+					->with('hasilkluster', $hasil_kluster)
+					->with('datakluster', $penamaan);
+
 		}
 	}
 ?>
