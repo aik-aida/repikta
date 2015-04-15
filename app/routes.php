@@ -42,6 +42,50 @@ Route::get('kluster', 'AdminController@kluster_list');
 
 Route::post('kluster/detail', 'AdminController@kluster_detail');
 //get TA data (sw 110 111)
+
+Route::get('clustering',function(){
+	$counter = new TimeExecution;
+	$startTime = $counter->getTime();
+	
+	$kmeans = new Kmeans;
+	$k = 5;
+	$n = 20;
+	echo "n=".$n." - k=".$k."<br />"."<br />";
+	$kmeans->Clustering($k, $n);
+	
+	for ($i=0; $i < count($kmeans->centroid); $i++) { 
+		echo "Kluster ".($i+1)."<br />";
+		if(count($kmeans->resultCluster[$i])>0){
+			foreach ($kmeans->resultCluster[$i] as $key => $dokumen) {
+				echo $dokumen->nrp."<br />";
+			}
+		}
+		else{
+			echo "Kosong <br />";
+		}
+		echo "<br />";
+	}
+	echo "iterasi ".$kmeans->counter."<br />";
+	$endTime = $counter->getTime();
+	echo ($endTime-$startTime)."detik <br />";
+});
+
+Route::get('ekstrak_topik', function(){
+	$counter = new TimeExecution;
+	$startTime = $counter->getTime();
+	$k = 10;
+	$lda = new LdaGibbsSampling();
+	$lda->TopicExtraction($k);
+	//var_dump($lda->docName);
+	//echo (array_search('aida', $lda->vocab));
+	//echo($lda->Mdoc);
+	// $d = Dokumen::find('5109100003');
+	// echo($d->abstrak_af_preproc);
+	// var_dump($lda->corpus[0]);
+	$endTime = $counter->getTime();
+	echo ($endTime-$startTime)."detik <br />";
+});
+
 Route::get('data', function()
 {
 	
@@ -326,6 +370,7 @@ Route::get('cosine', function(){
 
 });
 
+<<<<<<< HEAD
 Route::get('clustering',function(){
 	$counter = new TimeExecution;
 	$startTime = $counter->getTime();
@@ -359,15 +404,9 @@ Route::get('clustering',function(){
 	// echo "<br />";
 	// var_dump($kmeans->centroid);
 	//$kmeans->SaveProcess($n,($endTime-$startTime));
+=======
+>>>>>>> 3b7feb4fcdbab6c9b405b9a03a9afac1b8c1a2b3
 
-	
-	// var_dump($doc->RandomFirstCentroid($k));
-	// echo "<br />";
-	// var_dump($doc->centroid);
-	//echo(count($doc->dokumenData)-1);
-	//var_dump($doc->RandomFirstCentroid($k));
-
-});
 
 //route for trying anything
 Route::get('coba', function()
@@ -573,33 +612,82 @@ Route::get('coba', function()
 	// // echo "Dokumen teks setelah Stopword Removal : <br />"."<br />";
 	// // echo $afremoval."<br />"."<br />";
 
-	$afremoval = "0-6 mbps 50 kualitas 6 1-7 5 jadi 70";
-		$content = explode(" ", $afremoval);
-		$delword = array();
-		foreach ($content as $key => $val) {
-			$get_number = preg_replace("/[^0-9]/","",$val);
-			echo " - |".$get_number." : ";
-			if(is_numeric($get_number))
-			{
-				array_push($delword, $val);
-				echo $val."<br />";
-			}
+	// $afremoval = "0-6 mbps 50 kualitas 6 1-7 5 jadi 70";
+	// 	$content = explode(" ", $afremoval);
+	// 	$delword = array();
+	// 	foreach ($content as $key => $val) {
+	// 		$get_number = preg_replace("/[^0-9]/","",$val);
+	// 		echo " - |".$get_number." : ";
+	// 		if(is_numeric($get_number))
+	// 		{
+	// 			array_push($delword, $val);
+	// 			echo $val."<br />";
+	// 		}
 
-		}
-		array_push($delword, '0');
-		array_push($delword, '1');
-		array_push($delword, '2');
-		array_push($delword, '3');
-		array_push($delword, '4');
-		array_push($delword, '5');
-		array_push($delword, '6');
-		array_push($delword, '7');
-		array_push($delword, '8');
-		array_push($delword, '9');
-		$output = str_replace($delword, '', $afremoval);
+	// 	}
+	// 	array_push($delword, '0');
+	// 	array_push($delword, '1');
+	// 	array_push($delword, '2');
+	// 	array_push($delword, '3');
+	// 	array_push($delword, '4');
+	// 	array_push($delword, '5');
+	// 	array_push($delword, '6');
+	// 	array_push($delword, '7');
+	// 	array_push($delword, '8');
+	// 	array_push($delword, '9');
+	// 	$output = str_replace($delword, '', $afremoval);
 
-	echo "Dokumen teks setelah penyempurnaan penghilangan karakter dan angka : <br />"."<br />";
-	echo $output."<br />"."<br />";
-});
+	// echo "Dokumen teks setelah penyempurnaan penghilangan karakter dan angka : <br />"."<br />";
+	// echo $output."<br />"."<br />";
+	 //k=2
+	 //v=3
+
+	 $phisum = array();
+	 $phisum[0] = array(1,2,3);
+	 $phisum[1] = array(1,1,1);
+	 //var_dump($phisum);
+
+	 $nw = array();
+	 $nw[0] = array(1,2);
+	 $nw[1] = array(3,1);
+	 $nw[2] = array(2,1);
+	 //var_dump($nw);
+
+	 $nwsum = array(5,10);
+
+	 // $count = 2;
+	 $arr = array();
+	 for ($i=0; $i <2 ; $i++) { 
+	 	$arr[$i] = array();
+	 	for ($j=0; $j <3 ; $j++) { 
+	 		$arr[$i][$j] = $phisum[$i][$j];
+	 		//$arr[$i][$j] = $nw[$j][$i]+$nwsum[$i];
+	 	}
+	 }
+	 //var_dump($arr);
+
+	 $row = count($arr);
+	 $col = count($arr[0]);
+	 $rra = array();
+	 for ($x=0; $x < $col; $x++) { 
+	 	$rra[$x] =array();
+	 	for ($y=0; $y < $row; $y++) { 
+	 		$rra[$x][$y] = $arr[$y][$x];
+	 	}
+	 }
+	 var_dump($rra);
+
+	 // $count2 = 2;
+	 $arrx = array();
+	 for ($j=0; $j <3 ; $j++) { 
+	 	$arrx[$j]= array();
+	 	for ($i=0; $i <2 ; $i++) { 	
+	 		//$arrx[$j][$i] = $nw[$j][$i]+$nwsum[$i];
+	 		//echo "[".$j."][".$i."] = ".$nw[$j][$i]."+".$nwsum[$i]."<br />";
+	 		$arrx[$j][$i] = $phisum[$i][$j];
+	 	}
+	 }
+	 var_dump($arrx);
+ });
 
 
