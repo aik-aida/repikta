@@ -48,8 +48,10 @@ Route::get('clustering',function(){
 	$startTime = $counter->getTime();
 	
 	$kmeans = new Kmeans;
-	$k = 6;
-	$n = 187;
+
+	$k = 3;
+	$n = 10;
+	
 	echo "n=".$n." - k=".$k."<br />"."<br />";
 	$kmeans->Clustering($k, $n);
 	
@@ -374,7 +376,21 @@ Route::get('cosine', function(){
 
 });
 
+//check for equal result kmeans klustering
+Route::get('check', function(){
+	// $a = array();
+	// $a[0] = array(1,2,3);
+	// $a[1] = array(1,1,1);
+	// $a[2] = array(3,2,1);
 
+	// $b = array();
+	// $b[0] = array(1,2,3);
+	// $b[1] = array(1,1,1);
+	// $b[2] = array(3,2,1);
+
+	// if($a == $b) echo "true";
+	// else echo "false";
+});
 
 
 
