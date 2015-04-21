@@ -37,9 +37,9 @@
 			$this->FillMatrixCorpus();
 
 			$this->beta = 0.01;
-			$this->sampleLAG = 1;	//2
-			$this->ITERATIONS = 1;	//100
-			$this->burnIN = 0;	//10
+			$this->sampleLAG = 2;	//100 //2
+			$this->ITERATIONS = 2000;	//100	//2000
+			$this->burnIN = 100;	//50	//100
 		}
 
 		public function TopicExtraction($k){
@@ -61,9 +61,9 @@
 					}
 				}
 
-				//if( ($i > $this->burnIN) && ( $this->sampleLAG > 0 ) && ( $i % $this->sampleLAG == 0) ){
+				if( ($i > $this->burnIN) && ( $this->sampleLAG > 0 ) && ( $i % $this->sampleLAG == 0) ){
 					$this->UpdateSUM();
-				//}
+				}
 			}
 
 			$this->CalculateTheta();

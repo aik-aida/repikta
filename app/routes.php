@@ -48,8 +48,8 @@ Route::get('clustering',function(){
 	$startTime = $counter->getTime();
 	
 	$kmeans = new Kmeans;
-	$k = 5;
-	$n = 20;
+	$k = 6;
+	$n = 187;
 	echo "n=".$n." - k=".$k."<br />"."<br />";
 	$kmeans->Clustering($k, $n);
 	
@@ -76,14 +76,18 @@ Route::get('ekstrak_topik', function(){
 	$k = 10;
 	$lda = new LdaGibbsSampling();
 	$lda->TopicExtraction($k);
-	//var_dump($lda->docName);
-	//echo (array_search('aida', $lda->vocab));
-	//echo($lda->Mdoc);
-	// $d = Dokumen::find('5109100003');
-	// echo($d->abstrak_af_preproc);
-	// var_dump($lda->corpus[0]);
+		//var_dump($lda->docName);
+		//echo (array_search('aida', $lda->vocab));
+		//echo($lda->Mdoc);
+		// $d = Dokumen::find('5109100003');
+		// echo($d->abstrak_af_preproc);
+		// var_dump($lda->corpus[0]);
+	echo "phi[][] : <br />"; var_dump($lda->phi);
+	echo "<br />---------------------------------------------------------------<br />";
+	echo "theta[][] : <br />"; var_dump($lda->theta);
+	echo "<br />---------------------------------------------------------------<br />";
 	$endTime = $counter->getTime();
-	echo ($endTime-$startTime)."detik <br />";
+	echo $lda->ITERATIONS." iterasi : ".($endTime-$startTime)."detik <br />";
 });
 
 Route::get('data', function()
@@ -370,42 +374,8 @@ Route::get('cosine', function(){
 
 });
 
-<<<<<<< HEAD
-Route::get('clustering',function(){
-	$counter = new TimeExecution;
-	$startTime = $counter->getTime();
-	
-	$kmeans = new Kmeans;
-	$k = 20;
-	$n = 187;
-	echo "n=".$n." - k=".$k."<br />"."<br />";
-	$kmeans->Clustering($k, $n);
-	
-	for ($i=0; $i < count($kmeans->centroid); $i++) { 
-		echo "Kluster ".($i+1)."<br />";
-		if(count($kmeans->resultCluster[$i])>0){
-			foreach ($kmeans->resultCluster[$i] as $key => $dokumen) {
-				echo $dokumen->nrp."<br />";
-			}
-		}
-		else{
-			echo "Kosong <br />";
-		}
-		echo "<br />";
-	}
-	echo "iterasi ".$kmeans->counter."<br />";
-	$endTime = $counter->getTime();
-	echo ($endTime-$startTime)."detik <br />";
-	
 
-	// var_dump($kmeans->prevCentroid==$kmeans->centroid);
-	// echo "<br />";
-	// var_dump($kmeans->prevCentroid);
-	// echo "<br />";
-	// var_dump($kmeans->centroid);
-	//$kmeans->SaveProcess($n,($endTime-$startTime));
-=======
->>>>>>> 3b7feb4fcdbab6c9b405b9a03a9afac1b8c1a2b3
+
 
 
 //route for trying anything
