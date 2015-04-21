@@ -11,6 +11,7 @@
 		public $centroid;
 		public $prevCentroid;
 		public $resultCluster;
+		public $prevResultCluster;
 		public $stopMarking;
 		public $MAXiteration;
 		public $counter;
@@ -28,6 +29,7 @@
 			$this->centroid = array();
 			$this->prevCentroid = array();			
 			$this->resultCluster = array();
+			$this->prevResultCluster = array();
 			$this->MAXiteration = 101;
 			$this->counter = 0;
 
@@ -89,6 +91,9 @@
 					array_push($this->resultCluster[$idx], $dokumen);
 				}
 				
+				$this->prevResultCluster = array();
+				$this->prevResultCluster  = $this->resultCluster;
+
 				$this->CalculateMeanCentroid();
 				$Z = $counter->getTime();
 				
@@ -100,7 +105,7 @@
 				// 	}
 				// }
 				
-			}while ($this->CheckStoppingCriteria($this->prevCentroid, $this->centroid, ($Z-$A), $n));
+			}while ($this->CheckStoppingCriteria($this->prevCentroid, $this->centroid, ($Z-$A), $n, $this->prevResultCluster, $this->resultCluster));
 			
 			
 		}
@@ -173,15 +178,15 @@
 			}
 		}
 
-		public function CheckStoppingCriteria($prev, $now, $time, $n)
+		public function CheckStoppingCriteria($prev, $now, $time, $n, $prevR, $R)
 		{
 			$this->counter++;
 			$this->SaveProcess($n, $time);
 			if($this->counter >= $this->MAXiteration){
 				return false;
 			}
-			elseif (count($prev)==count($now) && count($now)!=0) {
-				if($prev == $now)
+			elseif (count($prev)==count($now) && count($now)!=0 && $this->counter>1) {
+				if($prev == $now && $prevR == $R)
 					return false;
 				else
 					return true;
