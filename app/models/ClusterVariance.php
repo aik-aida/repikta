@@ -23,14 +23,23 @@
 			$simpan->id_hasil_kluster = $idResult;
 			$simpan->save();
 			$this->idSimpan = DB::table('cluster_variance')->max('id');
+			echo "idSimpan = ".$this->idSimpan."<br />";
 
 			$this->GetDocuments($dataID);
 			
 			$this->CalculateAverageCluster($this->dataKluster);
 
-			$vw = $this->VarianWithin($this->dataKluster);
-			$vb = $this->VarianBetween();
-			return ($vw/$vb);
+			$vw = $this->VarianWithin($this->dataKluster); echo "VW = ".$vw."<br />";
+			$vb = $this->VarianBetween(); echo "VB = ".$vb."<br />";
+			$v  = ($vw/$vb); echo "V = ".$v."<br />";
+
+			$simpanLagi = DB_ClusterVariance::find($this->idSimpan);
+			$simpanLagi->varian_within = $vw;
+			$simpanLagi->varian_between = $vb;
+			$simpanLagi->cluster_variance = $v;
+			$simpanLagi->save();
+
+			return $v;
 		}
 
 		public function VarianKluster($i, $kluster_i){
@@ -49,25 +58,41 @@
 
 		public function VarianWithin($kluster){
 			$Ndata = count($kluster[0]) + count($kluster[1]) + count($kluster[2]);
+
+			echo "----------------------- Varian Within -----------------------<br />";
+
 			$sum = 0.0;
-			echo $Ndata."<br />";
 			for ($i=0; $i<$this->jumlahKluster ; $i++) { 
 				$ni = count($kluster[$i]);
+				echo "[k-".$i."] ";
 				$vi = $this->VarianKluster($i, $kluster[$i]);
+				echo $vi."<br />";
 				$sum += ($ni-1)*$vi;
 			}
+
+			echo "-------------------------------------------------------------<br />";
 
 			return $sum/($Ndata-$this->jumlahKluster);
 		}
 
 		public function VarianBetween($Rata2Centroid){
 			$dbar = $this->AverageOfAverage($this->rata2kluster);
+
+			echo "----------------------- Varian Between -----------------------<br />DBAR : ";
+			echo $dbar."<br />";
+
+			$simpan = DB_ClusterVariance::find($this->idSimpan);
+			$simpan->dmasing2 = json_encode($this->rata2kluster);
+			$simpan->drata2 = json_encode($dbar);
+			$simpan->save();
+
 			$kmeans = new Kmeans;
 			$sum = 0.0;
 
 			for ($i=0; $i<$this->jumlahKluster ; $i++) { 
 				$ni = count($this->dataKluster[$i]);
 				$distance = $kmeans->CossineSimilarity($Rata2Centroid[$i], $dbar);
+				echo "[k-".$i."] ".$distance."<br />";
 				$sum += ($ni*pow($distance, 2));
 			}
 			return ($sum/($this->jumlahKluster-1));
