@@ -141,7 +141,7 @@
 				$penamaan[$i]['href'] = '#kluster'.($i+1);
 				$penamaan[$i]['file'] = array();
 				foreach ($hasil_kluster[$i] as $key => $iddoc) {
-					$dokumen = DB::table('dokumen')->select('nrp', 'nama', 'judul_ta')->where('nrp', '=' , $iddoc)->get();
+					$dokumen = DB::table('dokumen')->select('nrp', 'nama', 'judul_ta', 'rmk')->where('nrp', '=' , $iddoc)->get();
 					array_push($penamaan[$i]['file'], $dokumen[0]);
 				}
 			}

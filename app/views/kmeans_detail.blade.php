@@ -100,6 +100,7 @@
                                               <th>No.</th>
                                               <th>ID Dokumen</th>
                                               <th>Nama Penulis</th>
+                                              <th>RMK</th>
                                               <th>Judul Tugas Akhir</th>
                                           </tr>
                                           </thead>
@@ -109,6 +110,7 @@
                                                 <td>{{ ($j+1) }}</td>
                                                 <td>{{ $datakluster[$i]['file'][$j]->nrp }}</td>
                                                 <td>{{ $datakluster[$i]['file'][$j]->nama }}</td>
+                                                <td>{{ $datakluster[$i]['file'][$j]->rmk }}</td>
                                                 <td>{{ $datakluster[$i]['file'][$j]->judul_ta }}</td>
                                               </tr>
                                               @endfor

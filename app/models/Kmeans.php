@@ -66,6 +66,11 @@
 
 				$this->prevCentroid = array();
 				$this->prevCentroid = $this->centroid;
+
+				$this->prevResultCluster = array();
+				if($this->counter>0){
+					$this->prevResultCluster = $this->resultCluster;
+				}
 				// for ($i=0; $i < count($this->centroid); $i++) { 
 				// 	//$this->prevCentroid[$i] = $this->centroid[$i];
 				// 	$this->prevCentroid[$i] = array();
@@ -91,8 +96,8 @@
 					array_push($this->resultCluster[$idx], $dokumen);
 				}
 				
-				$this->prevResultCluster = array();
-				$this->prevResultCluster  = $this->resultCluster;
+				// $this->prevResultCluster = array();
+				// $this->prevResultCluster  = $this->resultCluster;
 
 				$this->CalculateMeanCentroid();
 				$Z = $counter->getTime();
@@ -185,8 +190,8 @@
 			if($this->counter >= $this->MAXiteration){
 				return false;
 			}
-			elseif (count($prev)==count($now) && count($now)!=0 && $this->counter>1) {
-				if($prev == $now && $prevR == $R)
+			elseif (count($prev)==count($now) && count($now)!=0) {
+				if( ($prev==$now) && ($prevR==$R) )
 					return false;
 				else
 					return true;

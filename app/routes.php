@@ -43,15 +43,31 @@ Route::get('kluster', 'AdminController@kluster_list');
 Route::post('kluster/detail', 'AdminController@kluster_detail');
 //get TA data (sw 110 111)
 
+Route::get('varian', function(){
+	$KedekatanKluster = new ClusterVariance;
+	// $id_kluster = DB::table('kmeans_result')->select('id_group')->distinct()->get();
+	// foreach ($id_kluster as $key => $dt) {
+	// 	$id = DB::table('kmeans_result')->where('id_group', '=' , $dt->id_group)->max('id');
+	// }
+	$id = DB::table('kmeans_result')->where('id_group', '=' , 29)->max('id');
+	echo $id."<br />";
+	$hasil = KmeansResult::find($id);
+	echo $hasil->jumlah_kluster."<br />";
+	$hasil_kluster = json_decode($hasil->hasil_kluster);
+	//echo count($hasil_kluster[1])."<br />";
+
+	$KedekatanKluster->ClusterValue($hasil->jumlah_kluster, $hasil_kluster, $id);
+});
+
 Route::get('clustering',function(){
 	$counter = new TimeExecution;
 	$startTime = $counter->getTime();
 	
 	$kmeans = new Kmeans;
 
-	$k = 3;
-	$n = 10;
-	
+	$k = 16;
+	$n = 187;
+
 	echo "n=".$n." - k=".$k."<br />"."<br />";
 	$kmeans->Clustering($k, $n);
 	
@@ -390,6 +406,35 @@ Route::get('check', function(){
 
 	// if($a == $b) echo "true";
 	// else echo "false";
+
+	//cek hasil kluster 3 6 8
+
+	//id kluster 3 prev : 68
+	//id kluster 3 next : 85
+	//id kluster 6 prev : 71
+	//id kluster 6 next : 88
+	//id kluster 8 prev : 30
+	//id kluster 8 next : 94
+	$satu3 = KmeansResult::find(30);
+	$duaa3 = KmeansResult::find(94);
+	echo $satu3->jumlah_kluster."-".$duaa3->jumlah_kluster."<br />";
+	$hasil_satu3 = json_decode($satu3->hasil_kluster);
+	$hasil_duaa3 = json_decode($duaa3->hasil_kluster);
+	if ($hasil_satu3==$hasil_duaa3) {
+		echo "sama alhamdulillah";
+	}
+	else{
+		echo "astaghfirullah";
+	}
+	echo "<br />";
+	for ($j=0; $j < count($hasil_satu3) ; $j++) { 
+		for ($i=0; $i < count($hasil_satu3[$j]) ; $i++) { 
+			echo "[".$j.",".$i."] ";
+			if($hasil_satu3[$j][$i]==$hasil_duaa3[$j][$i]) echo "sama";
+			else echo "NO!!";
+			echo "<br />";
+		}
+	}
 });
 
 
