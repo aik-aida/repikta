@@ -18,7 +18,8 @@
 
 		public function ClusterValue($k, $dataID, $idResult){
 			$this->jumlahKluster = count($dataID);
-			$simpan = new DB_ClusterVariance;
+
+			$simpan = new dbClusterVariance;
 			$simpan->k = $k;
 			$simpan->id_hasil_kluster = $idResult;
 			$simpan->save();
@@ -30,10 +31,10 @@
 			$this->CalculateAverageCluster($this->dataKluster);
 
 			$vw = $this->VarianWithin($this->dataKluster); echo "VW = ".$vw."<br />";
-			$vb = $this->VarianBetween(); echo "VB = ".$vb."<br />";
+			$vb = $this->VarianBetween($this->rata2kluster); echo "VB = ".$vb."<br />";
 			$v  = ($vw/$vb); echo "V = ".$v."<br />";
 
-			$simpanLagi = DB_ClusterVariance::find($this->idSimpan);
+			$simpanLagi = dbClusterVariance::find($this->idSimpan);
 			$simpanLagi->varian_within = $vw;
 			$simpanLagi->varian_between = $vb;
 			$simpanLagi->cluster_variance = $v;
@@ -47,17 +48,25 @@
 			$nData = count($kluster_i);
 			$kmeans = new Kmeans;
 
-			foreach ($kluster_i as $key => $dokumen) {
-				$di = json_decode($dokumen->nilai_tfidf);
-				$dibar = $this->rata2kluster[$i];
-				$distance = $kmeans->CossineSimilarity($di, $dibar);
-				$sum += pow($distance, 2);
+			if($nData>1){
+				foreach ($kluster_i as $key => $dokumen) {
+					$di = json_decode($dokumen->nilai_tfidf);
+					$dibar = $this->rata2kluster[$i];
+					$distance = $kmeans->CossineSimilarity($di, $dibar);
+					$sum += pow($distance, 2);
+				}
+				return ($sum/($nData-1));
 			}
-			return ($sum/($nData-1));
+			else{
+				return 0;
+			}
 		}
 
 		public function VarianWithin($kluster){
-			$Ndata = count($kluster[0]) + count($kluster[1]) + count($kluster[2]);
+			$Ndata = 0;
+			foreach ($this->dataKluster as $key => $data) {
+				$Ndata += count($data);
+			}
 
 			echo "----------------------- Varian Within -----------------------<br />";
 
@@ -78,10 +87,9 @@
 		public function VarianBetween($Rata2Centroid){
 			$dbar = $this->AverageOfAverage($this->rata2kluster);
 
-			echo "----------------------- Varian Between -----------------------<br />DBAR : ";
-			echo $dbar."<br />";
+			echo "----------------------- Varian Between -----------------------<br />";
 
-			$simpan = DB_ClusterVariance::find($this->idSimpan);
+			$simpan = dbClusterVariance::find($this->idSimpan);
 			$simpan->dmasing2 = json_encode($this->rata2kluster);
 			$simpan->drata2 = json_encode($dbar);
 			$simpan->save();
@@ -122,12 +130,17 @@
 				foreach ($kamus as $key => $kata) {
 					$term = $kata->kata_dasar;
 					$sum = 0.0;
-					foreach ($data[$i] as $key => $dokumen) {
-						$vectorDoc = json_decode($dokumen->nilai_tfidf);
-						$sum += $vectorDoc->$term;
+					if($n>0){
+						foreach ($data[$i] as $key => $dokumen) {
+							$vectorDoc = json_decode($dokumen->nilai_tfidf);
+							$sum += $vectorDoc->$term;
+						}
+						$avg = $sum/$n;
+						$this->rata2kluster[$i]->$term = $avg;
 					}
-					$avg = $sum/$n;
-					$this->rata2kluster[$i]->$term = $avg;
+					else{
+						$this->rata2kluster[$i]->$term = 0;
+					}
 				}
 			}
 		}

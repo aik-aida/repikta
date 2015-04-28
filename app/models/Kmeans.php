@@ -223,9 +223,13 @@
 			$dot = $this->Similarity_DotProduct($v1, $v2);
 			$mg1 = $this->Similarity_Magnitude($v1);
 			$mg2 = $this->Similarity_Magnitude($v2);
-			$cos = $dot/($mg1*$mg2);
-
-			return $cos;
+			if(($mg1*$mg2)==0){
+				return 0;
+			}
+			else {
+				$cos = $dot/($mg1*$mg2);
+				return $cos;
+			}
 		}
 
 		public function Similarity_DotProduct($vector1, $vector2)

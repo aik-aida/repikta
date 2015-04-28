@@ -47,11 +47,13 @@ Route::get('varian', function(){
 	$counter = new TimeExecution;
 	$startTime = $counter->getTime();
 	$KedekatanKluster = new ClusterVariance;
+
 	// $id_kluster = DB::table('kmeans_result')->select('id_group')->distinct()->get();
 	// foreach ($id_kluster as $key => $dt) {
 	// 	$id = DB::table('kmeans_result')->where('id_group', '=' , $dt->id_group)->max('id');
 	// }
-	$id = DB::table('kmeans_result')->where('id_group', '=' , 29)->max('id');
+	//29-33
+	$id = DB::table('kmeans_result')->where('id_group', '=' , 36)->max('id');
 	echo $id."<br />";
 	$hasil = KmeansResult::find($id);
 	echo $hasil->jumlah_kluster."<br />";
@@ -69,7 +71,7 @@ Route::get('clustering',function(){
 	
 	$kmeans = new Kmeans;
 
-	$k = 16;
+	$k = 2;
 	$n = 187;
 
 	echo "n=".$n." - k=".$k."<br />"."<br />";
@@ -212,6 +214,62 @@ Route::get('preprocessing', function()
 	}
 });
 
+//preprocessing JUDUL all dokumen
+Route::get('preprocessing_judul', function()
+{
+	$counter = new TimeExecution;
+	$startTime = $counter->getTime();
+
+	//mengambil seluruh data dokumen
+	$dokumens = Dokumen::all();
+
+	//pra proses untuk setiap dokumen
+	foreach ($dokumens as $key => $value) {
+		$teks = (object) array("input","afstemming","afremoval","output");
+		$teks->input = $value->judul_ta;
+
+		//tokenizing dan stemming sastrawi
+		$stemmerFactory = new \Sastrawi\Stemmer\StemmerFactory();
+		$stemmer  = $stemmerFactory->createStemmer();
+		$teks->afstemming = $stemmer->stem($teks->input);
+
+		//stopword removal sastrawi
+		$stopwordRemoval= new \Sastrawi\StopWordRemover\StopWordRemoverFactory();
+		$removal  = $stopwordRemoval->createStopWordRemover();
+		$teks->afremoval = $removal->remove($teks->afstemming);
+
+		//prose tambahan penghilangan teks angka
+		$content = explode(" ", $teks->afremoval);
+		$delword = array();
+		foreach ($content as $key => $val) {
+			$get_number = preg_replace("/[^0-9]/","",$val);
+			if(is_numeric($get_number))
+			{
+				array_push($delword, $val);
+			}
+		}
+		array_push($delword, '0');
+		array_push($delword, '1');
+		array_push($delword, '2');
+		array_push($delword, '3');
+		array_push($delword, '4');
+		array_push($delword, '5');
+		array_push($delword, '6');
+		array_push($delword, '7');
+		array_push($delword, '8');
+		array_push($delword, '9');
+		$teks->output = str_replace($delword, '', $teks->afremoval);
+
+		//menyimpan hasil pra proses dokumen
+		$update_preprocessing = Dokumen::find($value->nrp);
+		$update_preprocessing->judul_af_preproc = " ".$teks->output." ";
+		$update_preprocessing->save();
+	}
+
+	$endTime = $counter->getTime();
+	echo "LAMA : ".($endTime-$startTime)." detik <br />";
+});
+
 //get distinct term in all document
 Route::get('getwords', function()
 {
@@ -256,6 +314,32 @@ Route::get('getwords', function()
 	// }
 });
 
+//get distinct term in all document
+Route::get('getwords_judul', function()
+{
+	$counter = new TimeExecution;
+	$startTime = $counter->getTime();
+	$count=0;
+	$dokumen = Dokumen::all();
+	for ($i=0; $i < count($dokumen)	; $i++) { 
+		echo $i."-".$dokumen[$i]->nrp."<br />";
+		$words = explode(' ', $dokumen[$i]->judul_af_preproc);
+		foreach ($words as $key => $kata) {
+			if(KamusJudul::find($kata)==null){
+				//array_push($new, $kata);
+				$check = new KamusJudul;
+				$check->kata_dasar = $kata;
+				$check->save();
+				$count++;
+			}
+		}
+	}
+	echo($count);
+	$endTime = $counter->getTime();
+	echo "<br />LAMA : ".($endTime-$startTime)." detik <br />";
+});
+
+
 Route::get('count_idf',function()
 {
 	$dokumens = Dokumen::all();
@@ -287,6 +371,37 @@ Route::get('count_idf',function()
 	echo "yeeee bismillah bener !!!";
 });
 
+Route::get('count_idf_judul',function()
+{
+	$dokumens = Dokumen::all();
+	$words = KamusJudul::all();
+	foreach ($words as $key => $kata) {
+		echo($kata->kata_dasar);
+		echo "<br />";
+		$count = 0;
+		$count_doc = 0;
+		$docs = array();
+		foreach ($dokumens as $key => $dokumen) {
+			$count = substr_count($dokumen->judul_af_preproc, ' '.$kata->kata_dasar.' ');
+			if($count>0){
+				$count_doc++;
+				array_push($docs, $dokumen->nrp);
+			}
+		}
+		if($count_doc>0){
+			$idf = (float)(log10((float)count($dokumens)/(float)$count_doc));
+			$iddoc = json_encode($docs);	
+
+				$kamus = KamusJudul::find($kata->kata_dasar);
+				$kamus->idf = $idf;
+				$kamus->indoc = $iddoc;
+				$kamus->save();
+				echo "string<br />";
+		}
+	}
+	echo "yeeee bismillah bener !!!";
+});
+
 Route::get('count_tf', function()
 {
 	$dokumens = Dokumen::all();
@@ -305,6 +420,31 @@ Route::get('count_tf', function()
 		echo $dokumen->nrp."<br />";
 	}
 	echo "alhamdulillah";
+});
+
+Route::get('count_tf_judul', function()
+{
+	$counter = new TimeExecution;
+	$startTime = $counter->getTime();
+
+	$dokumens = Dokumen::all();
+	$words = KamusJudul::all();
+	//$dokumen = Dokumen::find('5109100003');
+	foreach ($dokumens as $key => $dokumen) {
+		$tfvector = array();
+		foreach ($words as $key => $kata) {
+			$nword = substr_count($dokumen->judul_af_preproc, ' '.$kata->kata_dasar.' ');
+			$nall = str_word_count($dokumen->judul_af_preproc,0);
+			$tfvector[$kata->kata_dasar] = (float)((float)$nword/(float)$nall);			
+		}
+		$doc = Dokumen::find($dokumen->nrp);
+		$doc->nilai_tf_judul = json_encode($tfvector);
+		$doc->save();
+		echo $dokumen->nrp."<br />";
+	}
+	echo "alhamdulillah";
+	$endTime = $counter->getTime();
+	echo "<br />LAMA : ".($endTime-$startTime)." detik <br />";
 });
 
 Route::get('tf-idf', function(){
@@ -329,6 +469,34 @@ Route::get('tf-idf', function(){
 		echo $dokumen->nrp."<br />";
 	}
 	echo "alhamdulillah";
+});
+
+Route::get('tf-idf_judul', function(){
+	$counter = new TimeExecution;
+	$startTime = $counter->getTime();
+
+	$dokumens = Dokumen::all();
+	$words = KamusJudul::all();
+	//$dokumen = Dokumen::find('5109100003');
+	foreach ($dokumens as $key => $dokumen) {
+		$tfidf = array();
+		$tf = json_decode($dokumen->nilai_tf_judul);
+		
+		foreach ($words as $key => $kata) {
+			$term = $kata->kata_dasar;
+				
+			echo $tf->$term." * ".$kata->idf." = ";
+			$tfidf[$kata->kata_dasar] = (float)((float)($tf->$term)*(float)($kata->idf));
+			echo $tfidf[$kata->kata_dasar]."<br />";
+		}
+		$doc = Dokumen::find($dokumen->nrp);
+		$doc->nilai_tfidf_judul = json_encode($tfidf);
+		$doc->save();
+		echo $dokumen->nrp."<br />";
+	}
+	echo "alhamdulillah";
+	$endTime = $counter->getTime();
+	echo "<br />LAMA : ".($endTime-$startTime)." detik <br />";
 });
 
 Route::get('minmax', function(){
