@@ -288,11 +288,22 @@ Route::get('getwords', function()
 	//$new = array();
 	$count = 0;
 	$dokumen = Dokumen::all();
-	for ($i=0; $i < 187	; $i++) { 
+	$cDoc = count($dokumen);
+	for ($i=0; $i < $cDoc	; $i++) { 
 		echo $i."-".$dokumen[$i]->nrp."<br />";
 		$words = explode(' ', $dokumen[$i]->abstrak_af_preproc);
+		$judul = explode(' ', $dokumen[$i]->judul_af_preproc);
 		foreach ($words as $key => $kata) {
-			if(KamusKata::find($kata)==null){
+			if(KamusKata::find($kata)==null && $kata!=' ' && strlen($kata)!=0){
+				//array_push($new, $kata);
+				$check = new KamusKata;
+				$check->kata_dasar = $kata;
+				$check->save();
+				$count++;
+			}
+		}
+		foreach ($judul as $key => $kata) {
+			if(KamusKata::find($kata)==null && $kata!=' ' && strlen($kata)!=0){
 				//array_push($new, $kata);
 				$check = new KamusKata;
 				$check->kata_dasar = $kata;
@@ -499,6 +510,40 @@ Route::get('tf-idf_judul', function(){
 	echo "<br />LAMA : ".($endTime-$startTime)." detik <br />";
 });
 
+Route::get('final_tfidf', function(){
+	$bobot_judul = 0.7;
+	$bobot_abstrak = 0.3;
+	$counter = new TimeExecution;
+	$startTime = $counter->getTime();
+
+	$dokumens = Dokumen::all();
+	$words = KamusJudul::all();
+	foreach ($dokumens as $key => $dokumen) {
+		$tfidf = array();
+		$tfidf_j = json_decode($dokumen->nilai_tfidf_judul);
+		$tfidf_a = json_decode($dokumen->nilai_tfidf_abstrak);
+		$cn = 0;
+		foreach ($words as $key => $kata) {
+			$term = $kata->kata_dasar;
+			//$tfidf[$term] = ($bobot_judul*$tfidf_j->$term)+($bobot_abstrak*$tfidf_a->$term);
+			//echo $tfidf_j->$term."<br />";
+			//echo $tfidf_a->$term."<br />";
+
+			if(!array_key_exists($term, $tfidf_a)){
+				echo $term."<br />";
+				$cn++;
+			}
+		}
+		echo "----------------------".$cn."<br/>";
+		
+		$doc = Dokumen::find($dokumen->nrp);
+		$doc->nilai_tfidf = json_encode($tfidf);
+		$doc->save();
+	}
+	$endTime = $counter->getTime();
+	echo "<br />LAMA : ".($endTime-$startTime)." detik <br />";
+});
+
 Route::get('minmax', function(){
 	$kamus = KamusKata::all();
 	$corpus = Dokumen::all();
@@ -528,7 +573,75 @@ Route::get('minmax', function(){
 	echo "sudaaah, yeay! ".($Z-$A)." detik";
 });
 
+Route::get('fill_manual_centroid', function(){
+	// $k=3;
+	// $nama = array('RPL','KCV','KBJ');
+	// $k1=array('5109100704','5110100047','5110100053','5110100199','5110100150','5110100082','5110100708');
+	// $k2=array('5109100117','5110100069','5110100071','5111100013','5110100131','5111100072','5110100046');
+	// $k3=array('5110100032','5111100012','5109100005','5109100089','5110100010','5110100022','5110100091');
+	// $kumpulan_k = array($k1,$k2,$k3);
 
+	// $k=8;
+	// $nama = array('RPL','MI','IGS','AP','KCV','DTK','AJK','KBJ');
+	// $k1=array('5111100001','5110100213','5110100199','5110100150','5110100070');
+	// $k2=array('5110100053','5110100709');
+	// $k3=array('5110100018','5110100082','5110100708','5111100021','5111100064');
+	// $k4=array('5109100704','5110100047','5110100219','5110100139');
+	// $k5=array('5110100131','5111100013','5110100087','5111100072','5110100046');
+	// $k6=array('5109100117','5110100069','5110100071','5109100024');
+	// $k7=array('5110100032','5111100012');
+	// $k8=array('5109100005','5109100089','5110100010','5110100022','5110100091');
+	// $kumpulan_k = array($k1,$k2,$k3,$k4,$k5,$k6,$k7,$k8);
+
+	// //echo(json_encode($kumpulan_k));
+	// $simpan = new CentroidManual;
+	// $simpan->k = $k;
+	// $simpan->nama_k = json_encode($nama);
+	// $simpan->dokumen_centroid = json_encode($kumpulan_k);
+	// $simpan->save();
+	// echo "simpan";
+
+	$all_data = CentroidManual::all();
+	$kamus = KamusKata::all();
+	foreach ($all_data as $key => $data) {
+		$k_number = $data->k;
+		echo "k:".$k_number."br />";
+		$newCentroid = array();
+		for ($i=0; $i < $k_number; $i++) { 
+				$newCentroid[$i] = (object) array();
+				$docs = json_decode($data->dokumen_centroid);
+				$n = count($docs[$i]);
+				foreach ($kamus as $key => $kata) {
+					$term = $kata->kata_dasar;
+					$sum = 0.0;
+					// echo $n.".".$term." : ";
+					// echo "cls ".$i." [".$this->counter."] ";
+					// echo $this->prevCentroid[$i]->$term." == ";
+					// echo $this->centroid[$i]->$term." -> (";
+					foreach ($docs[$i] as $key => $nrp) {
+						$dokumen = Dokumen::find($nrp);
+						$vectorDoc = json_decode($dokumen->nilai_tfidf_abstrak);
+						$sum += $vectorDoc->$term;
+						//echo $vectorDoc->$term.",";
+					}
+					$avg = $sum/$n;
+					//$this->centroid[$i]->$term = $avg;
+					$newCentroid[$i]->$term = $avg;
+					
+					//echo ") = ".$sum." / ".$n. " ==>> ";
+					//echo "stringhitungcek<br />";
+					//echo $term." : ".$newCentroid[$i]->$term."><".$this->prevCentroid[$i]->$term."<br />";
+				}
+				
+				echo "<br />-------------------------------------------------------------------------------<br />";
+		}
+
+		$update = CentroidManual::find($data->id);
+		$update->centroid = json_encode($newCentroid);
+		$update->save();
+		echo "perbaharui<br />";
+	}
+});
 
 Route::get('cosine', function(){
 
