@@ -19,6 +19,9 @@
 		public $gencen;
 		public $idIndukResult;
 
+		public $idTeks;
+		public $idC;
+
 
 		public function __construct()
 		{
@@ -39,7 +42,7 @@
 			}
 		}
 
-		public function Clustering($k, $n)
+		public function Clustering($k, $n, $teks, $centroid)
 		{
 			// for ($i=0; $i < 3; $i++) { 
 			// 	$this->centroid[$i]=array('satu'=>'1', 'dua'=>'2', 'tiga'=>'3');
@@ -56,9 +59,22 @@
 			$counter = new TimeExecution;
 
 			$this->centroid=array();
+			$this->idTeks = $teks;
+			$this->idC = $centroid;
 			//$this->RandomFirstCentroid($k);
-			$this->GenerateCentroidMean($k, $n);
+			if($centroid=='g') {
+				$this->GenerateCentroidMean($k, $n);
+				echo "generated<br />";
+			}
+			elseif ($centroid=='m') {
+				$this->GetManualCentroid($k,$teks);
+				echo "manual<br />";
+			}
+			echo $this->idTeks."<br />";
 			
+			
+			
+			//echo $this->centroid[0]->skoring;
 			
 			
 			do{
@@ -71,6 +87,7 @@
 				if($this->counter>0){
 					$this->prevResultCluster = $this->resultCluster;
 				}
+
 				// for ($i=0; $i < count($this->centroid); $i++) { 
 				// 	//$this->prevCentroid[$i] = $this->centroid[$i];
 				// 	$this->prevCentroid[$i] = array();
@@ -138,6 +155,8 @@
 			}
 
 			$saveKmeans = new KmeansResult();
+			$saveKmeans->teks = $this->idTeks;
+			$saveKmeans->centroid = $this->idC;
 			$saveKmeans->id_group = $this->idIndukResult;
 			$saveKmeans->jumlah_kluster = $this->k_number;
 			//$saveKmeans->id_kluster = json_encode($this->idcentroid);
@@ -164,7 +183,12 @@
 					array_push($idcentroid, $get);
 					$doc = $this->dokumenData[$get];
 					echo $get." - ".$this->dokumenData[$get]->nrp."<br />";
-					$vectorCentroid = json_decode($doc->nilai_tfidf);
+					if($this->idTeks=='ja'){
+						$vectorCentroid = json_decode($doc->nilai_tfidf);	
+					}elseif ($this->idTeks=='a') {
+						$vectorCentroid = json_decode($doc->nilai_tfidf_abstrak);
+					}
+					
 					array_push($this->centroid, $vectorCentroid);
 					$i++;
 				}
@@ -174,6 +198,16 @@
 			//return $this->centroid;
 			
 			//var_dump($this->centroid);
+		}
+
+		public function GetManualCentroid($k,$teks)
+		{
+			$manCentroid = CentroidManual::where('k','=',$k)->where('teks','=',$teks)->get();
+			echo $teks."<br />";
+			$this->k_number = $k;
+			$this->centroid = json_decode($manCentroid[0]->centroid);
+			$this->idcentroid = $manCentroid[0]->id;
+			echo "MANUAL centroid ID : ".$manCentroid[0]->id."<br />";
 		}
 
 		public function ResetResult($k){
@@ -204,7 +238,13 @@
 			//echo(count($this->centroid));
 			echo "doc ".$doc->nrp." |";
 			$cossineArray = array();
-			$vectorDoc = json_decode($doc->nilai_tfidf);
+
+			if($this->idTeks=='ja'){
+				$vectorDoc = json_decode($doc->nilai_tfidf);
+			}elseif ($this->idTeks=='a') {
+				$vectorDoc = json_decode($doc->nilai_tfidf_abstrak);
+			}
+			
 
 			for ($i=0; $i < count($this->centroid); $i++) { 
 				$cossineArray[$i] = $this->CossineSimilarity($this->centroid[$i], $vectorDoc);
@@ -268,7 +308,12 @@
 					// echo $this->centroid[$i]->$term." -> (";
 					if($n > 0) {
 						foreach ($this->resultCluster[$i] as $key => $dokumen) {
-							$vectorDoc = json_decode($dokumen->nilai_tfidf);
+							if($this->idTeks=='ja'){
+								$vectorDoc = json_decode($dokumen->nilai_tfidf);
+							}elseif ($this->idTeks=='a') {
+								$vectorDoc = json_decode($dokumen->nilai_tfidf_abstrak);
+							}
+							
 							$sum += $vectorDoc->$term;
 							//echo $vectorDoc->$term.",";
 						}
@@ -307,7 +352,7 @@
 			else{
 				foreach ($this->gencen as $key => $data) {
 					//if(json_decode($data->dokumen)==$this->dokumenID && $data->k==$k && $data->jumlah_dokumen==$n){
-					if(json_decode($data->dokumen)==$dokumenIDx && $data->k==$k && $data->jumlah_dokumen==$n){
+					if(json_decode($data->dokumen)==$dokumenIDx && $data->k==$k && $data->jumlah_dokumen==$n && $data->teks==$this->idTeks){
 						$getcentroid = array();
 						$getcentroid = json_decode($data->centroid);
 						$this->centroid = $getcentroid;
@@ -356,7 +401,12 @@
 
 					for ($i=0; $i < $n; $i++) { 
 						$doc = $this->dokumenData[$i];
-						$vector = json_decode($doc->nilai_tfidf);
+						if($this->idTeks=='ja'){
+							$vector = json_decode($doc->nilai_tfidf);	
+						}elseif ($this->idTeks=='a') {
+							$vector = json_decode($doc->nilai_tfidf_abstrak);
+						}
+						
 						array_push($minmax , $vector->$term);
 					}
 					$min = min($minmax);
@@ -386,6 +436,7 @@
 				
 
 				$saveCentroid = new CentroidGenerated;
+				$saveCentroid->teks = $this->idTeks;
 				$saveCentroid->k = $k;
 				$saveCentroid->jumlah_dokumen = $n;
 				//$saveCentroid->dokumen = json_encode($this->dokumenID);
@@ -394,7 +445,7 @@
 				$saveCentroid->save();
 
 				//$data = CentroidGenerated::where('k','=',$k)->where('dokumen','=',json_encode($this->dokumenID))->where('jumlah_dokumen','=',$n)->get();
-				$data = CentroidGenerated::where('k','=',$k)->where('dokumen','=',json_encode($dokumenIDx))->where('jumlah_dokumen','=',$n)->get();
+				$data = CentroidGenerated::where('k','=',$k)->where('teks','=',$this->idTeks)->where('dokumen','=',json_encode($dokumenIDx))->where('jumlah_dokumen','=',$n)->get();
 
 				$this->centroid = json_decode($data[0]->centroid);
 				//$this->centroid = $centroid_arr;
@@ -430,7 +481,13 @@
 				$arr_tfidf = array();
 				$urut = array();
 				$keys = array();
-				$vector = json_decode($dokumen->nilai_tfidf);
+
+				if($this->idTeks=='ja'){
+					$vector = json_decode($dokumen->nilai_tfidf);	
+				}elseif ($this->idTeks=='a') {
+					$vector = json_decode($dokumen->nilai_tfidf_abstrak);
+				}
+				
 				for ($i=0; $i <count($this->kamus) ; $i++) { 
 					$term = $this->kamus[$i]->kata_dasar;
 					$arr_tfidf[$term] = $vector->$term;

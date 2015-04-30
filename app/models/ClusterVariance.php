@@ -8,6 +8,7 @@
 		public $dataKluster;
 		public $rata2kluster;
 		public $idSimpan;
+		public $idTeks;
 		
 		function __construct()
 		{
@@ -16,8 +17,9 @@
 
 		}
 
-		public function ClusterValue($k, $dataID, $idResult){
+		public function ClusterValue($k, $dataID, $idResult, $teks){
 			$this->jumlahKluster = count($dataID);
+			$this->idTeks = $teks;
 
 			$simpan = new dbClusterVariance;
 			$simpan->k = $k;
@@ -50,7 +52,12 @@
 
 			if($nData>1){
 				foreach ($kluster_i as $key => $dokumen) {
-					$di = json_decode($dokumen->nilai_tfidf);
+					if($this->idTeks=='ab'){
+						$di = json_decode($dokumen->nilai_tfidf_abstrak);
+					}elseif ($this->idTeks=='ja') {
+						$di = json_decode($dokumen->nilai_tfidf);
+					}
+					
 					$dibar = $this->rata2kluster[$i];
 					$distance = $kmeans->CossineSimilarity($di, $dibar);
 					$sum += pow($distance, 2);
@@ -132,7 +139,12 @@
 					$sum = 0.0;
 					if($n>0){
 						foreach ($data[$i] as $key => $dokumen) {
-							$vectorDoc = json_decode($dokumen->nilai_tfidf);
+							if($this->idTeks=='ab'){
+								$vectorDoc = json_decode($dokumen->nilai_tfidf_abstrak);
+							}elseif ($this->idTeks=='ja') {
+								$vectorDoc = json_decode($dokumen->nilai_tfidf);
+							}
+							
 							$sum += $vectorDoc->$term;
 						}
 						$avg = $sum/$n;

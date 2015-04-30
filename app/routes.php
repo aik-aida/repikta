@@ -53,14 +53,14 @@ Route::get('varian', function(){
 	// 	$id = DB::table('kmeans_result')->where('id_group', '=' , $dt->id_group)->max('id');
 	// }
 	//29-33
-	$id = DB::table('kmeans_result')->where('id_group', '=' , 36)->max('id');
+	$id = DB::table('kmeans_result')->where('id_group', '=' , 48)->max('id');
 	echo $id."<br />";
 	$hasil = KmeansResult::find($id);
 	echo $hasil->jumlah_kluster."<br />";
 	$hasil_kluster = json_decode($hasil->hasil_kluster);
 	//echo count($hasil_kluster[1])."<br />";
 
-	$nilai_dekat = $KedekatanKluster->ClusterValue($hasil->jumlah_kluster, $hasil_kluster, $id);
+	$nilai_dekat = $KedekatanKluster->ClusterValue($hasil->jumlah_kluster, $hasil_kluster, $id, 'ab');
 	$endTime = $counter->getTime();
 	echo $nilai_dekat." - LAMA : ".($endTime-$startTime)." detik <br />";
 });
@@ -71,11 +71,15 @@ Route::get('clustering',function(){
 	
 	$kmeans = new Kmeans;
 
-	$k = 2;
+	$k = 10;
 	$n = 187;
 
 	echo "n=".$n." - k=".$k."<br />"."<br />";
-	$kmeans->Clustering($k, $n);
+	//a:abstrak
+	//ja:judul+abstrak
+	//g:generated
+	//m:manual
+	$kmeans->Clustering($k, $n, 'ja', 'g');
 	
 	for ($i=0; $i < count($kmeans->centroid); $i++) { 
 		echo "Kluster ".($i+1)."<br />";
@@ -92,6 +96,7 @@ Route::get('clustering',function(){
 	echo "iterasi ".$kmeans->counter."<br />";
 	$endTime = $counter->getTime();
 	echo ($endTime-$startTime)."detik <br />";
+	
 });
 
 Route::get('ekstrak_topik', function(){
@@ -351,7 +356,7 @@ Route::get('getwords_judul', function()
 });
 
 
-Route::get('count_idf',function()
+Route::get('count_idf_abstrak',function()
 {
 	$dokumens = Dokumen::all();
 	$words = KamusKata::all();
@@ -413,7 +418,7 @@ Route::get('count_idf_judul',function()
 	echo "yeeee bismillah bener !!!";
 });
 
-Route::get('count_tf', function()
+Route::get('count_tf_abstrak', function()
 {
 	$dokumens = Dokumen::all();
 	$words = KamusKata::all();
@@ -426,11 +431,11 @@ Route::get('count_tf', function()
 			$tfvector[$kata->kata_dasar] = (float)((float)$nword/(float)$nall);			
 		}
 		$doc = Dokumen::find($dokumen->nrp);
-		$doc->nilai_tf = json_encode($tfvector);
+		$doc->nilai_tf_abstrak = json_encode($tfvector);
 		$doc->save();
 		echo $dokumen->nrp."<br />";
 	}
-	echo "alhamdulillah";
+	echo "alhamdulillah tf abstrak";
 });
 
 Route::get('count_tf_judul', function()
@@ -458,13 +463,13 @@ Route::get('count_tf_judul', function()
 	echo "<br />LAMA : ".($endTime-$startTime)." detik <br />";
 });
 
-Route::get('tf-idf', function(){
+Route::get('tf-idf_abstrak', function(){
 	$dokumens = Dokumen::all();
 	$words = KamusKata::all();
 	//$dokumen = Dokumen::find('5109100003');
 	foreach ($dokumens as $key => $dokumen) {
 		$tfidf = array();
-		$tf = json_decode($dokumen->nilai_tf);
+		$tf = json_decode($dokumen->nilai_tf_abstrak);
 		//var_dump($tf->orang);
 		//echo $tf->"1";
 		foreach ($words as $key => $kata) {
@@ -475,11 +480,11 @@ Route::get('tf-idf', function(){
 			//echo $tfidf[$kata->kata_dasar]."<br />";
 		}
 		$doc = Dokumen::find($dokumen->nrp);
-		$doc->nilai_tfidf = json_encode($tfidf);
+		$doc->nilai_tfidf_abstrak = json_encode($tfidf);
 		$doc->save();
 		echo $dokumen->nrp."<br />";
 	}
-	echo "alhamdulillah";
+	echo "alhamdulillah tfidf abstrak";
 });
 
 Route::get('tf-idf_judul', function(){
@@ -517,7 +522,7 @@ Route::get('final_tfidf', function(){
 	$startTime = $counter->getTime();
 
 	$dokumens = Dokumen::all();
-	$words = KamusJudul::all();
+	$words = KamusKata::all();
 	foreach ($dokumens as $key => $dokumen) {
 		$tfidf = array();
 		$tfidf_j = json_decode($dokumen->nilai_tfidf_judul);
@@ -525,23 +530,28 @@ Route::get('final_tfidf', function(){
 		$cn = 0;
 		foreach ($words as $key => $kata) {
 			$term = $kata->kata_dasar;
-			//$tfidf[$term] = ($bobot_judul*$tfidf_j->$term)+($bobot_abstrak*$tfidf_a->$term);
-			//echo $tfidf_j->$term."<br />";
-			//echo $tfidf_a->$term."<br />";
 
-			if(!array_key_exists($term, $tfidf_a)){
-				echo $term."<br />";
-				$cn++;
+			if(array_key_exists($term, $tfidf_j)){
+				$tfidf[$term] = ($bobot_judul*$tfidf_j->$term)+($bobot_abstrak*$tfidf_a->$term);
+			}else{
+				$tfidf[$term] = ($bobot_abstrak*$tfidf_a->$term);
 			}
+			// echo $tfidf_j->$term."<br />";
+			// echo $tfidf_a->$term."<br />";
+
+			// if(!array_key_exists($term, $tfidf_a)){
+			// 	echo $term."<br />";
+			// 	$cn++;
+			// }
 		}
-		echo "----------------------".$cn."<br/>";
+		//echo "----------------------".$cn."<br/>";
 		
 		$doc = Dokumen::find($dokumen->nrp);
 		$doc->nilai_tfidf = json_encode($tfidf);
 		$doc->save();
 	}
 	$endTime = $counter->getTime();
-	echo "<br />LAMA : ".($endTime-$startTime)." detik <br />";
+	echo "alhamdulillah tf-idf final <br />LAMA : ".($endTime-$startTime)." detik <br />";
 });
 
 Route::get('minmax', function(){
@@ -555,15 +565,20 @@ Route::get('minmax', function(){
 	foreach ($kamus as $key => $kata) {
 		$term = $kata->kata_dasar;
 		$minmax = array();
+
+		//untuk clustering berdasar abstrak saja
 		foreach ($corpus as $key => $doc) {
 			$vector = json_decode($doc->nilai_tfidf);
 			array_push($minmax , $vector->$term);
 		}
-		echo($count++); echo " - "; echo($term); echo "<br />";
-		//var_dump($minmax);
-		//echo(count($minmax));
-		//echo($term);
 
+		// //untuk clustering berdasar abstrak saja
+		// foreach ($corpus as $key => $doc) {
+		// 	$vector = json_decode($doc->nilai_tfidf_abstrak);
+		// 	array_push($minmax , $vector->$term);
+		// }
+
+		echo($count++); echo " - "; echo($term); echo "<br />";
 		$updateMinMax = KamusKata::find($term);
 		$updateMinMax->min_value = min($minmax);
 		$updateMinMax->max_value = max($minmax);
@@ -595,22 +610,28 @@ Route::get('fill_manual_centroid', function(){
 
 	// //echo(json_encode($kumpulan_k));
 	// $simpan = new CentroidManual;
+	// $simpan->teks = 'ja';
 	// $simpan->k = $k;
 	// $simpan->nama_k = json_encode($nama);
 	// $simpan->dokumen_centroid = json_encode($kumpulan_k);
 	// $simpan->save();
 	// echo "simpan";
+	$counter = new TimeExecution;
+	$startTime = $counter->getTime();
 
-	$all_data = CentroidManual::all();
+	
+	//$all_data = CentroidManual::all();
+	$data = CentroidManual::find(4);
 	$kamus = KamusKata::all();
-	foreach ($all_data as $key => $data) {
+	//foreach ($all_data as $key => $data) {
 		$k_number = $data->k;
-		echo "k:".$k_number."br />";
+		echo "k:".$k_number."<br />";
 		$newCentroid = array();
 		for ($i=0; $i < $k_number; $i++) { 
 				$newCentroid[$i] = (object) array();
 				$docs = json_decode($data->dokumen_centroid);
 				$n = count($docs[$i]);
+				echo $n."<br />";
 				foreach ($kamus as $key => $kata) {
 					$term = $kata->kata_dasar;
 					$sum = 0.0;
@@ -639,8 +660,11 @@ Route::get('fill_manual_centroid', function(){
 		$update = CentroidManual::find($data->id);
 		$update->centroid = json_encode($newCentroid);
 		$update->save();
-		echo "perbaharui<br />";
-	}
+
+		$endTime = $counter->getTime();
+		echo "perbaharui : ".($endTime-$startTime)."<br />";
+	//}
+	
 });
 
 Route::get('cosine', function(){
