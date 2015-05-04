@@ -750,6 +750,28 @@ Route::get('fill_manual_centroid', function(){
 	
 });
 
+Route::get('testing', function(){
+	$data1 = array(1,1);
+	$data2 = array(2,1);
+	$data3 = array(4,3);
+	$data4 = array(5,4);
+	$data5 = array(2,6);
+	$data6 = array(3,7);
+	$data7 = array(7,0);
+	$data8 = array(1,2);
+	$data9 = array(7,1);
+	$data10 = array(2,7);
+	$data = array($data1, $data2, $data3, $data4, $data5, $data6, $data7, $data8, $data9, $data10);
+
+	$centroid = array($data1, $data5, $data3, $data6);
+
+	$test = new KmeansManualData;
+	//$test->Clustering(4, 10, $data, 2, $centroid);
+	$test->Clustering(4, 10, $data, 2, $centroid);
+	echo $test->counter."<br />";
+	var_dump($test->resultCluster);
+});
+
 Route::get('cosine', function(){
 
 	function dotproduct($vector1, $vector2){
@@ -1419,6 +1441,8 @@ Route::get('coba', function(){
 	 // }
 	 // var_dump($arrx);
  });
+
+
 
 
 ?>
