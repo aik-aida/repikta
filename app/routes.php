@@ -119,9 +119,89 @@ Route::get('ekstrak_topik', function(){
 	echo $lda->ITERATIONS." iterasi : ".($endTime-$startTime)."detik <br />";
 });
 
+Route::get('gettranskrip', function(){
+	$data = dbTranskripEkivalensi::where('nrp', '=', '5110100018')->get();
+	$mk = dbMataKuliah::all();
+	$no=0;
+	// foreach ($data as $key => $value) {
+	// 	$no++;
+	// 	echo "[".$no."] ".$value->mk_id." : ".$value->nilai_huruf."-".$value->nilai_angka."<br />";
+	// }
+	$dataNRP = dbTranskripEkivalensi::select('nrp')->distinct()->get();
+	$hapus = 0;
+	foreach ($dataNRP as $key => $value) {
+		//echo $value->nrp."<br />";
+		$nrp = $value->nrp;
+		$simpan = Dokumen::find($nrp);
+		if(count($simpan)==0){
+			$simpan = dbDokumen2009::find($nrp);
+		}
+		
+		
+		$json_transkrip = (object) array();
+		foreach ($mk as $key => $mkdata) {
+			$nilai = dbTranskripEkivalensi::where('nrp', '=', $nrp)->where('mk_id', '=', $mkdata->mk_kode)->get();
+			$kode = $mkdata->mk_kode;
+			if(count($nilai)>0){
+				$no++;
+				$id=0;
+				if(count($nilai)>1){
+					$th=0;
+					$sm=0;
+					for ($i=0; $i < count($nilai) ; $i++) { 
+						if($nilai[$i]->tahun >= $th){
+							if($nilai[$i]->semester >= $sm){
+								$th = $nilai[$i]->tahun;
+								$sm = $nilai[$i]->semester;
+								$id = $i;
+							}
+						}
+					}
+					//echo "[".$no."] ".$nilai[$id]->mk_id." : ".$nilai[$id]->nilai_huruf."-".$nilai[$id]->nilai_angka."<br />";
+					$json_transkrip->$kode = $nilai[$id]->nilai_angka;
+					
+					$hapus += (count($nilai)-1);
+				}
+				elseif (count($nilai)==1) {
+					//echo "[".$no."] ".$nilai[0]->mk_id." : ".$nilai[0]->nilai_huruf."-".$nilai[0]->nilai_angka."<br />";
+
+					$json_transkrip->$kode = $nilai[0]->nilai_angka;
+					$id=0;
+				}
+					$tambah = new dbTranskrip;
+					$tambah->tahun = $nilai[$id]->tahun;
+					$tambah->semester = $nilai[$id]->semester;
+					$tambah->nrp = $nilai[$id]->nrp;
+					$tambah->mk_tahun = $nilai[$id]->mk_tahun;
+					$tambah->mk_id = $nilai[$id]->mk_id;
+					$tambah->nilai_angka = $nilai[$id]->nilai_angka;
+					$tambah->nilai_huruf = $nilai[$id]->nilai_huruf;
+					$tambah->nilai_1 = $nilai[$id]->nilai_1;
+					$tambah->nilai_2 = $nilai[$id]->nilai_2;
+					$tambah->nilai_3 = $nilai[$id]->nilai_3;
+					$tambah->nilai_4 = $nilai[$id]->nilai_4;
+					$tambah->save();
+					echo "111<br />";
+			}
+			else{
+				//echo "---".$mkdata->mk_kode."---<br />";
+				$json_transkrip->$kode = 0.0;
+			}
+		}
+
+		//echo "xxx ".$simpan->nama."<br />";
+		// var_dump($json_transkrip);
+		// echo count($nilai);
+		$simpan->transkrip = json_encode($json_transkrip);
+		$simpan->save();
+	}
+	echo "hilang ".$hapus." data";
+});
+
 Route::get('data', function()
 {
-	
+	//gabungin data ta akademik
+	/*
 	$source = Abstrak110p::all();
 
 	//var_dump($source);
@@ -166,8 +246,11 @@ Route::get('data', function()
 			$count_updt++;
 			echo "update_data_".$count_updt."<br />";
 		}
-	}
+	}*/
+
+
 });
+
 
 //preprocessing all dokumen
 Route::get('preprocessing', function()
@@ -747,10 +830,317 @@ Route::get('check', function(){
 });
 
 
+Route::get('transkrip', function(){
+	//EKUIVALENSI
+	// $dataEQ = dbTranskripEkivalensi::where('mk_tahun', '=', '2014')->get();
+
+	// //melihat mk 2014 yang butuh di ekuivalensiin.
+	// // $mk2014 = dbTranskripEkivalensi::select('mk_tahun','mk_id')->where('mk_tahun','=','2014')->distinct()->get();
+	// // foreach ($mk2014 as $key => $value) {
+	// // 	echo $value->mk_tahun."-".$value->mk_id."<br />";
+	// // }
+	
+
+	// foreach ($dataEQ as $key => $value) {
+	// 	echo $value->nrp." : ".$value->mk_tahun.",".$value->mk_id." == ";
+	// 	$new_id='';
+	// 	switch ($value->mk_id) {
+	// 		case 'KI1502':
+	// 			$new_id='KI1391';
+	// 			break;
+	// 		case 'KI1431':
+	// 			$new_id='KI1338';
+	// 			break;
+	// 		case 'KI1330':
+	// 			$new_id='KI1392';
+	// 			break;
+	// 		case 'KI1410':
+	// 			$new_id='KI1336';
+	// 			break;
+	// 		case 'KI1418':
+	// 			$new_id='KI1355';
+	// 			break;
+	// 		case 'KI1437':
+	// 			$new_id='KI1339';
+	// 			break;
+	// 		case 'KI1428':
+	// 			$new_id='KI1341';
+	// 			break;
+	// 		case 'KI1425':
+	// 			$new_id='KI1379';
+	// 			break;
+	// 		case 'KI1417':
+	// 			$new_id='KI1375';
+	// 			break;
+	// 		case 'KI1426':
+	// 			$new_id='KI1357';
+	// 			break;
+	// 		case 'KI1419':
+	// 			$new_id='KI1358';
+	// 			break;
+	// 		case 'KI1427':
+	// 			$new_id='KI1380';
+	// 			break;
+	// 	}
+	// 	$upd = dbTranskripEkivalensi::find($value->id);
+	// 	$upd->mk_tahun = '2009';
+	// 	$upd->mk_id = $new_id;
+	// 	$upd->save();
+
+	// 	$check = dbTranskripEkivalensi::find($value->id);
+	// 	echo $check->mk_tahun.",".$check->mk_id."<br />";
+	// }
+	// echo "coba lihaaaat !!!";
+
+
+	//menyaring transkrip untuk pasangan abstrak.
+	// $dataNRP = array();
+	// $dokumens = Dokumen::all();
+	// $dokumen2009s = array();
+	// $dokumen2009all = dbDokumen2009::all();
+
+	// foreach ($dokumens as $key => $value) {
+	// 	array_push($dataNRP, $value->nrp);
+	// }
+	// foreach ($dokumen2009all as $key => $value) {
+	// 	if($value->judul_ta!=null){
+	// 		array_push($dataNRP, $value->nrp);	
+	// 	}
+	// }
+	
+	// $nrp110 = dbTranskrip110::select('kn_ku_ma_nrp')->distinct()->get();
+	// $nrp111 = dbTranskrip111::select('kn_ku_ma_nrp')->distinct()->get();
+	// $nrpTranskrip = array();
+	// $berapa=0;
+	// foreach ($nrp110 as $key => $value) {
+	// 	$berapa++;
+	// 	echo $berapa."<br />";
+	// 	if(!in_array($value->kn_ku_ma_nrp, $dataNRP)){
+	// 		//dbTranskrip110::where('kn_ku_ma_nrp', '=', $value->kn_ku_ma_nrp)->delete();
+	// 		//echo $value->kn_ku_ma_nrp."<br />";
+	// 		echo "eo gak ada<br />";
+	// 	}
+	// 	else{
+	// 		array_push($nrpTranskrip, $value->kn_ku_ma_nrp);
+	// 	}
+	// }
+	// foreach ($nrp111 as $key => $value) {
+	// 	$berapa++;
+	// 	echo $berapa."<br />";
+	// 	if(!in_array($value->kn_ku_ma_nrp, $dataNRP)){
+	// 		//dbTranskrip111::where('kn_ku_ma_nrp', '=', $value->kn_ku_ma_nrp)->delete();
+	// 		//echo $value->kn_ku_ma_nrp."<br />";
+	// 		echo "eo gak ada<br />";
+	// 	}
+	// 	else{
+	// 		array_push($nrpTranskrip, $value->kn_ku_ma_nrp);
+	// 	}
+	// }
+	// echo "selesai";
+	// echo "hasilnya harus sama : <br />";
+	// // if($dataNRP==$nrpTranskrip)
+	// echo 'abstrak '.count($dataNRP)."<br />";
+	// echo 'transkrip '.count($nrpTranskrip)."<br />";
+	// // 	echo "SAMA";
+	// // else
+	// // 	echo "astaghfirullah";
+	// $no=0;
+	// foreach ($dataNRP as $key => $value) {
+	// 	$no++;
+	// 	echo $no.". ";
+	// 	if(in_array($value, $nrpTranskrip)){
+	// 		echo "ada<br />";
+	// 	}
+	// 	else{
+	// 		echo "---NO---<br />";	
+	// 	}
+	// }
+
+	//-----
+
+	//melihat mk 2014 yang butuh di ekuivalensiin.
+	// $nrp110 = dbTranskrip110::select('kn_ku_ke_kr_mk_ThnKurikulum','kn_ku_ke_kr_mk_id')->distinct()->get();
+	// $nrp111 = dbTranskrip111::select('kn_ku_ke_kr_mk_ThnKurikulum','kn_ku_ke_kr_mk_id')->distinct()->get();
+	// $mk2014 = dbTranskrip111::select('kn_ku_ke_kr_mk_ThnKurikulum','kn_ku_ke_kr_mk_id')->where('kn_ku_ke_kr_mk_ThnKurikulum','=','2014')->distinct()->get();
+	// // foreach ($mk2014 as $key => $value) {
+	// // 	echo $value->kn_ku_ke_kr_mk_ThnKurikulum."-".$value->kn_ku_ke_kr_mk_id."<br />";
+	// // }
+	// $notyet = array('KI1422', 'KI1423', 'KI1430', 'KI1420', 'KI1429', 'KI1434', 'KI1325', 'KI1501');
+	// $nrp = array();
+	// foreach ($notyet as $key => $value) {
+	// 	$daftar = dbTranskrip111::where('kn_ku_ke_kr_mk_ThnKurikulum','=','2014')->where('kn_ku_ke_kr_mk_id','=',$value)->get();
+	// 	if($daftar!=null){
+	// 		foreach ($daftar as $key => $data) {
+	// 			// if(in_array($data->kn_ku_ma_nrp, $nrp)==null){
+	// 			// 	array_push($nrp, $data->kn_ku_ma_nrp);
+	// 			// }
+	// 			array_push($nrp, $data->kn_ku_ma_nrp."-".$data->kn_ku_ke_kr_mk_id);
+	// 		}
+	// 	}
+	// }
+	// foreach ($nrp as $key => $value) {
+	// 	echo $value."<br />";
+	// }
+
+	//hapus mk yang tidak ada dalam ekuivalensi + pra TA
+	// $simpan = new dbTranskripEkivalensi;
+	// 	$simpan->tahun = ;
+	// 	$simpan->semester = ;
+	// 	$simpan->nrp = ;
+	// 	$simpan->mk_tahun = ;
+	// 	$simpan->mk_id = ;
+	// 	$simpan->nilai_angka = ;
+	// 	$simpan->nilai_huruf = ;
+	// 	$simpan->nilai_1 = ;
+	// 	$simpan->nilai_2 = ;
+	// 	$simpan->nilai_3 = ;
+	// 	$simpan->nilai_4 = ;
+
+	// $mkhapus = array('KI1422', 'KI1423', 'KI1430', 'KI1420', 'KI1429', 'KI1434', 'KI1325', 'KI1501');
+	// $data1 = dbTranskrip110::all();
+	// foreach ($data1 as $key => $value) {
+	// 	$simpan = new dbTranskripEkivalensi;
+	// 	$simpan->tahun = $value->kn_ku_ke_tahun;
+	// 	$simpan->semester = $value->kn_ku_ke_idsemester;
+	// 	$simpan->nrp = $value->kn_ku_ma_nrp;
+	// 	$simpan->mk_tahun = $value->kn_ku_ke_kr_mk_ThnKurikulum;
+	// 	$simpan->mk_id = $value->kn_ku_ke_kr_mk_id;
+	// 	$simpan->nilai_angka = $value->kn_ku_nilaiAngka;
+	// 	$simpan->nilai_huruf = $value->kn_ku_nilaiHuruf;
+	// 	$simpan->nilai_1 = $value->kn_ku_n1;
+	// 	$simpan->nilai_2 = $value->kn_ku_n2;
+	// 	$simpan->nilai_3 = $value->kn_ku_n3;
+	// 	$simpan->nilai_4 = $value->kn_ku_n4;
+	// 	$simpan->save();
+	// }
+	// echo "check";
+
+	// $data2 = dbTranskrip111::all();
+	// $hapus=0;
+	// foreach ($data2 as $key => $value) {
+	// 	if(in_array($value->kn_ku_ke_kr_mk_id, $mkhapus) && $value->kn_ku_ke_kr_mk_ThnKurikulum=='2014'){
+	// 		$hapus++;
+	// 		echo $hapus." ".$value->kn_ku_ma_nrp."-".$value->kn_ku_ke_kr_mk_id."<br />";
+	// 	}else{
+	// 		$simpan = new dbTranskripEkivalensi;
+	// 		$simpan->tahun = $value->kn_ku_ke_tahun;
+	// 		$simpan->semester = $value->kn_ku_ke_idsemester;
+	// 		$simpan->nrp = $value->kn_ku_ma_nrp;
+	// 		$simpan->mk_tahun = $value->kn_ku_ke_kr_mk_ThnKurikulum;
+	// 		$simpan->mk_id = $value->kn_ku_ke_kr_mk_id;
+	// 		$simpan->nilai_angka = $value->kn_ku_nilaiAngka;
+	// 		$simpan->nilai_huruf = $value->kn_ku_nilaiHuruf;
+	// 		$simpan->nilai_1 = $value->kn_ku_n1;
+	// 		$simpan->nilai_2 = $value->kn_ku_n2;
+	// 		$simpan->nilai_3 = $value->kn_ku_n3;
+	// 		$simpan->nilai_4 = $value->kn_ku_n4;
+	// 		$simpan->save();	
+	// 	}
+	// }
+	// echo "8248+2629 = 10877";
+});
+
+Route::get('datadata',function(){
+	//masukkan matakuliah
+	// $mk = dbMK::all();
+	// foreach ($mk as $key => $value) {
+	// 	$simpan = new dbMataKuliah;
+	// 	$simpan->mk_kode = $value->MK_ID;
+	// 	$simpan->mk_nama = $value->MK_Mata_Kuliah;
+	// 	$simpan->mk_sks = $value->MK_KreditKuliah;
+	// 	$simpan->mk_rmk = $value->MK_RMK_Kode;
+	// 	$simpan->save();
+	// }
+	// echo "string";
+
+	// $alldata = dbDokumen2009::where('judul_ta','=',null)->get();
+	// $tiktok =0;
+	// foreach ($alldata as $key => $value) {
+	// 	//if($value->judul_ta==null){
+	// 		echo $value->nrp."<br />";
+	// 		$tiktok++;
+	// 	//}
+	// }
+	// echo "---".$tiktok."---";
+	//masukkan nrp 2009
+	// $monta = DB::table('monta')->get();
+	// $cnt = 0;
+	// foreach ($monta as $key => $value) {
+	// 	if(Dokumen::find($value->nrp)==null){
+	// 		$simpan = new dbDokumen2009;
+	// 		$simpan->nrp = $value->nrp;
+	// 		$simpan->rmk = $value->rmk;
+	// 		$simpan->save();
+
+	// 		echo $value->nrp."<br />";
+	// 		$cnt++;	
+	// 	}
+	// }
+	// echo "masuk ".$cnt;
+
+	//masukin nama 2009
+	// $alldata = dbDokumen2009::all();
+	// foreach ($alldata as $key => $value) {
+	// 	$data = dbMahasiswa2009::find($value->nrp);
+	// 	if($data!=null){
+	// 		$update = dbDokumen2009::find($value->nrp);
+	// 		$update->nama = $data->MA_NamaLengkap;
+	// 		$update->save();
+	// 	}
+	// }
+	// echo "cek dokumen 2009";
+
+	//bersihkan data rbtc dr yg udah ada
+	// $alldata = dbRbtc::all();
+	// foreach ($alldata as $key => $doc) {
+	// 	if(Dokumen::find($doc->nrp)!=null){
+	// 		$data = dbRbtc::find($doc->nrp);
+	// 		$data->delete();
+	// 	}
+	// }
+	// echo "bersih";
+
+	//tambahkan 2010 yang 3.5 tahun dan abstrak 2009
+	// $alldata = dbRbtc::all();
+	// $count = 0;
+	// foreach ($alldata as $key => $data) {
+	// 	if($data->nrp!='null'){
+	// 		if(Dokumen::find($data->nrp)==null){
+	// 			echo $data->nrp."<br />";
+	// 			if(dbDokumen2009::find($data->nrp)==null){
+	// 				$simpan = new dbDokumen2009;
+	// 				$simpan->nrp = $data->nrp;
+	// 				$simpan->nama = $data->nama;
+	// 				$simpan->judul_ta = $data->judul;
+	// 				$simpan->abstraksi_ta = $data->abstraksi;
+	// 				$simpan->save();
+
+	// 				$del = dbRbtc::find($data->nrp);
+	// 				$del->delete();
+	// 			}elseif (dbDokumen2009::find($data->nrp)!=null) {
+	// 				$simpan = dbDokumen2009::find($data->nrp);
+	// 				$simpan->nama = $data->nama;
+	// 				$simpan->judul_ta = $data->judul;
+	// 				$simpan->abstraksi_ta = $data->abstraksi;
+	// 				$simpan->save();
+
+	// 				$del = dbRbtc::find($data->nrp);
+	// 				$del->delete();
+	// 			}
+	// 			$count++;
+	// 		}
+	// 		else{
+	// 			$del = dbRbtc::find($data->nrp);
+	// 			$del->delete();
+	// 			echo $data->nrp."<br />";
+	// 		}
+	// 	}
+	// }
+	// echo "yang 3.5 nambah ".$count;
+});
 
 //route for trying anything
-Route::get('coba', function()
-{
+Route::get('coba', function(){
 	// //get substring
 	// echo substr("5110100020", 2, 2);
 
@@ -896,7 +1286,7 @@ Route::get('coba', function()
 	// 	echo "salah";
 
 	//make a centroid
-	 $timer = new TimeExecution;
+	// $timer = new TimeExecution;
 	// $kmeans = new Kmeans;
 	// $start = $timer->getTime();
 	// $kmeans->GenerateCentroidMean(3);
@@ -982,52 +1372,52 @@ Route::get('coba', function()
 	 //k=2
 	 //v=3
 
-	 $phisum = array();
-	 $phisum[0] = array(1,2,3);
-	 $phisum[1] = array(1,1,1);
-	 //var_dump($phisum);
+	 // $phisum = array();
+	 // $phisum[0] = array(1,2,3);
+	 // $phisum[1] = array(1,1,1);
+	 // //var_dump($phisum);
 
-	 $nw = array();
-	 $nw[0] = array(1,2);
-	 $nw[1] = array(3,1);
-	 $nw[2] = array(2,1);
-	 //var_dump($nw);
+	 // $nw = array();
+	 // $nw[0] = array(1,2);
+	 // $nw[1] = array(3,1);
+	 // $nw[2] = array(2,1);
+	 // //var_dump($nw);
 
-	 $nwsum = array(5,10);
+	 // $nwsum = array(5,10);
 
-	 // $count = 2;
-	 $arr = array();
-	 for ($i=0; $i <2 ; $i++) { 
-	 	$arr[$i] = array();
-	 	for ($j=0; $j <3 ; $j++) { 
-	 		$arr[$i][$j] = $phisum[$i][$j];
-	 		//$arr[$i][$j] = $nw[$j][$i]+$nwsum[$i];
-	 	}
-	 }
-	 //var_dump($arr);
+	 // // $count = 2;
+	 // $arr = array();
+	 // for ($i=0; $i <2 ; $i++) { 
+	 // 	$arr[$i] = array();
+	 // 	for ($j=0; $j <3 ; $j++) { 
+	 // 		$arr[$i][$j] = $phisum[$i][$j];
+	 // 		//$arr[$i][$j] = $nw[$j][$i]+$nwsum[$i];
+	 // 	}
+	 // }
+	 // //var_dump($arr);
 
-	 $row = count($arr);
-	 $col = count($arr[0]);
-	 $rra = array();
-	 for ($x=0; $x < $col; $x++) { 
-	 	$rra[$x] =array();
-	 	for ($y=0; $y < $row; $y++) { 
-	 		$rra[$x][$y] = $arr[$y][$x];
-	 	}
-	 }
-	 var_dump($rra);
+	 // $row = count($arr);
+	 // $col = count($arr[0]);
+	 // $rra = array();
+	 // for ($x=0; $x < $col; $x++) { 
+	 // 	$rra[$x] =array();
+	 // 	for ($y=0; $y < $row; $y++) { 
+	 // 		$rra[$x][$y] = $arr[$y][$x];
+	 // 	}
+	 // }
+	 // var_dump($rra);
 
-	 // $count2 = 2;
-	 $arrx = array();
-	 for ($j=0; $j <3 ; $j++) { 
-	 	$arrx[$j]= array();
-	 	for ($i=0; $i <2 ; $i++) { 	
-	 		//$arrx[$j][$i] = $nw[$j][$i]+$nwsum[$i];
-	 		//echo "[".$j."][".$i."] = ".$nw[$j][$i]."+".$nwsum[$i]."<br />";
-	 		$arrx[$j][$i] = $phisum[$i][$j];
-	 	}
-	 }
-	 var_dump($arrx);
+	 // // $count2 = 2;
+	 // $arrx = array();
+	 // for ($j=0; $j <3 ; $j++) { 
+	 // 	$arrx[$j]= array();
+	 // 	for ($i=0; $i <2 ; $i++) { 	
+	 // 		//$arrx[$j][$i] = $nw[$j][$i]+$nwsum[$i];
+	 // 		//echo "[".$j."][".$i."] = ".$nw[$j][$i]."+".$nwsum[$i]."<br />";
+	 // 		$arrx[$j][$i] = $phisum[$i][$j];
+	 // 	}
+	 // }
+	 // var_dump($arrx);
  });
 
 

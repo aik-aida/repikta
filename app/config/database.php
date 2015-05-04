@@ -63,10 +63,10 @@ return array(
 			'prefix'    => '',
 		),
 
-		'repikta1' => array(
+		'akademik' => array(
 			'driver'    => 'mysql',
 			'host'      => 'localhost',
-			'database'  => 'repikta1',
+			'database'  => 'rep_akademik',
 			'username'  => 'root',
 			'password'  => '',
 			'charset'   => 'utf8',
