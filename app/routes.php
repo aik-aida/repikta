@@ -53,7 +53,7 @@ Route::get('varian', function(){
 	// 	$id = DB::table('kmeans_result')->where('id_group', '=' , $dt->id_group)->max('id');
 	// }
 	//29-33
-	$id = DB::table('kmeans_result')->where('id_group', '=' , 48)->max('id');
+	$id = DB::table('kmeans_result')->where('id_group', '=' , 50)->max('id');
 	echo $id."<br />";
 	$hasil = KmeansResult::find($id);
 	echo $hasil->jumlah_kluster."<br />";
@@ -71,7 +71,7 @@ Route::get('clustering',function(){
 	
 	$kmeans = new Kmeans;
 
-	$k = 10;
+	$k = 16;
 	$n = 187;
 
 	echo "n=".$n." - k=".$k."<br />"."<br />";
