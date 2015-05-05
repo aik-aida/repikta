@@ -59,7 +59,8 @@
 					}
 					
 					$dibar = $this->rata2kluster[$i];
-					$distance = $kmeans->CossineSimilarity($di, $dibar);
+					//$distance = $kmeans->CossineSimilarity($di, $dibar);
+					$distance = $kmeans->Euclidean($di, $dibar);
 					$sum += pow($distance, 2);
 				}
 				return ($sum/($nData-1));
@@ -106,7 +107,8 @@
 
 			for ($i=0; $i<$this->jumlahKluster ; $i++) { 
 				$ni = count($this->dataKluster[$i]);
-				$distance = $kmeans->CossineSimilarity($Rata2Centroid[$i], $dbar);
+				//$distance = $kmeans->CossineSimilarity($Rata2Centroid[$i], $dbar);
+				$distance = $kmeans->Euclidean($Rata2Centroid[$i], $dbar);
 				echo "[k-".$i."] ".$distance."<br />";
 				$sum += ($ni*pow($distance, 2));
 			}

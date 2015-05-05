@@ -36,21 +36,7 @@
 
 		public function __construct()
 		{
-			// $this->dokumenData = Dokumen::all();
-			// $this->kamus = KamusKata::all();
-			// $this->gencen = CentroidGenerated::all();
-			// $this->idcentroid = array();
-			// $this->centroid = array();
-			// $this->prevCentroid = array();			
-			// $this->resultCluster = array();
-			// $this->prevResultCluster = array();
-			// $this->MAXiteration = 101;
-			// $this->counter = 0;
-
-			// $this->dokumenID = array();
-			// foreach ($this->dokumenData as $key => $doc) {
-			// 	array_push($this->dokumenID, $doc->nrp);
-			// }
+			
 		}
 
 		public function Clustering($k, $n, $dataC, $v, $cent)
@@ -95,49 +81,11 @@
 				
 			}while ($this->CheckStoppingCriteria($this->prevCentroid, $this->centroid, ($Z-$A), $n, $this->prevResultCluster, $this->resultCluster));
 			
+			echo "Nilai Cluster Variance = ".$this->ClusterVariance($k, $this->resultCluster, $v)."<br />";
 			
-		}
-
-		/*public function SaveProcess($ndoc, $time){
-			
-			$dt = new DateTime;
-			$kmeansNow = KmeansResult::get();
-			if($this->counter==1)
-			{
-				if(count($kmeansNow)==0){
-					$this->idIndukResult = 1;
-				}
-				else{
-					$maxID = DB::table('kmeans_result')->max('id_group');
-					$this->idIndukResult = ($maxID+1);
-				}
-			}
-			$result = array();
-			for ($i=0; $i <$this->k_number ; $i++) { 
-				$result[$i] = array();
-				foreach ($this->resultCluster[$i] as $key => $rst) {
-					array_push($result[$i], $rst->nrp);
-				}
-			}
-
-			$saveKmeans = new KmeansResult();
-			$saveKmeans->teks = $this->idTeks;
-			$saveKmeans->centroid = $this->idC;
-			$saveKmeans->id_group = $this->idIndukResult;
-			$saveKmeans->jumlah_kluster = $this->k_number;
-			//$saveKmeans->id_kluster = json_encode($this->idcentroid);
-			$saveKmeans->centroid_awal = $this->idcentroid;
-			$saveKmeans->centroid_step = json_encode($this->prevCentroid);
-			$saveKmeans->centroid_next = json_encode($this->centroid);
-			$saveKmeans->jumlah_dokumen = $ndoc;
-			$saveKmeans->hasil_kluster = json_encode($result);
-			$saveKmeans->keterangan_iterasi = $this->counter."/".$this->MAXiteration;
-			$saveKmeans->lama_eksekusi = $time;
-			$saveKmeans->waktu_simpan = $dt->format('m-d-y H:i:s');
-			$saveKmeans->save();
 		}
 		
-		public function RandomFirstCentroid($k)
+		/*public function RandomFirstCentroid($k)
 		{
 			$this->k_number = $k;
 			$idcentroid = array();
@@ -166,15 +114,6 @@
 			//var_dump($this->centroid);
 		}*/
 
-		/*public function GetManualCentroid($k,$teks)
-		{
-			$manCentroid = CentroidManual::where('k','=',$k)->where('teks','=',$teks)->get();
-			echo $teks."<br />";
-			$this->k_number = $k;
-			$this->centroid = json_decode($manCentroid[0]->centroid);
-			$this->idcentroid = $manCentroid[0]->id;
-			echo "MANUAL centroid ID : ".$manCentroid[0]->id."<br />";
-		}*/
 
 		public function ResetResult($k){
 			$this->resultCluster = array();
@@ -290,6 +229,120 @@
 			}
 			$this->centroid=array();
 			$this->centroid = $newCentroid;
+		}
+
+		public function ClusterVariance($k, $dataID, $v){
+			//get data hasil kluster
+			$dataKluster = array();
+			for ($i=0; $i<$k ; $i++) { 
+				$dataKluster[$i] = array();
+				foreach ($dataID[$i] as $key => $value) {
+					$datax = $this->data[$value];
+					array_push($dataKluster[$i], $datax);
+					//echo $value."<br />";
+				}
+			}
+
+			//var_dump($dataKluster);
+
+			//hitung rataan masing-masing kluster
+			$rata2kluster = array();
+			for ($i=0; $i<$k ; $i++) {
+				$rata2kluster[$i] = array();
+				$n = count($dataKluster[$i]);
+				for ($j=0; $j <$v ; $j++) { 
+					$sum = 0.0;
+					if($n>0){
+						foreach ($dataKluster[$i] as $key => $dokumen) {
+							$sum += $dokumen[$j];
+						}
+						$avg = $sum/$n;
+						$rata2kluster[$i][$j] = $avg;
+					}
+					else{
+						$rata2kluster[$i][$j] = 0;
+					}
+				}
+			}
+			//var_dump($rata2kluster);
+
+			$vw = $this->CV_VarianWithin($dataKluster, $k, $rata2kluster); echo "VW = ".$vw."<br />";
+			$vb = $this->CV_VarianBetween($dataKluster, $rata2kluster, $v, $k); echo "VB = ".$vb."<br />";
+			$v  = ($vw/$vb); echo "V = ".$v."<br />";
+
+			return $v;
+		}
+
+		public function CV_VarianKluster($i, $kluster_i, $rata2kluster){
+			$sum = 0.0;
+			$nData = count($kluster_i);
+			//$kmeans = new Kmeans;
+
+			if($nData>1){
+				foreach ($kluster_i as $key => $di) {
+					
+					$dibar = $rata2kluster[$i];
+					$distance = $this->Euclidean($di, $dibar);
+					$sum += pow($distance, 2);
+				}
+				return ($sum/($nData-1));
+			}
+			else{
+				return 0;
+			}
+		}
+
+		public function CV_VarianWithin($dataKluster, $k, $rata2k){
+			$Ndata = 0;
+			foreach ($dataKluster as $key => $data) {
+				$Ndata += count($data);
+			}
+
+			//echo "----------------------- Varian Within -----------------------<br />";
+
+			$sum = 0.0;
+			for ($i=0; $i<$k ; $i++) { 
+				$ni = count($dataKluster[$i]);
+				//echo "[k-".$i."] ";
+				$vi = $this->CV_VarianKluster($i, $dataKluster[$i], $rata2k);
+				//echo $vi."<br />";
+				$sum += (($ni-1)*$vi);
+			}
+
+			//echo "-------------------------------------------------------------<br />";
+
+			return $sum/($Ndata-$k);
+		}
+
+		public function CV_AverageOfAverage($rata2kluster, $v, $k){
+			$avg2 = array();
+
+			for ($j=0; $j <$v ; $j++) { 
+				$sum = 0.0;
+				for ($i=0; $i<$k ; $i++) {
+					$sum += $rata2kluster[$i][$j];
+				}
+				$avg = ($sum/$k);
+				$avg2[$j] = $avg;
+			}
+			return $avg2;
+		}
+
+		public function CV_VarianBetween($dataKluster ,$rata2k,  $v, $k){
+			$dbar = $this->CV_AverageOfAverage($rata2k,  $v, $k);
+
+			//echo "----------------------- Varian Between -----------------------<br />";
+
+			$kmeans = new Kmeans;
+			$sum = 0.0;
+
+			for ($i=0; $i<$k ; $i++) { 
+				$ni = count($dataKluster[$i]);
+				$distance = $this->Euclidean($rata2k[$i], $dbar);
+				//echo "[k-".$i."] ".$distance."<br />";
+				$sum += ($ni*pow($distance, 2));
+			}
+			return ($sum/($k-1));
 		}
 	
 		public function GenerateCentroidMean($k, $n, $v)

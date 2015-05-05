@@ -763,12 +763,16 @@ Route::get('testing', function(){
 	$data10 = array(2,7);
 	$data = array($data1, $data2, $data3, $data4, $data5, $data6, $data7, $data8, $data9, $data10);
 
-	$centroid = array($data1, $data5, $data3, $data6);
+	$centroid = array($data1, $data8, $data10, $data6, $data4, $data9); //6
+	//$centroid = array($data1, $data10, $data3, $data4, $data7); //5
+	//$centroid = array($data1, $data5, $data3, $data7); //4
+	//$centroid = array($data10, $data1, $data7); //3
+	//$centroid = array($data1, $data7); //2
 
 	$test = new KmeansManualData;
 	//$test->Clustering(4, 10, $data, 2, $centroid);
-	$test->Clustering(4, 10, $data, 2, $centroid);
-	echo $test->counter."<br />";
+	$test->Clustering(6, 10, $data, 2, $centroid);
+	//echo $test->counter."<br />";
 	var_dump($test->resultCluster);
 });
 

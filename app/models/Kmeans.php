@@ -258,6 +258,19 @@
 			return $index;
 		}
 
+		public function Euclidean($v1, $v2){
+			
+			$fill = 0.0;
+			
+			foreach ($this->kamus as $key => $kata) {
+				$term = $kata->kata_dasar;
+				$fill += pow(($v2->$term - $v1->$term), 2);
+				//echo $cossineArray[$i]."|";
+			}
+
+			return sqrt($fill);
+		}
+
 		public function CossineSimilarity($v1, $v2)
 		{
 			$dot = $this->Similarity_DotProduct($v1, $v2);
