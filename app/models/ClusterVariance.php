@@ -22,6 +22,7 @@
 			$this->idTeks = $teks;
 
 			$simpan = new dbClusterVariance;
+			$simpan->jarak = "euc";
 			$simpan->k = $k;
 			$simpan->id_hasil_kluster = $idResult;
 			$simpan->save();

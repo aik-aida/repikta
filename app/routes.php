@@ -52,8 +52,8 @@ Route::get('varian', function(){
 	// foreach ($id_kluster as $key => $dt) {
 	// 	$id = DB::table('kmeans_result')->where('id_group', '=' , $dt->id_group)->max('id');
 	// }
-	//29-33
-	$id = DB::table('kmeans_result')->where('id_group', '=' , 50)->max('id');
+	//29, 30, 31, 32, 33, 36
+	$id = DB::table('kmeans_result')->where('id_group', '=' , 29)->max('id');
 	echo $id."<br />";
 	$hasil = KmeansResult::find($id);
 	echo $hasil->jumlah_kluster."<br />";
