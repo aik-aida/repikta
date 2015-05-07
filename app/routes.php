@@ -52,15 +52,16 @@ Route::get('varian', function(){
 	// foreach ($id_kluster as $key => $dt) {
 	// 	$id = DB::table('kmeans_result')->where('id_group', '=' , $dt->id_group)->max('id');
 	// }
-	//29, 30, 31, 32, 33, 36
-	$id = DB::table('kmeans_result')->where('id_group', '=' , 29)->max('id');
+	//29, 30, 31, 32, 33, 36 || 37, 38
+	//42, 43 || 44, 45, 46, 48, 49, 50
+	$id = DB::table('kmeans_result')->where('id_group', '=' , 50)->max('id');
 	echo $id."<br />";
 	$hasil = KmeansResult::find($id);
 	echo $hasil->jumlah_kluster."<br />";
 	$hasil_kluster = json_decode($hasil->hasil_kluster);
 	//echo count($hasil_kluster[1])."<br />";
 
-	$nilai_dekat = $KedekatanKluster->ClusterValue($hasil->jumlah_kluster, $hasil_kluster, $id, 'ab');
+	$nilai_dekat = $KedekatanKluster->ClusterValue($hasil->jumlah_kluster, $hasil_kluster, $id, 'ja');
 	$endTime = $counter->getTime();
 	echo $nilai_dekat." - LAMA : ".($endTime-$startTime)." detik <br />";
 });
