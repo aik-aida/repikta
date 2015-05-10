@@ -41,7 +41,32 @@ Route::post('dokumen/nilai_tfidf', 'AdminController@dokumen_tfidf');
 Route::get('kluster', 'AdminController@kluster_list');
 
 Route::post('kluster/detail', 'AdminController@kluster_detail');
-//get TA data (sw 110 111)
+
+Route::get('ekstrak_topik', function(){
+	//hasil kluster semesntara terbaik : kmeans_result id : 125
+
+	$data = KmeansResult::find(125);
+	$hasil = json_decode($data->hasil_kluster);
+	var_dump($hasil[0]);
+
+	$counter = new TimeExecution;
+	$startTime = $counter->getTime();
+	$k = 10;
+	$lda = new LdaGibbsSampling();
+	$lda->TopicExtraction($k);
+		//var_dump($lda->docName);
+		//echo (array_search('aida', $lda->vocab));
+		//echo($lda->Mdoc);
+		// $d = Dokumen::find('5109100003');
+		// echo($d->abstrak_af_preproc);
+		// var_dump($lda->corpus[0]);
+	// echo "phi[][] : <br />"; var_dump($lda->phi);
+	// echo "<br />---------------------------------------------------------------<br />";
+	// echo "theta[][] : <br />"; var_dump($lda->theta);
+	// echo "<br />---------------------------------------------------------------<br />";
+	$endTime = $counter->getTime();
+	echo $lda->ITERATIONS." iterasi : ".($endTime-$startTime)."detik <br />";
+});
 
 Route::get('varian', function(){
 	$counter = new TimeExecution;
@@ -99,26 +124,6 @@ Route::get('clustering',function(){
 	
 });
 
-Route::get('ekstrak_topik', function(){
-	$counter = new TimeExecution;
-	$startTime = $counter->getTime();
-	$k = 10;
-	$lda = new LdaGibbsSampling();
-	$lda->TopicExtraction($k);
-		//var_dump($lda->docName);
-		//echo (array_search('aida', $lda->vocab));
-		//echo($lda->Mdoc);
-		// $d = Dokumen::find('5109100003');
-		// echo($d->abstrak_af_preproc);
-		// var_dump($lda->corpus[0]);
-	echo "phi[][] : <br />"; var_dump($lda->phi);
-	echo "<br />---------------------------------------------------------------<br />";
-	echo "theta[][] : <br />"; var_dump($lda->theta);
-	echo "<br />---------------------------------------------------------------<br />";
-	$endTime = $counter->getTime();
-	echo $lda->ITERATIONS." iterasi : ".($endTime-$startTime)."detik <br />";
-});
-
 Route::get('gettranskrip', function(){
 	$data = dbTranskripEkivalensi::where('nrp', '=', '5110100018')->get();
 	$mk = dbMataKuliah::all();
@@ -127,20 +132,24 @@ Route::get('gettranskrip', function(){
 	// 	$no++;
 	// 	echo "[".$no."] ".$value->mk_id." : ".$value->nilai_huruf."-".$value->nilai_angka."<br />";
 	// }
-	$dataNRP = dbTranskripEkivalensi::select('nrp')->distinct()->get();
-	$hapus = 0;
+
+	//$dataNRP = dbTranskripEkivalensi::select('nrp')->distinct()->get();
+	$dataNRP = dbDokumen2009::select('nrp')->where('transkrip','=',null)->distinct()->get();
+	$total = 0;
 	foreach ($dataNRP as $key => $value) {
 		//echo $value->nrp."<br />";
 		$nrp = $value->nrp;
-		$simpan = Dokumen::find($nrp);
-		if(count($simpan)==0){
-			$simpan = dbDokumen2009::find($nrp);
-		}
-		
+		$simpan = dbDokumen2009::find($nrp);
+		// $simpan = Dokumen::find($nrp);
+		// if(count($simpan)==0){
+		// 	$simpan = dbDokumen2009::find($nrp);
+		// }
+		echo "NRP : ".$nrp." - ";
+		$totalnilai = 0;
 		
 		$json_transkrip = (object) array();
 		foreach ($mk as $key => $mkdata) {
-			$nilai = dbTranskripEkivalensi::where('nrp', '=', $nrp)->where('mk_id', '=', $mkdata->mk_kode)->get();
+			$nilai = dbTranskrip110all::where('kn_ku_ma_nrp', '=', $nrp)->where('kn_ku_ke_kr_mk_id', '=', $mkdata->mk_kode)->get();
 			$kode = $mkdata->mk_kode;
 			if(count($nilai)>0){
 				$no++;
@@ -149,39 +158,54 @@ Route::get('gettranskrip', function(){
 					$th=0;
 					$sm=0;
 					for ($i=0; $i < count($nilai) ; $i++) { 
-						if($nilai[$i]->tahun >= $th){
-							if($nilai[$i]->semester >= $sm){
-								$th = $nilai[$i]->tahun;
-								$sm = $nilai[$i]->semester;
+						if($nilai[$i]->kn_ku_ke_tahun >= $th){
+							if($nilai[$i]->kn_ku_ke_idsemester >= $sm){
+								$th = $nilai[$i]->kn_ku_ke_tahun;
+								$sm = $nilai[$i]->kn_ku_ke_idsemester;
 								$id = $i;
 							}
 						}
 					}
 					//echo "[".$no."] ".$nilai[$id]->mk_id." : ".$nilai[$id]->nilai_huruf."-".$nilai[$id]->nilai_angka."<br />";
-					$json_transkrip->$kode = $nilai[$id]->nilai_angka;
+					$json_transkrip->$kode = $nilai[$id]->kn_ku_nilaiAngka;
 					
-					$hapus += (count($nilai)-1);
+					//$hapus += (count($nilai)-1);
 				}
 				elseif (count($nilai)==1) {
 					//echo "[".$no."] ".$nilai[0]->mk_id." : ".$nilai[0]->nilai_huruf."-".$nilai[0]->nilai_angka."<br />";
 
-					$json_transkrip->$kode = $nilai[0]->nilai_angka;
+					$json_transkrip->$kode = $nilai[0]->kn_ku_nilaiAngka;
 					$id=0;
 				}
 					$tambah = new dbTranskrip;
-					$tambah->tahun = $nilai[$id]->tahun;
-					$tambah->semester = $nilai[$id]->semester;
-					$tambah->nrp = $nilai[$id]->nrp;
-					$tambah->mk_tahun = $nilai[$id]->mk_tahun;
-					$tambah->mk_id = $nilai[$id]->mk_id;
-					$tambah->nilai_angka = $nilai[$id]->nilai_angka;
-					$tambah->nilai_huruf = $nilai[$id]->nilai_huruf;
-					$tambah->nilai_1 = $nilai[$id]->nilai_1;
-					$tambah->nilai_2 = $nilai[$id]->nilai_2;
-					$tambah->nilai_3 = $nilai[$id]->nilai_3;
-					$tambah->nilai_4 = $nilai[$id]->nilai_4;
+					// $tambah->tahun = $nilai[$id]->tahun;
+					// $tambah->semester = $nilai[$id]->semester;
+					// $tambah->nrp = $nilai[$id]->nrp;
+					// $tambah->mk_tahun = $nilai[$id]->mk_tahun;
+					// $tambah->mk_id = $nilai[$id]->mk_id;
+					// $tambah->nilai_angka = $nilai[$id]->nilai_angka;
+					// $tambah->nilai_huruf = $nilai[$id]->nilai_huruf;
+					// $tambah->nilai_1 = $nilai[$id]->nilai_1;
+					// $tambah->nilai_2 = $nilai[$id]->nilai_2;
+					// $tambah->nilai_3 = $nilai[$id]->nilai_3;
+					// $tambah->nilai_4 = $nilai[$id]->nilai_4;
+
+					$tambah->tahun = $nilai[$id]->kn_ku_ke_tahun;
+					$tambah->semester = $nilai[$id]->kn_ku_ke_idsemester;
+					$tambah->nrp = $nilai[$id]->kn_ku_ma_nrp;
+					$tambah->mk_tahun = $nilai[$id]->kn_ku_ke_kr_mk_ThnKurikulum;
+					$tambah->mk_id = $nilai[$id]->kn_ku_ke_kr_mk_id;
+					$tambah->nilai_angka = $nilai[$id]->kn_ku_nilaiAngka;
+					$tambah->nilai_huruf = $nilai[$id]->kn_ku_nilaiHuruf;
+					$tambah->nilai_1 = $nilai[$id]->kn_ku_n1;
+					$tambah->nilai_2 = $nilai[$id]->kn_ku_n2;
+					$tambah->nilai_3 = $nilai[$id]->kn_ku_n3;
+					$tambah->nilai_4 = $nilai[$id]->kn_ku_n4;
 					$tambah->save();
-					echo "111<br />";
+
+					$totalnilai++;
+					$total++;
+					//echo "111<br />";
 			}
 			else{
 				//echo "---".$mkdata->mk_kode."---<br />";
@@ -192,10 +216,27 @@ Route::get('gettranskrip', function(){
 		//echo "xxx ".$simpan->nama."<br />";
 		// var_dump($json_transkrip);
 		// echo count($nilai);
+		echo $totalnilai."<br />";
 		$simpan->transkrip = json_encode($json_transkrip);
 		$simpan->save();
 	}
-	echo "hilang ".$hapus." data";
+	echo "masuk ".$total." data";
+});
+
+Route::get('inisial', function(){
+	$prepoc = new Preprocessing;
+	$prepoc->Reset_TfIdf();
+	$file_cent = $prepoc->ReadFile("./data/dt_centroid.txt");
+	$dt_cent = $prepoc->ReadCentroid($file_cent);
+	$dt_train = $prepoc->ReadFile("./data/dt_training.txt");
+	$dt_test = $prepoc->ReadFile("./data/dt_testing.txt");
+	$prepoc->Set_training_testing($dt_train, $dt_test);
+	$training = Dokumen::where('training','=',true)->get();
+	foreach ($training as $key => $value) {
+		echo $value->nrp."<br />";
+	}
+	//count($training);
+	echo "done";
 });
 
 Route::get('data', function()
@@ -857,6 +898,47 @@ Route::get('check', function(){
 
 
 Route::get('transkrip', function(){
+	//--databaru--
+	// $data = dbDokumen2009::select('nrp')->where('transkrip','=',null)->get();
+	// $i=0;
+	// foreach ($data as $key => $value) {
+	// 	//echo $value->nrp."<br />";
+	// 	//$i++;
+	// }
+	// //echo "jumlah ".$i;
+
+	// $tr = dbTranskrip110::all();
+	// foreach ($data as $key => $value) {
+	// 	//$get = dbTranskrip110::find($value->nrp);
+	// 	// $get = dbTranskrip110all::find($value->nrp);
+	// 	// if(count($get)>0){
+	// 	// 	echo $value->nrp."<br />";
+	// 	// 	$i++;
+	// 	// }
+
+	// 	$db = DB::table('trans_jurusansw110_')->get();
+	// 	$ii=0;
+	// 	echo "--- ".$value->nrp." ---<br />";
+	// 	foreach ($db as $key => $data) {
+	// 		if($data->kn_ku_ma_nrp == $value->nrp){
+	// 			echo "********** ".$data->kn_ku_ke_kr_mk_ThnKurikulum." - ".$data->kn_ku_ke_kr_mk_id." - ".$data->kn_ku_nilaiAngka."<br />";
+	// 			$ii++;
+	// 		}
+	// 	}
+	// 	echo "banyak nilai : ".$ii."<br />";
+	// }
+	//echo "jumlah ".$i;
+
+	$data = dbDokumen2009::select('nrp')->where('transkrip','=',null)->distinct()->get();
+	foreach ($data as $key => $value) {
+		echo $value->nrp."<br />";
+	}
+
+	
+
+
+
+
 	//EKUIVALENSI
 	// $dataEQ = dbTranskripEkivalensi::where('mk_tahun', '=', '2014')->get();
 
@@ -1167,6 +1249,25 @@ Route::get('datadata',function(){
 
 //route for trying anything
 Route::get('coba', function(){
+	//jadiin satu dokumen
+	$data = dbDokumen2009::all();
+	$c=0;
+	foreach ($data as $key => $dt) {
+		$cek = Dokumen::find($dt->nrp);
+		if($cek==null){
+			$tambah = new Dokumen;
+			$tambah->nrp = $dt->nrp;
+			$tambah->rmk = $dt->rmk;
+			$tambah->nama = $dt->nama;
+			$tambah->judul_ta = $dt->judul_ta;
+			$tambah->abstraksi_ta = $dt->abstraksi_ta;
+			$tambah->transkrip = $dt->transkrip;
+			$tambah->save();
+			$c++;
+		}
+	}
+	echo($c);
+
 	// //get substring
 	// echo substr("5110100020", 2, 2);
 
@@ -1446,7 +1547,27 @@ Route::get('coba', function(){
 	 // var_dump($arrx);
  });
 
+Route::get('baca', function(){
+	$file = fopen("./data/dt_training.txt","r");
+	$arrNRP = array();
+	while(! feof($file))
+	{
+		array_push($arrNRP, fgets($file));
+	}
 
+	fclose($file);
+	var_dump($arrNRP);
+	foreach ($arrNRP as $key => $value) {
+		echo $value."<br />";
+	}
 
-
+	// $contents = File::get("./data/dt_training.txt");
+	// //var_dump($contents);
+	// echo $contents."<br />";
+	// $arrNRP = explode("/n", $contents);
+	// foreach ($arrNRP as $key => $value) {
+	// 	echo $value.'-';
+	// }
+});
+	
 ?>
