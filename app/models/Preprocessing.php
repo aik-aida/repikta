@@ -57,7 +57,7 @@
 				$doc->nilai_tfidf_abstrak = json_encode($tfidf);
 				$doc->nilai_tfidf_judul = json_encode($judul_tfidf);
 				$doc->save();
-				echo $dokumen->nrp."<br />";
+				//echo $dokumen->nrp."<br />";
 			}
 		}
 
