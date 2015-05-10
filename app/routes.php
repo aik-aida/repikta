@@ -233,10 +233,7 @@ Route::get('inisial', function(){
 	$dt_test = $prepoc->ReadFile("./data/dt_testing.txt");
 	$prepoc->Set_training_testing($dt_train, $dt_test);
 	$training = Dokumen::where('training','=',true)->get();
-	foreach ($training as $key => $value) {
-		echo $value->nrp."<br />";
-	}
-	//count($training);
+	
 	echo "done";
 });
 
@@ -297,51 +294,7 @@ Route::get('data', function()
 //preprocessing all dokumen
 Route::get('preprocessing', function()
 {
-	//mengambil seluruh data dokumen
-	$dokumens = Dokumen::all();
-
-	//pra proses untuk setiap dokumen
-	foreach ($dokumens as $key => $value) {
-		$teks = (object) array("input","afstemming","afremoval","output");
-		$teks->input = $value->abstraksi_ta;
-
-		//tokenizing dan stemming sastrawi
-		$stemmerFactory = new \Sastrawi\Stemmer\StemmerFactory();
-		$stemmer  = $stemmerFactory->createStemmer();
-		$teks->afstemming = $stemmer->stem($teks->input);
-
-		//stopword removal sastrawi
-		$stopwordRemoval= new \Sastrawi\StopWordRemover\StopWordRemoverFactory();
-		$removal  = $stopwordRemoval->createStopWordRemover();
-		$teks->afremoval = $removal->remove($teks->afstemming);
-
-		//prose tambahan penghilangan teks angka
-		$content = explode(" ", $teks->afremoval);
-		$delword = array();
-		foreach ($content as $key => $val) {
-			$get_number = preg_replace("/[^0-9]/","",$val);
-			if(is_numeric($get_number))
-			{
-				array_push($delword, $val);
-			}
-		}
-		array_push($delword, '0');
-		array_push($delword, '1');
-		array_push($delword, '2');
-		array_push($delword, '3');
-		array_push($delword, '4');
-		array_push($delword, '5');
-		array_push($delword, '6');
-		array_push($delword, '7');
-		array_push($delword, '8');
-		array_push($delword, '9');
-		$teks->output = str_replace($delword, '', $teks->afremoval);
-
-		//menyimpan hasil pra proses dokumen
-		$update_preprocessing = Dokumen::find($value->nrp);
-		$update_preprocessing->abstrak_af_preproc = $teks->output;
-		$update_preprocessing->save();
-	}
+	
 });
 
 //preprocessing JUDUL all dokumen
