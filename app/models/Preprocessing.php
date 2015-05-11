@@ -102,7 +102,7 @@
 					$term = $kata->kata_dasar;
 					$nword = substr_count($dokumen->judul_af_preproc, ' '.$term.' ');
 					$nall = str_word_count($dokumen->judul_af_preproc,0);
-					$judul_tfvector->term = (float)((float)$nword/(float)$nall);			
+					$judul_tfvector->$term = (float)((float)$nword/(float)$nall);			
 				}
 
 				$doc = Dokumen::find($dokumen->nrp);
@@ -270,7 +270,7 @@
 				$newCentroid = array();
 				for ($i=0; $i < $k_number; $i++) { 
 						$newCentroid[$i] = (object) array();
-						$n = count($docs[$i]);
+						$n = count($arrNRP[$i]);
 						echo ($i+1)."-".$n."<br />";
 						foreach ($kamus as $key => $kata) {
 							$term = $kata->kata_dasar;
@@ -298,7 +298,7 @@
 			$arrNRP = array();
 			while(! feof($file))
 			{
-				array_push($arrNRP, fgets($file));
+				array_push($arrNRP, trim(fgets($file)));
 			}
 
 			fclose($file);
@@ -348,13 +348,13 @@
 
 		public function Set_training_testing($train, $test){
 			foreach ($train as $key => $value) {
-				$doc = Dokumen::find(trim($value));
+				$doc = Dokumen::find($value);
 				$doc->training = true;
 				$doc->save();
 			}
 			
 			foreach ($test as $key => $value) {
-				$doc = Dokumen::find(trim($value));
+				$doc = Dokumen::find($value);
 				$doc->training = false;
 				$doc->save();
 			}
