@@ -44,18 +44,6 @@
 
 		public function Clustering($k, $n, $teks, $centroid)
 		{
-			// for ($i=0; $i < 3; $i++) { 
-			// 	$this->centroid[$i]=array('satu'=>'1', 'dua'=>'2', 'tiga'=>'3');
-			// }
-			// var_dump($this->centroid);
-			// $this->prevCentroid = $this->centroid;
-			// var_dump($this->prevCentroid);
-			// for ($i=0; $i < 3; $i++) { 
-			// 	$this->centroid[$i]=array('satu'=>'satu', 'dua'=>'dua', 'tiga'=>'tiga');
-			// }
-			// var_dump($this->prevCentroid);
-			// var_dump($this->centroid);
-			
 			$counter = new TimeExecution;
 
 			$this->centroid=array();
@@ -72,11 +60,6 @@
 			}
 			echo $this->idTeks."<br />";
 			
-			
-			
-			//echo $this->centroid[0]->skoring;
-			
-			
 			do{
 				$A = $counter->getTime();
 
@@ -88,48 +71,20 @@
 					$this->prevResultCluster = $this->resultCluster;
 				}
 
-				// for ($i=0; $i < count($this->centroid); $i++) { 
-				// 	//$this->prevCentroid[$i] = $this->centroid[$i];
-				// 	$this->prevCentroid[$i] = array();
-				// 	// foreach ($this->kamus as $key => $kata) {
-				// 	// 	$term = $kata->kata_dasar;
-				// 	// 	//$this->prevCentroid[$i]->$term = $this->centroid[$i]->$term;
-				// 	// 	//echo $this->centroid[$i]->$term."<br />";
-				// 	// 	var
-				// 	// }
-				// 	foreach ($variable as $key => $value) {
-				// 		# code...
-				// 	}
-				// }
-				//$aaa = $this->centroid;
-				//var_dump($this->prevCentroid);
 				echo "Iterasi ".$this->counter."<br />";
 				$this->ResetResult($k);
 				for ($i=0; $i <$n ; $i++) { 
-				//foreach ($this->dokumenData as $key => $dokumen) {
 					$dokumen = $this->dokumenData[$i];
 					$idx = $this->FindClosestCluster($dokumen);
-					//echo $idx."<br />";
 					array_push($this->resultCluster[$idx], $dokumen);
 				}
-				
-				// $this->prevResultCluster = array();
-				// $this->prevResultCluster  = $this->resultCluster;
 
 				$this->CalculateMeanCentroid();
 				$Z = $counter->getTime();
 				
-
-				// for ($i=0; $i <count($this->centroid) ; $i++) { 
-				// 	foreach ($this->kamus as $key => $kata) {
-				// 		$term = $kata->kata_dasar;
-				// 		echo $term." : ".$aaa[$i]->$term." -- ".$this->prevCentroid[$i]->$term." -- ".$this->centroid[$i]->$term."<br />";
-				// 	}
-				// }
-				
 			}while ($this->CheckStoppingCriteria($this->prevCentroid, $this->centroid, ($Z-$A), $n, $this->prevResultCluster, $this->resultCluster));
 			
-			
+			return $this->idIndukResult;
 		}
 
 		public function SaveProcess($ndoc, $time){
@@ -169,35 +124,6 @@
 			$saveKmeans->lama_eksekusi = $time;
 			$saveKmeans->waktu_simpan = $dt->format('m-d-y H:i:s');
 			$saveKmeans->save();
-		}
-		
-		public function RandomFirstCentroid($k)
-		{
-			$this->k_number = $k;
-			$idcentroid = array();
-			$n=count($this->dokumenData)-1;
-			$i=0;
-			do {
-				$get = mt_rand(0,$n);
-				if(!(in_array($get, $idcentroid))){
-					array_push($idcentroid, $get);
-					$doc = $this->dokumenData[$get];
-					echo $get." - ".$this->dokumenData[$get]->nrp."<br />";
-					if($this->idTeks=='ja'){
-						$vectorCentroid = json_decode($doc->nilai_tfidf);	
-					}elseif ($this->idTeks=='a') {
-						$vectorCentroid = json_decode($doc->nilai_tfidf_abstrak);
-					}
-					
-					array_push($this->centroid, $vectorCentroid);
-					$i++;
-				}
-			} while ($i < $this->k_number);
-
-			$this->idcentroid = $idcentroid;
-			//return $this->centroid;
-			
-			//var_dump($this->centroid);
 		}
 
 		public function GetManualCentroid($k,$teks)
@@ -583,6 +509,35 @@
 			// $bbb = json_decode($aaa);
 			// var_dump($bbb);*/
 
+		}
+
+		public function RandomFirstCentroid($k)
+		{
+			$this->k_number = $k;
+			$idcentroid = array();
+			$n=count($this->dokumenData)-1;
+			$i=0;
+			do {
+				$get = mt_rand(0,$n);
+				if(!(in_array($get, $idcentroid))){
+					array_push($idcentroid, $get);
+					$doc = $this->dokumenData[$get];
+					echo $get." - ".$this->dokumenData[$get]->nrp."<br />";
+					if($this->idTeks=='ja'){
+						$vectorCentroid = json_decode($doc->nilai_tfidf);	
+					}elseif ($this->idTeks=='a') {
+						$vectorCentroid = json_decode($doc->nilai_tfidf_abstrak);
+					}
+					
+					array_push($this->centroid, $vectorCentroid);
+					$i++;
+				}
+			} while ($i < $this->k_number);
+
+			$this->idcentroid = $idcentroid;
+			//return $this->centroid;
+			
+			//var_dump($this->centroid);
 		}
 	}
 ?>
