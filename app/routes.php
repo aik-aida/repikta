@@ -227,12 +227,16 @@ Route::get('gettranskrip', function(){
 Route::get('inisial', function(){
 	$prepoc = new Preprocessing;
 	$prepoc->Reset_TfIdf();
+
 	$file_cent = $prepoc->ReadFile("./data/dt_centroid.txt");
 	$dt_cent = $prepoc->ReadCentroid($file_cent);
 	$dt_train = $prepoc->ReadFile("./data/dt_training.txt");
 	$dt_test = $prepoc->ReadFile("./data/dt_testing.txt");
 	$prepoc->Set_training_testing($dt_train, $dt_test);
-	$training = Dokumen::where('training','=',true)->get();
+	
+	$prepoc->PreprocessingText();
+	$prepoc->DistinctTerm();
+
 	
 	echo "done";
 });
@@ -289,150 +293,6 @@ Route::get('data', function()
 
 
 });
-
-
-//preprocessing all dokumen
-Route::get('preprocessing', function()
-{
-	
-});
-
-//preprocessing JUDUL all dokumen
-Route::get('preprocessing_judul', function()
-{
-	$counter = new TimeExecution;
-	$startTime = $counter->getTime();
-
-	//mengambil seluruh data dokumen
-	$dokumens = Dokumen::all();
-
-	//pra proses untuk setiap dokumen
-	foreach ($dokumens as $key => $value) {
-		$teks = (object) array("input","afstemming","afremoval","output");
-		$teks->input = $value->judul_ta;
-
-		//tokenizing dan stemming sastrawi
-		$stemmerFactory = new \Sastrawi\Stemmer\StemmerFactory();
-		$stemmer  = $stemmerFactory->createStemmer();
-		$teks->afstemming = $stemmer->stem($teks->input);
-
-		//stopword removal sastrawi
-		$stopwordRemoval= new \Sastrawi\StopWordRemover\StopWordRemoverFactory();
-		$removal  = $stopwordRemoval->createStopWordRemover();
-		$teks->afremoval = $removal->remove($teks->afstemming);
-
-		//prose tambahan penghilangan teks angka
-		$content = explode(" ", $teks->afremoval);
-		$delword = array();
-		foreach ($content as $key => $val) {
-			$get_number = preg_replace("/[^0-9]/","",$val);
-			if(is_numeric($get_number))
-			{
-				array_push($delword, $val);
-			}
-		}
-		array_push($delword, '0');
-		array_push($delword, '1');
-		array_push($delword, '2');
-		array_push($delword, '3');
-		array_push($delword, '4');
-		array_push($delword, '5');
-		array_push($delword, '6');
-		array_push($delword, '7');
-		array_push($delword, '8');
-		array_push($delword, '9');
-		$teks->output = str_replace($delword, '', $teks->afremoval);
-
-		//menyimpan hasil pra proses dokumen
-		$update_preprocessing = Dokumen::find($value->nrp);
-		$update_preprocessing->judul_af_preproc = " ".$teks->output." ";
-		$update_preprocessing->save();
-	}
-
-	$endTime = $counter->getTime();
-	echo "LAMA : ".($endTime-$startTime)." detik <br />";
-});
-
-//get distinct term in all document
-Route::get('getwords', function()
-{
-	
-	//$dokumen = Dokumen::find('5109100005');
-	//$dokumen = Dokumen::all();
-	//echo $dokumen->abstrak_af_preproc."<br />"."<br />";
-	// foreach ($dokumen as $key => $data) {
-	// 	$words = explode(' ', $dokumen->abstrak_af_preproc);
-	// 	foreach ($words as $key => $kata) {
-	// 		if(KamusKata::find($kata)==null)
-	// 			array_push($new_words, $kata);
-	// 	}
-	// }
-
-	//$new = array();
-	$count = 0;
-	$dokumen = Dokumen::all();
-	$cDoc = count($dokumen);
-	for ($i=0; $i < $cDoc	; $i++) { 
-		echo $i."-".$dokumen[$i]->nrp."<br />";
-		$words = explode(' ', $dokumen[$i]->abstrak_af_preproc);
-		$judul = explode(' ', $dokumen[$i]->judul_af_preproc);
-		foreach ($words as $key => $kata) {
-			if(KamusKata::find($kata)==null && $kata!=' ' && strlen($kata)!=0){
-				//array_push($new, $kata);
-				$check = new KamusKata;
-				$check->kata_dasar = $kata;
-				$check->save();
-				$count++;
-			}
-		}
-		foreach ($judul as $key => $kata) {
-			if(KamusKata::find($kata)==null && $kata!=' ' && strlen($kata)!=0){
-				//array_push($new, $kata);
-				$check = new KamusKata;
-				$check->kata_dasar = $kata;
-				$check->save();
-				$count++;
-			}
-		}
-	}
-	//var_dump($new);
-	echo($count);
-
-	// $distinct_word = CekAbstrak::all();
-	// foreach ($distinct_word as $key => $value) {
-	// 	$word = new KamusKata;
-	// 	$word->kata_dasar = $value->kata;
-	// 	$word->save();
-	// 	//CekAbstrak::destroy($value->id);
-	// 	//echo "delete ".$value->id."<br />";
-	// }
-});
-
-//get distinct term in all document
-Route::get('getwords_judul', function()
-{
-	$counter = new TimeExecution;
-	$startTime = $counter->getTime();
-	$count=0;
-	$dokumen = Dokumen::all();
-	for ($i=0; $i < count($dokumen)	; $i++) { 
-		echo $i."-".$dokumen[$i]->nrp."<br />";
-		$words = explode(' ', $dokumen[$i]->judul_af_preproc);
-		foreach ($words as $key => $kata) {
-			if(KamusJudul::find($kata)==null){
-				//array_push($new, $kata);
-				$check = new KamusJudul;
-				$check->kata_dasar = $kata;
-				$check->save();
-				$count++;
-			}
-		}
-	}
-	echo($count);
-	$endTime = $counter->getTime();
-	echo "<br />LAMA : ".($endTime-$startTime)." detik <br />";
-});
-
 
 Route::get('count_idf_abstrak',function()
 {

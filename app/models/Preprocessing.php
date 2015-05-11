@@ -27,9 +27,48 @@
 
 		}
 
+		public function DistinctTerm(){
+			$count = 0;
+			$countJ = 0;
+			$dokumen = Dokumen::where('training','=',true)->get();
+
+			$cDoc = count($dokumen);
+			for ($i=0; $i < $cDoc	; $i++) { 
+				//echo $i."-".$dokumen[$i]->nrp."<br />";
+				$words = explode(' ', $dokumen[$i]->abstrak_af_preproc);
+				$judul = explode(' ', $dokumen[$i]->judul_af_preproc);
+				foreach ($words as $key => $kata) {
+					if(KamusKata::find($kata)==null && $kata!=' ' && strlen($kata)!=0){
+						//array_push($new, $kata);
+						$check = new KamusKata;
+						$check->kata_dasar = $kata;
+						$check->save();
+						$count++;
+					}
+				}
+				foreach ($judul as $key => $kata) {
+					if(KamusKata::find($kata)==null && $kata!=' ' && strlen($kata)!=0){
+						//array_push($new, $kata);
+						$check = new KamusKata;
+						$check->kata_dasar = $kata;
+						$check->save();
+						$count++;
+					}
+
+					if(KamusJudul::find($kata)==null && $kata!=' ' && strlen($kata)!=0){
+						//array_push($new, $kata);
+						$check = new KamusJudul;
+						$check->kata_dasar = $kata;
+						$check->save();
+						$countJ++;
+					}
+				}
+			}
+		}
+
 		public function PreprocessingText(){
 			//mengambil seluruh data dokumen
-			$docs_training = Dokumen::where('training','=',true)->get();
+			$dokumens = Dokumen::all();
 
 			//pra proses untuk setiap dokumen
 			foreach ($dokumens as $key => $value) {
@@ -51,33 +90,39 @@
 				$teks->afremoval = $removal->remove($teks->afstemming);
 				$judul->afremoval = $removal->remove($judul->afstemming);
 
-				//prose tambahan penghilangan teks angka
-				$content_teks = explode(" ", $teks->afremoval);
-				$delword = array();
-				foreach ($content as $key => $val) {
-					$get_number = preg_replace("/[^0-9]/","",$val);
-					if(is_numeric($get_number))
-					{
-						array_push($delword, $val);
-					}
-				}
-				array_push($delword, '0');
-				array_push($delword, '1');
-				array_push($delword, '2');
-				array_push($delword, '3');
-				array_push($delword, '4');
-				array_push($delword, '5');
-				array_push($delword, '6');
-				array_push($delword, '7');
-				array_push($delword, '8');
-				array_push($delword, '9');
-				$teks->output = str_replace($delword, '', $teks->afremoval);
+				//proses tambahan penghilangan teks angka
+				$teks->output = $this->AdditionalPreproc($teks->afremoval);
+				$judul->output = $this->AdditionalPreproc($judul->afremoval);
 
 				//menyimpan hasil pra proses dokumen
 				$update_preprocessing = Dokumen::find($value->nrp);
-				$update_preprocessing->abstrak_af_preproc = $teks->output;
+				$update_preprocessing->abstrak_af_preproc = " ".$teks->output." ";
+				$update_preprocessing->judul_af_preproc = " ".$judul->output." ";
 				$update_preprocessing->save();
 			}
+		}
+
+		public function AdditionalPreproc($teks){
+			$content = explode(" ", $teks);
+			$delword = array();
+			foreach ($content as $key => $val) {
+				$get_number = preg_replace("/[^0-9]/","",$val);
+				if(is_numeric($get_number))
+				{
+					array_push($delword, $val);
+				}
+			}
+			array_push($delword, '0');
+			array_push($delword, '1');
+			array_push($delword, '2');
+			array_push($delword, '3');
+			array_push($delword, '4');
+			array_push($delword, '5');
+			array_push($delword, '6');
+			array_push($delword, '7');
+			array_push($delword, '8');
+			array_push($delword, '9');
+			return str_replace($delword, '', $teks);
 		}
 
 		public function ReadFile($pathFile){
