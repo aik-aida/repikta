@@ -25,9 +25,9 @@
 
 		public function __construct()
 		{
-			$this->dokumenData = Dokumen::all();
+			$this->dokumenData = Dokumen::where('training','=',true)->get();
 			$this->kamus = KamusKata::all();
-			$this->gencen = CentroidGenerated::all();
+			//$this->gencen = CentroidGenerated::all();
 			$this->idcentroid = array();
 			$this->centroid = array();
 			$this->prevCentroid = array();			
@@ -50,6 +50,7 @@
 			$this->idTeks = $teks;
 			$this->idC = $centroid;
 			//$this->RandomFirstCentroid($k);
+			echo $centroid."<br />";
 			if($centroid=='g') {
 				$this->GenerateCentroidMean($k, $n);
 				echo "generated<br />";
@@ -59,6 +60,7 @@
 				echo "manual<br />";
 			}
 			echo $this->idTeks."<br />";
+
 			
 			do{
 				$A = $counter->getTime();

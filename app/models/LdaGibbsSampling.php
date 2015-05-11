@@ -173,6 +173,7 @@
 			$k = ($K-1);
 			for ($m=0; $m<$M ; $m++) { 
 				$N = count($C[$m]);
+				$bertopik = 0;
 
 				for ($n=0; $n<$N ; $n++) { 
 					$idTerm = $C[$m][$n];
@@ -182,13 +183,14 @@
 						$this->nw[$idTerm][$idTopic]++;		//menambahkan jumlah term idTerm yang bertopik idTopic
 						$this->nd[$m][$idTopic]++;			//menambahkan jumlah topik idTopic yang muncul pada dokumen m
 						$this->nwsum[$idTopic]++;			//menambahkan jumlah topik idTopic yang muncul dalam corpus dokumen
+						$bertopik++;
 					}
 					else{
 						$this->zTopic[$m][$n] = -1;	
 					}
 				}
 
-				$this->ndsum[$m] = $N;	//menambahkan banyak kemunculan topic untuk setiap dokumen m
+				$this->ndsum[$m] = $bertopik;	//menambahkan banyak kemunculan topic untuk setiap dokumen m
 			}
 		}
 

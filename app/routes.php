@@ -70,46 +70,46 @@ Route::get('ekstrak_topik', function(){
 
 
 Route::get('clustering',function(){
-	$counter = new TimeExecution;
-	$startTime = $counter->getTime();
+	// $counter = new TimeExecution;
+	// $startTime = $counter->getTime();
 	
-	$kmeans = new Kmeans;
+	// $kmeans = new Kmeans;
 
-	$doc_training = Dokumen::where('training','=',true)->get();
-	$centroid_choose = 
-	$number_k = 
-	$k = 3;
-	$n = count($doc_training);
+	// $doc_training = Dokumen::where('training','=',true)->get();
+	// $centroid_choose = 
+	// $number_k = 
+	// $k = 3;
+	// $n = count($doc_training);
 
-	echo "n=".$n." - k=".$k."<br />"."<br />";
-	//a:abstrak
-	//ja:judul+abstrak
-	//g:generated
-	//m:manual
-	$id_group = $kmeans->Clustering($k, $n, 'ja', 'm');
+	// echo "n=".$n." - k=".$k."<br />"."<br />";
+	// //a:abstrak
+	// //ja:judul+abstrak
+	// //g:generated
+	// //m:manual
+	// $id_group = $kmeans->Clustering($k, $n, 'ja', 'm');
 	
-	for ($i=0; $i < count($kmeans->centroid); $i++) { 
-		echo "Kluster ".($i+1)."<br />";
-		if(count($kmeans->resultCluster[$i])>0){
-			foreach ($kmeans->resultCluster[$i] as $key => $dokumen) {
-				echo $dokumen->nrp."<br />";
-			}
-		}
-		else{
-			echo "Kosong <br />";
-		}
-		echo "<br />";
-	}
-	echo "iterasi ".$kmeans->counter."<br />";
-	$endTime = $counter->getTime();
-	echo ($endTime-$startTime)."detik <br />";
+	// for ($i=0; $i < count($kmeans->centroid); $i++) { 
+	// 	echo "Kluster ".($i+1)."<br />";
+	// 	if(count($kmeans->resultCluster[$i])>0){
+	// 		foreach ($kmeans->resultCluster[$i] as $key => $dokumen) {
+	// 			echo $dokumen->nrp."<br />";
+	// 		}
+	// 	}
+	// 	else{
+	// 		echo "Kosong <br />";
+	// 	}
+	// 	echo "<br />";
+	// }
+	// echo "iterasi ".$kmeans->counter."<br />";
+	// $endTime = $counter->getTime();
+	// echo ($endTime-$startTime)."detik <br />";
 
 	//--Cluster Varian--
 
 	$counter_CV = new TimeExecution;
-	$startTime_CV = $counter->getTime();
+	$startTime_CV = $counter_CV->getTime();
 	$KedekatanKluster = new ClusterVariance;
-
+	$id_group = 1;
 	$id = DB::table('kmeans_result')->where('id_group', '=' , $id_group)->max('id');
 	echo $id."<br />";
 	$hasil = KmeansResult::find($id);
@@ -117,7 +117,7 @@ Route::get('clustering',function(){
 	$hasil_kluster = json_decode($hasil->hasil_kluster);
 
 	$nilai_dekat = $KedekatanKluster->ClusterValue($hasil->jumlah_kluster, $hasil_kluster, $id, 'ja');
-	$endTime_CV = $counter->getTime();
+	$endTime_CV = $counter_CV->getTime();
 	echo $nilai_dekat." - LAMA : ".($endTime_CV-$startTime_CV)." detik <br />";
 });
 
