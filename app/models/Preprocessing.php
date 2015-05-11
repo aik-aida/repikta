@@ -28,7 +28,30 @@
 		}
 
 		public function PembobotanTF_IDF(){
+			$bobot_judul = 0.7;
+			$bobot_abstrak = 0.3;
 
+			$dokumens = Dokumen::where('training','=',true)->get();
+			$words = KamusKata::all();
+			foreach ($dokumens as $key => $dokumen) {
+				$tfidf = array();
+				$tfidf_j = json_decode($dokumen->nilai_tfidf_judul);
+				$tfidf_a = json_decode($dokumen->nilai_tfidf_abstrak);
+				$cn = 0;
+				foreach ($words as $key => $kata) {
+					$term = $kata->kata_dasar;
+
+					if(array_key_exists($term, $tfidf_j)){
+						$tfidf[$term] = ($bobot_judul*$tfidf_j->$term)+($bobot_abstrak*$tfidf_a->$term);
+					}else{
+						$tfidf[$term] = ($bobot_abstrak*$tfidf_a->$term);
+					}
+				}
+				
+				$doc = Dokumen::find($dokumen->nrp);
+				$doc->nilai_tfidf = json_encode($tfidf);
+				$doc->save();
+			}
 		}
 
 		public function CountTF_IDF(){
@@ -236,6 +259,36 @@
 			array_push($delword, '8');
 			array_push($delword, '9');
 			return str_replace($delword, '', $teks);
+		}
+
+		public function Calculate_Save_Centroid($arrNRP){
+			$kamus = KamusKata::all();
+				$k_number = count($arrNRP);
+				echo "k:".$k_number."<br />";
+				$newCentroid = array();
+				for ($i=0; $i < $k_number; $i++) { 
+						$newCentroid[$i] = (object) array();
+						$n = count($docs[$i]);
+						echo ($i+1)."-".$n."<br />";
+						foreach ($kamus as $key => $kata) {
+							$term = $kata->kata_dasar;
+							$sum = 0.0;
+							foreach ($arrNRP[$i] as $key => $nrp) {
+								$dokumen = Dokumen::find($nrp);
+								$vectorDoc = json_decode($dokumen->nilai_tfidf_abstrak);
+								$sum += $vectorDoc->$term;
+							}
+							$avg = $sum/$n;
+							$newCentroid[$i]->$term = $avg;
+						}
+				}
+
+			$simpan = new CentroidManual;
+			$simpan->teks = 'ja';
+			$simpan->k = $k_number;
+			$simpan->dokumen_centroid = json_encode($arrNRP);
+			$simpan->centroid = json_encode($newCentroid);
+			$simpan->save();
 		}
 
 		public function ReadFile($pathFile){

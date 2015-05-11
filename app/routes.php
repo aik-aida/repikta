@@ -234,12 +234,14 @@ Route::get('inisial', function(){
 	$dt_test = $prepoc->ReadFile("./data/dt_testing.txt");
 	$prepoc->Set_training_testing($dt_train, $dt_test);
 	
-	$prepoc->PreprocessingText();
-	$prepoc->DistinctTerm();
+	// $prepoc->PreprocessingText();
+	// $prepoc->DistinctTerm();
 	// $prepoc->CountIDF();
 	// $prepoc->CountTF();
 	// $prepoc->CountTF_IDF();
+	$prepoc->PembobotanTF_IDF();
 
+	$prepoc->Calculate_Save_Centroid($dt_cent);
 	
 	echo "done";
 });
@@ -295,45 +297,6 @@ Route::get('data', function()
 	}*/
 
 
-});
-
-Route::get('final_tfidf', function(){
-	$bobot_judul = 0.7;
-	$bobot_abstrak = 0.3;
-	$counter = new TimeExecution;
-	$startTime = $counter->getTime();
-
-	$dokumens = Dokumen::all();
-	$words = KamusKata::all();
-	foreach ($dokumens as $key => $dokumen) {
-		$tfidf = array();
-		$tfidf_j = json_decode($dokumen->nilai_tfidf_judul);
-		$tfidf_a = json_decode($dokumen->nilai_tfidf_abstrak);
-		$cn = 0;
-		foreach ($words as $key => $kata) {
-			$term = $kata->kata_dasar;
-
-			if(array_key_exists($term, $tfidf_j)){
-				$tfidf[$term] = ($bobot_judul*$tfidf_j->$term)+($bobot_abstrak*$tfidf_a->$term);
-			}else{
-				$tfidf[$term] = ($bobot_abstrak*$tfidf_a->$term);
-			}
-			// echo $tfidf_j->$term."<br />";
-			// echo $tfidf_a->$term."<br />";
-
-			// if(!array_key_exists($term, $tfidf_a)){
-			// 	echo $term."<br />";
-			// 	$cn++;
-			// }
-		}
-		//echo "----------------------".$cn."<br/>";
-		
-		$doc = Dokumen::find($dokumen->nrp);
-		$doc->nilai_tfidf = json_encode($tfidf);
-		$doc->save();
-	}
-	$endTime = $counter->getTime();
-	echo "alhamdulillah tf-idf final <br />LAMA : ".($endTime-$startTime)." detik <br />";
 });
 
 Route::get('minmax', function(){
