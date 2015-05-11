@@ -225,24 +225,36 @@ Route::get('gettranskrip', function(){
 });
 
 Route::get('inisial', function(){
+	$counter = new TimeExecution;
+	$time1 = $counter->getTime();
+
 	$prepoc = new Preprocessing;
 	$prepoc->Reset_TfIdf();
 
+	$time2 = $counter->getTime();
 	$file_cent = $prepoc->ReadFile("./data/dt_centroid.txt");
 	$dt_cent = $prepoc->ReadCentroid($file_cent);
 	$dt_train = $prepoc->ReadFile("./data/dt_training.txt");
 	$dt_test = $prepoc->ReadFile("./data/dt_testing.txt");
 	$prepoc->Set_training_testing($dt_train, $dt_test);
 	
-	// $prepoc->PreprocessingText();
-	// $prepoc->DistinctTerm();
-	// $prepoc->CountIDF();
-	// $prepoc->CountTF();
-	// $prepoc->CountTF_IDF();
-	$prepoc->PembobotanTF_IDF();
+	$time3 = $counter->getTime();
+	$prepoc->PreprocessingText(); $time4 = $counter->getTime();
+	$prepoc->DistinctTerm(); $time5 = $counter->getTime();
+	$prepoc->CountIDF(); $time6 = $counter->getTime();
+	$prepoc->CountTF(); $time7 = $counter->getTime();
+	$prepoc->CountTF_IDF(); $time8 = $counter->getTime();
+	$prepoc->PembobotanTF_IDF(); $time9 = $counter->getTime();
 
 	$prepoc->Calculate_Save_Centroid($dt_cent);
 	
+	echo "preparing data : ".($time3-$time2)."detik <br />";	
+	echo "Preprocessing text : ".($time4-$time3)."detik <br />";	
+	echo "distinct term : ".($time5-$time4)."detik <br />";	
+	echo "hitung IDF : ".($time6-$time5)."detik <br />";	
+	echo "hitung TF : ".($time7-$time6)."detik <br />";	
+	echo "hitung TF-IDF : ".($time8-$time7)."detik <br />";	
+	echo "Pembobotan : ".($time9-$time8)."detik <br />";	
 	echo "done";
 });
 

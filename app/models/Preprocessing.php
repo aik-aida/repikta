@@ -60,27 +60,27 @@
 			$judul_words = KamusJudul::all();
 
 			foreach ($dokumens as $key => $dokumen) {
-				$tfidf = array();
+				$tfidf = (object) array();
 				$tf = json_decode($dokumen->nilai_tf_abstrak);
 
-				$judul_tfidf = array();
+				$judul_tfidf = (object) array();
 				$judul_tf = json_decode($dokumen->nilai_tf_judul);
 
 				foreach ($words as $key => $kata) {
 					$term = $kata->kata_dasar;
-					$tfidf[$kata->kata_dasar] = (float)((float)($tf->$term)*(float)($kata->idf));
+					$tfidf->$term = (float)((float)($tf->$term)*(float)($kata->idf));
 				}
 
 				foreach ($judul_words as $key => $kata) {
 					$term = $kata->kata_dasar;
-					$judul_tfidf[$kata->kata_dasar] = (float)((float)($judul_tf->$term)*(float)($kata->idf));
+					$judul_tfidf->$term = (float)((float)($judul_tf->$term)*(float)($kata->idf));
 				}
 
 				$doc = Dokumen::find($dokumen->nrp);
 				$doc->nilai_tfidf_abstrak = json_encode($tfidf);
 				$doc->nilai_tfidf_judul = json_encode($judul_tfidf);
 				$doc->save();
-				echo $dokumen->nrp."<br />";
+				//echo $dokumen->nrp."<br />";
 			}
 		}
 
@@ -89,18 +89,20 @@
 			$words = KamusKata::all();
 			$judul_words = KamusJudul::all();
 			foreach ($dokumens as $key => $dokumen) {
-				$tfvector = array();
+				$tfvector = (object) array();
 				foreach ($words as $key => $kata) {
-					$nword = substr_count($dokumen->abstrak_af_preproc, ' '.$kata->kata_dasar.' ');
+					$term = $kata->kata_dasar;
+					$nword = substr_count($dokumen->abstrak_af_preproc, ' '.$term.' ');
 					$nall = str_word_count($dokumen->abstrak_af_preproc,0);
-					$tfvector[$kata->kata_dasar] = (float)((float)$nword/(float)$nall);			
+					$tfvector->$term = (float)((float)$nword/(float)$nall);			
 				}
 
-				$judul_tfvector = array();
+				$judul_tfvector = (object) array();
 				foreach ($judul_words as $key => $kata) {
-					$nword = substr_count($dokumen->judul_af_preproc, ' '.$kata->kata_dasar.' ');
+					$term = $kata->kata_dasar;
+					$nword = substr_count($dokumen->judul_af_preproc, ' '.$term.' ');
 					$nall = str_word_count($dokumen->judul_af_preproc,0);
-					$judul_tfvector[$kata->kata_dasar] = (float)((float)$nword/(float)$nall);			
+					$judul_tfvector->term = (float)((float)$nword/(float)$nall);			
 				}
 
 				$doc = Dokumen::find($dokumen->nrp);
