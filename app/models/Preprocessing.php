@@ -27,6 +27,119 @@
 
 		}
 
+		public function PembobotanTF_IDF(){
+
+		}
+
+		public function CountTF_IDF(){
+			$dokumens = Dokumen::where('training','=',true)->get();
+			$words = KamusKata::all();
+			$judul_words = KamusJudul::all();
+
+			foreach ($dokumens as $key => $dokumen) {
+				$tfidf = array();
+				$tf = json_decode($dokumen->nilai_tf_abstrak);
+
+				$judul_tfidf = array();
+				$judul_tf = json_decode($dokumen->nilai_tf_judul);
+
+				foreach ($words as $key => $kata) {
+					$term = $kata->kata_dasar;
+					$tfidf[$kata->kata_dasar] = (float)((float)($tf->$term)*(float)($kata->idf));
+				}
+
+				foreach ($judul_words as $key => $kata) {
+					$term = $kata->kata_dasar;
+					$judul_tfidf[$kata->kata_dasar] = (float)((float)($judul_tf->$term)*(float)($kata->idf));
+				}
+
+				$doc = Dokumen::find($dokumen->nrp);
+				$doc->nilai_tfidf_abstrak = json_encode($tfidf);
+				$doc->nilai_tfidf_judul = json_encode($judul_tfidf);
+				$doc->save();
+				echo $dokumen->nrp."<br />";
+			}
+		}
+
+		public function CountTF(){
+			$dokumens = Dokumen::where('training','=',true)->get();
+			$words = KamusKata::all();
+			$judul_words = KamusJudul::all();
+			foreach ($dokumens as $key => $dokumen) {
+				$tfvector = array();
+				foreach ($words as $key => $kata) {
+					$nword = substr_count($dokumen->abstrak_af_preproc, ' '.$kata->kata_dasar.' ');
+					$nall = str_word_count($dokumen->abstrak_af_preproc,0);
+					$tfvector[$kata->kata_dasar] = (float)((float)$nword/(float)$nall);			
+				}
+
+				$judul_tfvector = array();
+				foreach ($judul_words as $key => $kata) {
+					$nword = substr_count($dokumen->judul_af_preproc, ' '.$kata->kata_dasar.' ');
+					$nall = str_word_count($dokumen->judul_af_preproc,0);
+					$judul_tfvector[$kata->kata_dasar] = (float)((float)$nword/(float)$nall);			
+				}
+
+				$doc = Dokumen::find($dokumen->nrp);
+				$doc->nilai_tf_abstrak = json_encode($tfvector);
+				$doc->nilai_tf_judul = json_encode($judul_tfvector);
+				$doc->save();
+				//echo $dokumen->nrp."<br />";
+			}
+		}
+
+		public function CountIDF(){
+			$dokumens = Dokumen::where('training','=',true)->get();
+
+			$words = KamusKata::all();
+			foreach ($words as $key => $kata) {
+				//echo($kata->kata_dasar)."<br />";
+				$count = 0;
+				$count_doc = 0;
+				$docs = array();
+				foreach ($dokumens as $key => $dokumen) {
+					$count = substr_count($dokumen->abstrak_af_preproc, ' '.$kata->kata_dasar.' ');
+					if($count>0){
+						$count_doc++;
+						array_push($docs, $dokumen->nrp);
+					}
+				}
+				if($count_doc>0){
+					$idf = (float)(log10((float)count($dokumens)/(float)$count_doc));
+					$iddoc = json_encode($docs);	
+
+						$kamus = KamusKata::find($kata->kata_dasar);
+						$kamus->idf = $idf;
+						$kamus->indoc = $iddoc;
+						$kamus->save();
+				}
+			}
+
+			$judul_words = KamusJudul::all();
+			foreach ($judul_words as $key => $kata) {
+				//echo($kata->kata_dasar)."<br />";
+				$count = 0;
+				$count_doc = 0;
+				$docs = array();
+				foreach ($dokumens as $key => $dokumen) {
+					$count = substr_count($dokumen->judul_af_preproc, ' '.$kata->kata_dasar.' ');
+					if($count>0){
+						$count_doc++;
+						array_push($docs, $dokumen->nrp);
+					}
+				}
+				if($count_doc>0){
+					$idf = (float)(log10((float)count($dokumens)/(float)$count_doc));
+					$iddoc = json_encode($docs);	
+
+						$kamus = KamusJudul::find($kata->kata_dasar);
+						$kamus->idf = $idf;
+						$kamus->indoc = $iddoc;
+						$kamus->save();
+				}
+			}
+		}
+
 		public function DistinctTerm(){
 			$count = 0;
 			$countJ = 0;
@@ -76,7 +189,7 @@
 				$judul = (object) array("input","afstemming","afremoval","output");
 
 				$teks->input = $value->abstraksi_ta;
-				$teks->input = $value->judul_ta;
+				$judul->input = $value->judul_ta;
 
 				//tokenizing dan stemming sastrawi
 				$stemmerFactory = new \Sastrawi\Stemmer\StemmerFactory();
