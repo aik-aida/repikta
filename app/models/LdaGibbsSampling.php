@@ -34,7 +34,6 @@
 
 		public function __construct() {
 			$this->vocab = $this->GetTermVocab();
-			$this->FillMatrixCorpus();
 
 			$this->beta = 0.01;
 			$this->sampleLAG = 2;	//100 //2
@@ -42,11 +41,18 @@
 			$this->burnIN = 100;	//50	//100
 		}
 
-		public function TopicExtraction($k){
+		public function TopicExtraction($k, $list_doc, $id, $ke, $grup){
+			$counter = new TimeExecution;
+			$awal = $counter->getTime();
+
+			$this->FillMatrixCorpus($list_doc);
+			
+			
 			$this->Ktopic = $k;
 			$this->alpha = (50/$this->Ktopic);
 			$this->PrepareVariabel($this->Mdoc, $this->Nterm, $this->Ktopic);
-			$this->RandomTopicFirst($this->Mdoc, $this->corpus, $this->Ktopic);
+			$randTopic = $this->RandomTopicFirst($this->Mdoc, $this->corpus, $this->Ktopic);
+			
 
 			//iterasi penetapan topik yang lebih tepat dengan metode komulatif multinomial sampling (random)
 			for ($i=0; $i<$this->ITERATIONS ; $i++) { 
@@ -68,6 +74,31 @@
 
 			$this->CalculateTheta();
 			$this->CalculatePhi();
+			
+
+			$akhir = $counter->getTime();
+			$lama = ($akhir-$awal);
+			
+			$simpan = new dbLdaSave;
+			$simpan->group = $grup;
+			$simpan->id_kluster = $id;
+			$simpan->kluster_ke = $ke;
+			$simpan->k_topik = $this->Ktopic;
+			$simpan->m_dokumen = $this->Mdoc;
+			$simpan->n_term = $this->Nterm;
+			$simpan->daftar_dokumen = json_encode($this->docName);
+			$simpan->matriks_term = json_encode($this->vocab);
+			$simpan->matriks_dokumen = json_encode($this->corpus);
+			$simpan->matriks_Ztopik = json_encode($randTopic);
+			$simpan->aplha = $this->alpha;
+			$simpan->beta = $this->beta;
+			$simpan->BURN_IN = $this->burnIN;
+			$simpan->SAMPLE_LAG = $this->sampleLAG;
+			$simpan->ITERATIONS = $this->ITERATIONS;
+			$simpan->matriks_phi = json_encode($this->phi);
+			$simpan->matriks_thetha = json_encode($this->theta);
+			$simpan->lama_eksekusi = $lama;
+			$simpan->save();
 		}
 
 		public function CalculatePhi() {
@@ -190,8 +221,9 @@
 					}
 				}
 
-				$this->ndsum[$m] = $bertopik;	//menambahkan banyak kemunculan topic untuk setiap dokumen m
+				$this->ndsum[$m] = $bertopik;	//menambahkan banyak kemunculan topic untuk setiap dokumen m		
 			}
+			return $this->zTopic;
 		}
 
 		public function PrepareVariabel($M, $N, $K) {
@@ -262,16 +294,18 @@
 			return $temp_vocab;
 		}
 
-		public function FillMatrixCorpus() {
-			$corp = Dokumen::get();
+		public function FillMatrixCorpus($arrDOC) {
+			// $corp = Dokumen::get();
 			$this->corpus = array();
 			$this->docName = array();
-			$M = count($corp);
+			$M = count($arrDOC);
+			echo $M;
 
 			for ($m=0; $m < $M; $m++) { 
-				array_push($this->docName, $corp[$m]->nrp);
+				array_push($this->docName, $arrDOC[$m]);
+				$dokumen = Dokumen::find($arrDOC[$m]);
 				$this->corpus[$m] = array();
-				$katakata = explode(' ', $corp[$m]->abstrak_af_preproc);
+				$katakata = explode(' ', $dokumen->abstrak_af_preproc);
 				$N = count($katakata);
 				for ($n=0; $n < $N; $n++) { 
 					$idx = array_search($katakata[$n], $this->vocab);
@@ -284,7 +318,7 @@
 				}
 			}
 
-			$this->Mdoc = count($this->corpus);
+			$this->Mdoc = $M;
 		}
 	}
 ?>

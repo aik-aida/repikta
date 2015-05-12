@@ -43,66 +43,64 @@ Route::get('kluster', 'AdminController@kluster_list');
 Route::post('kluster/detail', 'AdminController@kluster_detail');
 
 Route::get('ekstrak_topik', function(){
-	//hasil kluster semesntara terbaik : kmeans_result id : 125
-
-	$data = KmeansResult::find(125);
-	$hasil = json_decode($data->hasil_kluster);
-	var_dump($hasil[0]);
-
 	$counter = new TimeExecution;
-	$startTime = $counter->getTime();
-	$k = 10;
-	$lda = new LdaGibbsSampling();
-	$lda->TopicExtraction($k);
-		//var_dump($lda->docName);
-		//echo (array_search('aida', $lda->vocab));
-		//echo($lda->Mdoc);
-		// $d = Dokumen::find('5109100003');
-		// echo($d->abstrak_af_preproc);
-		// var_dump($lda->corpus[0]);
-	// echo "phi[][] : <br />"; var_dump($lda->phi);
-	// echo "<br />---------------------------------------------------------------<br />";
-	// echo "theta[][] : <br />"; var_dump($lda->theta);
-	// echo "<br />---------------------------------------------------------------<br />";
-	$endTime = $counter->getTime();
-	echo $lda->ITERATIONS." iterasi : ".($endTime-$startTime)."detik <br />";
+	$awal = $counter->getTime();
+
+	$masing2topik = array(8,4,4);
+	$id_group = 1;
+	$id_result = DB::table('kmeans_result')->where('id_group', '=' , $id_group)->max('id');
+	$data_result = KmeansResult::find($id_result);
+	$banyak_kluster = $data_result->jumlah_kluster;
+	$hasil_kluster = json_decode($data_result->hasil_kluster);
+
+	for ($i=0; $i <$banyak_kluster ; $i++) { 
+	//for ($i=0; $i <1 ; $i++) { 
+		$k = $masing2topik[$i];
+		$lda = new LdaGibbsSampling();
+		$lda->TopicExtraction($k, $hasil_kluster[$i], $id_result, $i, $id_group);
+	}
+
+	$akhir = $counter->getTime();
+	$lama = ($akhir-$awal);
+
+	echo "SUDAH BISA DILIHAT HASIL LDA-NYA : ".$id_group." , ".$id_result."<br />"." lama : ".$lama."detik <br />";
 });
 
 
 Route::get('clustering',function(){
-	// $counter = new TimeExecution;
-	// $startTime = $counter->getTime();
+	$counter = new TimeExecution;
+	$startTime = $counter->getTime();
 	
-	// $kmeans = new Kmeans;
+	$kmeans = new Kmeans;
 
-	// $doc_training = Dokumen::where('training','=',true)->get();
-	// $centroid_choose = 
-	// $number_k = 
-	// $k = 3;
-	// $n = count($doc_training);
+	$doc_training = Dokumen::where('training','=',true)->get();
+	$centroid_choose = 
+	$number_k = 
+	$k = 3;
+	$n = count($doc_training);
 
-	// echo "n=".$n." - k=".$k."<br />"."<br />";
-	// //a:abstrak
-	// //ja:judul+abstrak
-	// //g:generated
-	// //m:manual
-	// $id_group = $kmeans->Clustering($k, $n, 'ja', 'm');
+	echo "n=".$n." - k=".$k."<br />"."<br />";
+	//a:abstrak
+	//ja:judul+abstrak
+	//g:generated
+	//m:manual
+	$id_group = $kmeans->Clustering($k, $n, 'ja', 'm');
 	
-	// for ($i=0; $i < count($kmeans->centroid); $i++) { 
-	// 	echo "Kluster ".($i+1)."<br />";
-	// 	if(count($kmeans->resultCluster[$i])>0){
-	// 		foreach ($kmeans->resultCluster[$i] as $key => $dokumen) {
-	// 			echo $dokumen->nrp."<br />";
-	// 		}
-	// 	}
-	// 	else{
-	// 		echo "Kosong <br />";
-	// 	}
-	// 	echo "<br />";
-	// }
-	// echo "iterasi ".$kmeans->counter."<br />";
-	// $endTime = $counter->getTime();
-	// echo ($endTime-$startTime)."detik <br />";
+	for ($i=0; $i < count($kmeans->centroid); $i++) { 
+		echo "Kluster ".($i+1)."<br />";
+		if(count($kmeans->resultCluster[$i])>0){
+			foreach ($kmeans->resultCluster[$i] as $key => $dokumen) {
+				echo $dokumen->nrp."<br />";
+			}
+		}
+		else{
+			echo "Kosong <br />";
+		}
+		echo "<br />";
+	}
+	echo "iterasi ".$kmeans->counter."<br />";
+	$endTime = $counter->getTime();
+	echo ($endTime-$startTime)."detik <br />";
 
 	//--Cluster Varian--
 
