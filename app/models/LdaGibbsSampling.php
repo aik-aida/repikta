@@ -90,7 +90,7 @@
 			$simpan->matriks_term = json_encode($this->vocab);
 			$simpan->matriks_dokumen = json_encode($this->corpus);
 			$simpan->matriks_Ztopik = json_encode($randTopic);
-			$simpan->aplha = $this->alpha;
+			$simpan->alpha = $this->alpha;
 			$simpan->beta = $this->beta;
 			$simpan->BURN_IN = $this->burnIN;
 			$simpan->SAMPLE_LAG = $this->sampleLAG;
