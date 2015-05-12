@@ -96,7 +96,7 @@
 			$simpan->SAMPLE_LAG = $this->sampleLAG;
 			$simpan->ITERATIONS = $this->ITERATIONS;
 			$simpan->matriks_phi = json_encode($this->phi);
-			$simpan->matriks_thetha = json_encode($this->theta);
+			$simpan->matriks_theta = json_encode($this->theta);
 			$simpan->lama_eksekusi = $lama;
 			$simpan->save();
 		}
@@ -190,7 +190,7 @@
 				}
 				for ($k=0; $k<$this->Ktopic ; $k++) { 
 					for ($n=0; $n<$this->Nterm ; $n++) { 
-						$c = $this->nw[$n][$k]+$this->beta;
+						$c = $this->nw[$n][$k]+$this->beta; 
 						$d = $this->nwsum[$k]+($this->Nterm*$this->beta);
 						$this->phisum[$k][$n] += $c/$d;
 					}

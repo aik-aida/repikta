@@ -42,6 +42,21 @@ Route::get('kluster', 'AdminController@kluster_list');
 
 Route::post('kluster/detail', 'AdminController@kluster_detail');
 
+Route::get('terdekat', function(){
+	$dokumen_testing = Dokumen::where('training','=',false)->get();
+	$repikta = new Repikta;
+	for ($i=0; $i <count($dokumen_testing) ; $i++) { 
+		$counter = new TimeExecution;
+		$startTime = $counter->getTime();
+		$nrp = $dokumen_testing[$i]->nrp;
+		echo $nrp."<br />";
+		$idk = $repikta->Choose_Kluster($nrp, 1);
+		echo "dekat ".$idk."<br /> ";
+		$endTime = $counter->getTime();
+		echo ($endTime-$startTime)." detik <br />";
+	}
+});
+
 Route::get('ekstrak_topik', function(){
 	$counter = new TimeExecution;
 	$awal = $counter->getTime();
@@ -65,7 +80,6 @@ Route::get('ekstrak_topik', function(){
 
 	echo "SUDAH BISA DILIHAT HASIL LDA-NYA : ".$id_group." , ".$id_result."<br />"." lama : ".$lama."detik <br />";
 });
-
 
 Route::get('clustering',function(){
 	$counter = new TimeExecution;
@@ -101,6 +115,9 @@ Route::get('clustering',function(){
 	echo "iterasi ".$kmeans->counter."<br />";
 	$endTime = $counter->getTime();
 	echo ($endTime-$startTime)."detik <br />";
+
+	$rk = new Repikta;
+	$rk->Generate_Transkrip_Kriteria($id_group);
 
 	//--Cluster Varian--
 
@@ -151,29 +168,6 @@ Route::get('inisial', function(){
 	echo "hitung TF-IDF : ".($time8-$time7)."detik <br />";	
 	echo "Pembobotan : ".($time9-$time8)."detik <br />";	
 	echo "done";
-});
-
-Route::get('varian', function(){
-	$counter = new TimeExecution;
-	$startTime = $counter->getTime();
-	$KedekatanKluster = new ClusterVariance;
-
-	// $id_kluster = DB::table('kmeans_result')->select('id_group')->distinct()->get();
-	// foreach ($id_kluster as $key => $dt) {
-	// 	$id = DB::table('kmeans_result')->where('id_group', '=' , $dt->id_group)->max('id');
-	// }
-	//29, 30, 31, 32, 33, 36 || 37, 38
-	//42, 43 || 44, 45, 46, 48, 49, 50
-	$id = DB::table('kmeans_result')->where('id_group', '=' , 50)->max('id');
-	echo $id."<br />";
-	$hasil = KmeansResult::find($id);
-	echo $hasil->jumlah_kluster."<br />";
-	$hasil_kluster = json_decode($hasil->hasil_kluster);
-	//echo count($hasil_kluster[1])."<br />";
-
-	$nilai_dekat = $KedekatanKluster->ClusterValue($hasil->jumlah_kluster, $hasil_kluster, $id, 'ja');
-	$endTime = $counter->getTime();
-	echo $nilai_dekat." - LAMA : ".($endTime-$startTime)." detik <br />";
 });
 
 Route::get('gettranskrip', function(){
