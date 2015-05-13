@@ -80,6 +80,7 @@
 			$lama = ($akhir-$awal);
 			
 			$simpan = new dbLdaSave;
+			$simpan->percobaan_ke = 2;
 			$simpan->group = $grup;
 			$simpan->id_kluster = $id;
 			$simpan->kluster_ke = $ke;

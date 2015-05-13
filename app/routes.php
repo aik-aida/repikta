@@ -42,6 +42,8 @@ Route::get('kluster', 'AdminController@kluster_list');
 
 Route::post('kluster/detail', 'AdminController@kluster_detail');
 
+Route::get('lihatPHI', 'RepiktaController@show_phi');
+
 Route::get('terdekat', function(){
 	$id_group = 1;
 	$dokumen_testing = Dokumen::where('training','=',false)->get();
