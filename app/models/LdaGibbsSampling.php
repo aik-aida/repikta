@@ -35,7 +35,7 @@
 		public function __construct() {
 			$this->vocab = $this->GetTermVocab();
 
-			$this->beta = 0.01;
+			//$this->beta = 0.01;
 			$this->sampleLAG = 2;	//100 //2
 			$this->ITERATIONS = 2000;	//100	//2000
 			$this->burnIN = 100;	//50	//100
@@ -50,6 +50,7 @@
 			
 			$this->Ktopic = $k;
 			$this->alpha = (50/$this->Ktopic);
+			$this->beta = (200/$this->Nterm);
 			$this->PrepareVariabel($this->Mdoc, $this->Nterm, $this->Ktopic);
 			$randTopic = $this->RandomTopicFirst($this->Mdoc, $this->corpus, $this->Ktopic);
 			
@@ -80,7 +81,7 @@
 			$lama = ($akhir-$awal);
 			
 			$simpan = new dbLdaSave;
-			$simpan->percobaan_ke = 2;
+			$simpan->percobaan_ke = 3;
 			$simpan->group = $grup;
 			$simpan->id_kluster = $id;
 			$simpan->kluster_ke = $ke;
