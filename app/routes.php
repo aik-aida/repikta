@@ -44,90 +44,9 @@ Route::post('kluster/detail', 'AdminController@kluster_detail');
 
 Route::get('lihatPHI', 'RepiktaController@show_phi');
 
-Route::get('terdekat', function(){
-	$id_group = 1;
-	$dokumen_testing = Dokumen::where('training','=',false)->get();
-	$id_result = DB::table('kmeans_result')->where('id_group', '=' , $id_group)->max('id');
-	$data_kluster = KmeansResult::find($id_result);
-	$hasil_kluster = json_decode($data_kluster->hasil_kluster);
+Route::get('dokumen_terdekat', function(){
 	$repikta = new Repikta;
-	for ($i=0; $i <count($dokumen_testing) ; $i++) { 
-		$counter = new TimeExecution;
-		$startTime = $counter->getTime();
-		$nrp = $dokumen_testing[$i]->nrp;
-		echo $nrp."<br />";
-		$idk = $repikta->Choose_Kluster($nrp, $id_group);
-		echo "dekat ".$idk."<br /> ";
-
-		$distance = array();
-		foreach ($hasil_kluster[$idk] as $key => $nrppembanding) {
-			$counter_t = new TimeExecution;
-			$startTime_t = $counter_t->getTime();
-			$pembanding_doc = Dokumen::find($nrppembanding);
-			$nrp_tr = json_decode($dokumen_testing[$i]->transkrip);
-			$pembanding_tr = json_decode($pembanding_doc->transkrip);
-			$dist = $repikta->EuclideanTranskrip($nrp_tr, $pembanding_tr);
-			array_push($distance, $dist);
-			//echo $nrppembanding."-".$dist."<br />";
-			$endTime_t = $counter_t->getTime();
-			$simpan = new dbTranskripDistanceKluster;
-			$simpan->group = $id_group;
-			$simpan->id_kluster = $id_result;
-			$simpan->index = $idk;
-			$simpan->nrp = $nrp;
-			$simpan->pembanding = $nrppembanding;
-			$simpan->distance = $dist;
-			$simpan->lama = ($endTime_t-$startTime_t);
-			$simpan->save();
-		}
-
-		$index = array_search(min($distance), $distance);
-		echo "TERDEKAT ".$hasil_kluster[$idk][$index]."<br />";
-		$endTime = $counter->getTime();
-		echo ($endTime-$startTime)." detik <br />";
-		echo "<br />";
-	}
-});
-
-Route::get('all_distance',function(){
-	$dokumen_testing = Dokumen::where('training','=',false)->get();
-	$dokumen_training = Dokumen::where('training','=',true)->get();
-	$repikta = new Repikta;
-	$distance = array();
-	for ($i=0; $i <count($dokumen_testing) ; $i++) { 
-		$counter = new TimeExecution;
-		$startTime = $counter->getTime();
-		$nrp = $dokumen_testing[$i]->nrp;
-		echo $nrp."<br />";
-
-		$distance = array();
-		foreach ($dokumen_training as $key => $docpembanding) {
-			if($nrp!=$docpembanding->nrp){
-				$counter_t = new TimeExecution;
-				$startTime_t = $counter_t->getTime();
-				$nrp_tr = json_decode($dokumen_testing[$i]->transkrip);
-				$pembanding_tr = json_decode($docpembanding->transkrip);
-				$dist = $repikta->EuclideanTranskrip($nrp_tr, $pembanding_tr);
-				array_push($distance, $dist);
-				//echo $docpembanding->nrp."-".$dist."<br />";
-				$endTime_t = $counter_t->getTime();
-				$simpan = new dbTranskripDistanceAll;
-				$simpan->nrp = $nrp; 
-				$simpan->pembanding = $docpembanding->nrp;
-				$simpan->distance = $dist;
-				$simpan->lama = ($endTime_t-$startTime_t);
-				$simpan->save();
-			}
-		}
-
-		$index = array_search(min($distance), $distance);
-		echo "TERDEKAT ".$dokumen_training[$index]->nrp."<br />";
-		$endTime = $counter->getTime();
-		echo ($endTime-$startTime)." detik <br />";
-		echo "<br />";
-
-		
-	}
+	$repikta->GetClosest();
 });
 
 Route::get('ekstrak_topik', function(){
@@ -142,7 +61,7 @@ Route::get('ekstrak_topik', function(){
 	$hasil_kluster = json_decode($data_result->hasil_kluster);
 
 	for ($i=0; $i <$banyak_kluster ; $i++) { 
-	//for ($i=0; $i <1 ; $i++) { 
+	// for ($i=0; $i <1 ; $i++) { 
 		$k = $masing2topik[$i];
 		$lda = new LdaGibbsSampling();
 		$lda->TopicExtraction($k, $hasil_kluster[$i], $id_result, $i, $id_group);
@@ -151,7 +70,7 @@ Route::get('ekstrak_topik', function(){
 	$akhir = $counter->getTime();
 	$lama = ($akhir-$awal);
 
-	echo "SUDAH BISA DILIHAT HASIL LDA-NYA : ".$id_group." , ".$id_result."<br />"." lama : ".$lama."detik <br />";
+	echo "SUDAH BISA DILIHAT HASIL LDA-NYA : ".$id_group." , ".$id_result."<br />"." lama : ".$lama." detik <br />";
 });
 
 Route::get('clustering',function(){
@@ -242,6 +161,94 @@ Route::get('inisial', function(){
 	echo "Pembobotan : ".($time9-$time8)."detik <br />";	
 	echo "done";
 });
+
+
+Route::get('terdekat', function(){
+	$id_group = 1;
+	$dokumen_testing = Dokumen::where('training','=',false)->get();
+	$id_result = DB::table('kmeans_result')->where('id_group', '=' , $id_group)->max('id');
+	$data_kluster = KmeansResult::find($id_result);
+	$hasil_kluster = json_decode($data_kluster->hasil_kluster);
+	$repikta = new Repikta;
+	for ($i=0; $i <count($dokumen_testing) ; $i++) { 
+		$counter = new TimeExecution;
+		$startTime = $counter->getTime();
+		$nrp = $dokumen_testing[$i]->nrp;
+		echo $nrp."<br />";
+		$idk = $repikta->Choose_Kluster($nrp, $id_group);
+		echo "dekat ".$idk."<br /> ";
+
+		$distance = array();
+		foreach ($hasil_kluster[$idk] as $key => $nrppembanding) {
+			$counter_t = new TimeExecution;
+			$startTime_t = $counter_t->getTime();
+			$pembanding_doc = Dokumen::find($nrppembanding);
+			$nrp_tr = json_decode($dokumen_testing[$i]->transkrip);
+			$pembanding_tr = json_decode($pembanding_doc->transkrip);
+			$dist = $repikta->EuclideanTranskrip($nrp_tr, $pembanding_tr);
+			array_push($distance, $dist);
+			//echo $nrppembanding."-".$dist."<br />";
+			$endTime_t = $counter_t->getTime();
+			$simpan = new dbTranskripDistanceKluster;
+			$simpan->group = $id_group;
+			$simpan->id_kluster = $id_result;
+			$simpan->index = $idk;
+			$simpan->nrp = $nrp;
+			$simpan->pembanding = $nrppembanding;
+			$simpan->distance = $dist;
+			$simpan->lama = ($endTime_t-$startTime_t);
+			$simpan->save();
+		}
+
+		$index = array_search(min($distance), $distance);
+		echo "TERDEKAT ".$hasil_kluster[$idk][$index]."<br />";
+		$endTime = $counter->getTime();
+		echo ($endTime-$startTime)." detik <br />";
+		echo "<br />";
+	}
+});
+
+Route::get('all_distance',function(){
+	$dokumen_testing = Dokumen::where('training','=',false)->get();
+	$dokumen_training = Dokumen::where('training','=',true)->get();
+	$repikta = new Repikta;
+	$distance = array();
+	for ($i=0; $i <count($dokumen_testing) ; $i++) { 
+		$counter = new TimeExecution;
+		$startTime = $counter->getTime();
+		$nrp = $dokumen_testing[$i]->nrp;
+		echo $nrp."<br />";
+
+		$distance = array();
+		foreach ($dokumen_training as $key => $docpembanding) {
+			if($nrp!=$docpembanding->nrp){
+				$counter_t = new TimeExecution;
+				$startTime_t = $counter_t->getTime();
+				$nrp_tr = json_decode($dokumen_testing[$i]->transkrip);
+				$pembanding_tr = json_decode($docpembanding->transkrip);
+				$dist = $repikta->EuclideanTranskrip($nrp_tr, $pembanding_tr);
+				array_push($distance, $dist);
+				//echo $docpembanding->nrp."-".$dist."<br />";
+				$endTime_t = $counter_t->getTime();
+				$simpan = new dbTranskripDistanceAll;
+				$simpan->nrp = $nrp; 
+				$simpan->pembanding = $docpembanding->nrp;
+				$simpan->distance = $dist;
+				$simpan->lama = ($endTime_t-$startTime_t);
+				$simpan->save();
+			}
+		}
+
+		$index = array_search(min($distance), $distance);
+		echo "TERDEKAT ".$dokumen_training[$index]->nrp."<br />";
+		$endTime = $counter->getTime();
+		echo ($endTime-$startTime)." detik <br />";
+		echo "<br />";
+
+		
+	}
+});
+
 
 Route::get('gettranskrip', function(){
 	$data = dbTranskripEkivalensi::where('nrp', '=', '5110100018')->get();

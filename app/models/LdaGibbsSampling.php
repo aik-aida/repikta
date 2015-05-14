@@ -53,18 +53,17 @@
 			$this->beta = (200/$this->Nterm);
 			$this->PrepareVariabel($this->Mdoc, $this->Nterm, $this->Ktopic);
 			$randTopic = $this->RandomTopicFirst($this->Mdoc, $this->corpus, $this->Ktopic);
-			
 
+			
+			//echo "ITERASI";
 			//iterasi penetapan topik yang lebih tepat dengan metode komulatif multinomial sampling (random)
 			for ($i=0; $i<$this->ITERATIONS ; $i++) { 
 				for ($m=0; $m<$this->Mdoc ; $m++) { 
 					$N = count($this->zTopic[$m]);
-					//echo $N."<br />";
+					//echo "------------------------------ Dokumen ".($m+1)." banyak kata ".$N."<br />";
 					for ($n=0; $n<$N ; $n++) { 
-						if($this->corpus[$m][$n]!=-1){
-							$new_topic = $this->UpdateTopicAssignment($m, $n);
-							$this->zTopic[$m][$n] = $new_topic;	
-						}
+						$new_topic = $this->UpdateTopicAssignment($m, $n);
+						$this->zTopic[$m][$n] = $new_topic;	
 					}
 				}
 
@@ -81,7 +80,7 @@
 			$lama = ($akhir-$awal);
 			
 			$simpan = new dbLdaSave;
-			$simpan->percobaan_ke = 3;
+			$simpan->percobaan_ke = 11;
 			$simpan->group = $grup;
 			$simpan->id_kluster = $id;
 			$simpan->kluster_ke = $ke;
@@ -101,22 +100,53 @@
 			$simpan->matriks_theta = json_encode($this->theta);
 			$simpan->lama_eksekusi = $lama;
 			$simpan->save();
+
 		}
 
 		public function CalculatePhi() {
 			//merupakan probabilitas Term pada Vocab terhadap Topik, maka matrix phisum sebesar N x K
-			for ($n=0; $n<$this->Nterm ; $n++) { 
-				for ($k=0; $k<$this->Ktopic ; $k++) { 
-					if($this->sampleLAG>0){
-						$this->phi[$n][$k] = $this->phisum[$k][$n]/$this->numstat;
-					}
-					else {
-						$a = $this->nw[$n][$k]+$this->beta;
-						$b = $this->nwsum[$k]+($this->Nterm*$this->beta);
-						$this->phi[$n][$k] = $a/$b;
-					}
-				}
-			}
+			// for ($n=0; $n<$this->Nterm ; $n++) { 
+			// 	for ($k=0; $k<$this->Ktopic ; $k++) { 
+			// 		if($this->sampleLAG>0){
+			// 			$this->phi[$n][$k] = $this->phisum[$k][$n]/$this->numstat;
+			// 		}
+			// 		else {
+			// 			$a = $this->nw[$n][$k]+$this->beta;
+			// 			$b = $this->nwsum[$k]+($this->Nterm*$this->beta);
+			// 			$this->phi[$n][$k] = $a/$b;
+			// 		}
+			// 	}
+			// }
+
+			for ($k=0; $k < $this->Ktopic; $k++) {
+	            for ($n=0; $n < $this->Nterm; $n++) {
+	                if ($this->sampleLAG>0) {
+	                	$this->phi[$k][$n] = $this->phisum[$k][$n] / $this->numstat;
+	                }
+	                else {
+	                	$a = $this->nw[$n][$k] + $this->beta;
+	                	$b = $this->nwsum[$k] + ($this->Nterm * $this->beta);
+	                	$this->phi[$k][$n] = $a/$b;
+	                }
+	            }
+	        }
+	        
+	        $k_length = count($this->phi);
+	        $n_length = count($this->phi[0]);
+
+	        $trans = array();
+	        for ($i=0; $i <$n_length ; $i++) { 
+	        	$trans[$i] = array();
+	        }
+	        for ($i=0; $i <$n_length ; $i++) { 
+	        	$trans[$i] = array();
+	        	for ($j=0; $j <$k_length ; $j++) { 
+	        		$trans[$i][$j] = $this->phi[$j][$i];
+	        	}
+	        }
+	        unset($this->phi);
+			$this->phi = array();
+	        $this->phi = $trans;
 		}
 
 		public function CalculateTheta() {
@@ -127,8 +157,8 @@
 						$this->theta[$m][$k] = $this->thetasum[$m][$k]/$this->numstat;
 					}
 					else {
-						$a = $this->nd[$m][$k]+$this->alpha;
-						$b = $this->ndsum[$m]+($this->Ktopic*$this->alpha);
+						$a = $this->nd[$m][$k] + $this->alpha;
+						$b = $this->ndsum[$m] + ($this->Ktopic * $this->alpha);
 						$this->theta[$m][$k] = $a/$b;
 					}
 				}
@@ -140,69 +170,70 @@
 			// Sample Full Conditional
 			
 			//var_dump($this->zTopic);
-			$last_topic = $this->zTopic[$m][$n];
+			$topic = $this->zTopic[$m][$n];
 			$idTerm = $this->corpus[$m][$n];
-			$new_topic = $last_topic;
+			//$new_topic = $last_topic;
 			
 			//membuat sementara item Z[m][n] menghilang
-			$this->nw[$idTerm][$last_topic]--;
-			$this->nd[$m][$last_topic]--;
-			$this->nwsum[$last_topic]--;
+			$this->nw[$idTerm][$topic]--;
+			$this->nd[$m][$topic]--;
+			$this->nwsum[$topic]--;
 			$this->ndsum[$m]--;
 			
 			//Multinomial Sampling dengan Metode Kumulatif
 			$P = array();
 			for ($k=0; $k<$this->Ktopic ; $k++) { 
-				$a = $idTerm+$this->beta;
-				$b = $this->nwsum[$k]+($this->Nterm*$this->alpha);
-				$c = $this->nd[$m][$k]+$this->alpha;
-				$d = $this->ndsum[$m]+($this->Ktopic*$this->alpha);
+				//$a = $idTerm+$this->beta;
+				$a = $this->nw[$idTerm][$k] + $this->beta;
+				$b = $this->nwsum[$k] + ($this->Nterm * $this->beta);
+				$c = $this->nd[$m][$k] + $this->alpha;
+				$d = $this->ndsum[$m] + ($this->Ktopic * $this->alpha);
 				$P[$k] = ($a/$b)*($c/$d);
 			}
 			//Parameter Multinomial Kumulatif
-			for ($k=1; $k<$this->Ktopic ; $k++) { 
+			//for ($k=1; $k<$this->Ktopic ; $k++) { 
+			for ($k=1; $k<count($P) ; $k++) { 
 				$P[$k] += $P[$k-1];
 			}
 			//random sampling dikarenakan bentuk P[] yang tidak normal
-			$k = ($this->Ktopic-1);
-			$value = mt_rand(0,$P[$k]);
+			$banyakK = ($this->Ktopic-1);
+			$value = mt_rand(0,$P[$banyakK]);
 			for ($k=0; $k<$this->Ktopic ; $k++) { 
 				if($value < $P[$k]){
-					$new_topic = $k;
+					$topic = $k;
 					break;
 				}
 			}
 
 			//mengambalikan keberadaan item Z[m][n] dalam corpus
-			$this->nw[$idTerm][$new_topic]++;
-			$this->nd[$m][$new_topic]++;
-			$this->nwsum[$new_topic]++;
+			$this->nw[$idTerm][$topic]++;
+			$this->nd[$m][$topic]++;
+			$this->nwsum[$topic]++;
 			$this->ndsum[$m]++;
 
-			return $new_topic;
-			
+			return $topic;
 		}
 
 		public function UpdateSUM() {
 			for ($m=0; $m<$this->Mdoc ; $m++) { 
 				for ($k=0; $k<$this->Ktopic ; $k++) { 
-					$a = $this->nd[$m][$k]+$this->alpha;
-					$b = $this->ndsum[$m]+($this->Ktopic*$this->alpha);
+					$a = $this->nd[$m][$k] + $this->alpha;
+					$b = $this->ndsum[$m] + ($this->Ktopic * $this->alpha);
 					$this->thetasum[$m][$k] += $a/$b;
 				}
-				for ($k=0; $k<$this->Ktopic ; $k++) { 
-					for ($n=0; $n<$this->Nterm ; $n++) { 
-						$c = $this->nw[$n][$k]+$this->beta; 
-						$d = $this->nwsum[$k]+($this->Nterm*$this->beta);
-						$this->phisum[$k][$n] += $c/$d;
-					}
-				}
-				$this->numstat++;
 			}
+			for ($k=0; $k<$this->Ktopic ; $k++) { 
+				for ($n=0; $n<$this->Nterm ; $n++) { 
+					$c = $this->nw[$n][$k] + $this->beta; 
+					$d = $this->nwsum[$k] + ($this->Nterm * $this->beta);
+					$this->phisum[$k][$n] += $c/$d;
+				}
+			}
+			$this->numstat++;
 		}
 
 		public function RandomTopicFirst($M, $C, $K){
-			
+			//echo "RandomTopicFirst<br />";
 			$k = ($K-1);
 			for ($m=0; $m<$M ; $m++) { 
 				$N = count($C[$m]);
@@ -210,21 +241,22 @@
 
 				for ($n=0; $n<$N ; $n++) { 
 					$idTerm = $C[$m][$n];
-					if($idTerm != -1) {
-						$idTopic = mt_rand(0,$k);
-						$this->zTopic[$m][$n] = $idTopic;	//menentukan random topik untuk masing-masing kata pada masing-masing dokumen
-						$this->nw[$idTerm][$idTopic]++;		//menambahkan jumlah term idTerm yang bertopik idTopic
-						$this->nd[$m][$idTopic]++;			//menambahkan jumlah topik idTopic yang muncul pada dokumen m
-						$this->nwsum[$idTopic]++;			//menambahkan jumlah topik idTopic yang muncul dalam corpus dokumen
-						$bertopik++;
-					}
-					else{
-						$this->zTopic[$m][$n] = -1;	
-					}
-				}
 
+					$idTopic = mt_rand(0,$k);
+					$this->zTopic[$m][$n] = $idTopic;	//menentukan random topik untuk masing-masing kata pada masing-masing dokumen
+					$this->nw[$idTerm][$idTopic]++;		//menambahkan jumlah term idTerm yang bertopik idTopic
+					$this->nd[$m][$idTopic]++;			//menambahkan jumlah topik idTopic yang muncul pada dokumen m
+					$this->nwsum[$idTopic]++;			//menambahkan jumlah topik idTopic yang muncul dalam corpus dokumen
+					$bertopik++;
+
+					// if($n<70){
+					// 	echo $idTopic." , ";
+					// }
+				}
+				//echo "<br />";
 				$this->ndsum[$m] = $bertopik;	//menambahkan banyak kemunculan topic untuk setiap dokumen m		
 			}
+			//echo "-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------<br />";
 			return $this->zTopic;
 		}
 
@@ -301,7 +333,6 @@
 			$this->corpus = array();
 			$this->docName = array();
 			$M = count($arrDOC);
-			echo $M;
 
 			for ($m=0; $m < $M; $m++) { 
 				array_push($this->docName, $arrDOC[$m]);
@@ -309,15 +340,22 @@
 				$this->corpus[$m] = array();
 				$katakata = explode(' ', $dokumen->abstrak_af_preproc);
 				$N = count($katakata);
+				
 				for ($n=0; $n < $N; $n++) { 
-					$idx = array_search($katakata[$n], $this->vocab);
-					if($idx == NULL) {	//jika kata tidak ada dalam kamus -> 'spasi' , maka id=-1
-						array_push($this->corpus[$m], -1);	
-					}else{
-						array_push($this->corpus[$m], $idx);	
+					$idx = array_search(trim($katakata[$n]), $this->vocab);
+					// if($idx == NULL) {	//jika kata tidak ada dalam kamus -> 'spasi' , maka id=-1
+					// 	if(strlen($katakata[$n])!=0){
+					// 	array_push($this->corpus[$m], -1);
+					// 	echo "()".strlen($katakata[$n])."-".$katakata[$n]."()<br />";
+					// 	}
+					// }else{
+					if(strlen(trim($katakata[$n]))!=0){
+						array_push($this->corpus[$m], $idx);
+						//echo trim($katakata[$n])."<br />";
 					}
 					
 				}
+				//echo "banyak kata dokumen ".($m+1)." adalah ".count($this->corpus[$m])."<br />";
 			}
 
 			$this->Mdoc = $M;

@@ -68,5 +68,39 @@
 			$d = sqrt($fill);
 			return $d;
 		}
+
+		public function GetClosest(){
+			$dokumen_testing = Dokumen::where('training','=',false)->get();
+			$dt_kluster = KmeansResult::find(5);
+			$hasil_kluster = json_decode($dt_kluster->hasil_kluster);
+			foreach ($dokumen_testing as $key => $value) {
+				//echo $value->nrp."<br />";
+				//$data = dbTranskripDistanceAll::where('nrp','=',$value->nrp)->orderBy('distance', 'asc')->take(5)->get();
+				$data = dbTranskripDistanceKluster::where('nrp','=',$value->nrp)->orderBy('distance', 'asc')->take(5)->get();
+				//echo $data[0]->distance."<br />";
+				$pem = $data[4]->pembanding;
+
+				// foreach ($data as $key => $dt) {
+				// 	echo $dt->nrp." - ".$dt->pembanding." - ".$dt->distance." - ";
+					
+					for ($i=0; $i <count($hasil_kluster) ; $i++) { 
+						//if(in_array($dt->pembanding, $hasil_kluster[$i])==true){
+						if(in_array($pem, $hasil_kluster[$i])==true){
+							switch ($i) {
+								case 0:
+									echo "RPL<br />";
+									break;
+								case 1:
+									echo "KCV<br />";
+									break;
+								case 2:
+									echo "KBJ<br />";
+									break;
+							}
+						}
+					}
+				// }
+			}
+		}
 	}
 ?>
