@@ -142,7 +142,7 @@ Route::get('ekstrak_topik', function(){
 	$hasil_kluster = json_decode($data_result->hasil_kluster);
 
 	for ($i=0; $i <$banyak_kluster ; $i++) { 
-	//for ($i=0; $i <1 ; $i++) { 
+	// for ($i=0; $i <1 ; $i++) { 
 		$k = $masing2topik[$i];
 		$lda = new LdaGibbsSampling();
 		$lda->TopicExtraction($k, $hasil_kluster[$i], $id_result, $i, $id_group);
@@ -151,7 +151,7 @@ Route::get('ekstrak_topik', function(){
 	$akhir = $counter->getTime();
 	$lama = ($akhir-$awal);
 
-	echo "SUDAH BISA DILIHAT HASIL LDA-NYA : ".$id_group." , ".$id_result."<br />"." lama : ".$lama."detik <br />";
+	echo "SUDAH BISA DILIHAT HASIL LDA-NYA : ".$id_group." , ".$id_result."<br />"." lama : ".$lama." detik <br />";
 });
 
 Route::get('clustering',function(){
