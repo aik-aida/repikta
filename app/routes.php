@@ -43,6 +43,7 @@ Route::get('kluster', 'AdminController@kluster_list');
 Route::post('kluster/detail', 'AdminController@kluster_detail');
 
 Route::get('lihatPHI', 'RepiktaController@show_phi');
+Route::get('lihatTETA', 'RepiktaController@show_theta');
 
 Route::get('dokumen_terdekat', function(){
 	$repikta = new Repikta;
@@ -60,17 +61,36 @@ Route::get('ekstrak_topik', function(){
 	$banyak_kluster = $data_result->jumlah_kluster;
 	$hasil_kluster = json_decode($data_result->hasil_kluster);
 
-	for ($i=0; $i <$banyak_kluster ; $i++) { 
-	// for ($i=0; $i <1 ; $i++) { 
-		$k = $masing2topik[$i];
+	//for ($i=0; $i <$banyak_kluster ; $i++) { 
+	//for ($i=2; $i <3 ; $i++) { 
+		$k = $masing2topik[2];
+		///$k = $masing2topik[$i];
 		$lda = new LdaGibbsSampling();
-		$lda->TopicExtraction($k, $hasil_kluster[$i], $id_result, $i, $id_group);
-	}
+		//$lda->TopicExtraction($k, $hasil_kluster[$i], $id_result, $i, $id_group);
+		$lda->TopicExtraction($k, $hasil_kluster[2], $id_result, 2, $id_group);
+	//}
 
 	$akhir = $counter->getTime();
 	$lama = ($akhir-$awal);
-
 	echo "SUDAH BISA DILIHAT HASIL LDA-NYA : ".$id_group." , ".$id_result."<br />"." lama : ".$lama." detik <br />";
+
+	echo "----------------------------------------------------THETA-----------------------------------------------<br />";
+	$theta = $lda->theta;
+	foreach ($theta as $key => $value) {
+		foreach ($value as $key => $val) {
+			echo $val." , ";
+		}
+		echo "<br />";
+	}
+	echo "<br /><br /><br />";
+	echo "----------------------------------------------------PHIII-----------------------------------------------<br />";
+	$phi = $lda->phi;
+	foreach ($phi as $key => $value) {
+		foreach ($value as $key => $val) {
+			echo $val." , ";
+		}
+		echo "<br />";
+	}
 });
 
 Route::get('clustering',function(){

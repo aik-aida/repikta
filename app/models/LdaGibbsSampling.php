@@ -36,9 +36,9 @@
 			$this->vocab = $this->GetTermVocab();
 
 			//$this->beta = 0.01;
-			$this->sampleLAG = 2;	//100 //2
-			$this->ITERATIONS = 2000;	//100	//2000
-			$this->burnIN = 100;	//50	//100
+			$this->sampleLAG = 0;	//100 //2
+			$this->ITERATIONS = 2;	//100	//2000
+			$this->burnIN = 1;	//50	//100
 		}
 
 		public function TopicExtraction($k, $list_doc, $id, $ke, $grup){
@@ -68,6 +68,7 @@
 				}
 
 				if( ($i > $this->burnIN) && ( $this->sampleLAG > 0 ) && ( $i % $this->sampleLAG == 0) ){
+					echo "BURN_IN <br />";
 					$this->UpdateSUM();
 				}
 			}
@@ -237,7 +238,6 @@
 			$k = ($K-1);
 			for ($m=0; $m<$M ; $m++) { 
 				$N = count($C[$m]);
-				$bertopik = 0;
 
 				for ($n=0; $n<$N ; $n++) { 
 					$idTerm = $C[$m][$n];
@@ -247,14 +247,13 @@
 					$this->nw[$idTerm][$idTopic]++;		//menambahkan jumlah term idTerm yang bertopik idTopic
 					$this->nd[$m][$idTopic]++;			//menambahkan jumlah topik idTopic yang muncul pada dokumen m
 					$this->nwsum[$idTopic]++;			//menambahkan jumlah topik idTopic yang muncul dalam corpus dokumen
-					$bertopik++;
 
 					// if($n<70){
 					// 	echo $idTopic." , ";
 					// }
 				}
 				//echo "<br />";
-				$this->ndsum[$m] = $bertopik;	//menambahkan banyak kemunculan topic untuk setiap dokumen m		
+				$this->ndsum[$m] = $N;	//menambahkan banyak kemunculan topic untuk setiap dokumen m		
 			}
 			//echo "-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------<br />";
 			return $this->zTopic;
