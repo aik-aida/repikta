@@ -61,14 +61,14 @@ Route::get('ekstrak_topik', function(){
 	$banyak_kluster = $data_result->jumlah_kluster;
 	$hasil_kluster = json_decode($data_result->hasil_kluster);
 
-	//for ($i=0; $i <$banyak_kluster ; $i++) { 
+	for ($i=0; $i <$banyak_kluster ; $i++) { 
 	//for ($i=2; $i <3 ; $i++) { 
-		$k = $masing2topik[2];
-		///$k = $masing2topik[$i];
+		//$k = $masing2topik[2];
+		$k = $masing2topik[$i];
 		$lda = new LdaGibbsSampling();
-		//$lda->TopicExtraction($k, $hasil_kluster[$i], $id_result, $i, $id_group);
-		$lda->TopicExtraction($k, $hasil_kluster[2], $id_result, 2, $id_group);
-	//}
+		$lda->TopicExtraction($k, $hasil_kluster[$i], $id_result, $i, $id_group);
+		//$lda->TopicExtraction($k, $hasil_kluster[2], $id_result, 2, $id_group);
+	}
 
 	$akhir = $counter->getTime();
 	$lama = ($akhir-$awal);
@@ -269,7 +269,6 @@ Route::get('all_distance',function(){
 	}
 });
 
-
 Route::get('gettranskrip', function(){
 	$data = dbTranskripEkivalensi::where('nrp', '=', '5110100018')->get();
 	$mk = dbMataKuliah::all();
@@ -369,8 +368,8 @@ Route::get('gettranskrip', function(){
 	echo "masuk ".$total." data";
 });
 
-Route::get('data', function()
-{
+Route::get('data', function(){
+	
 	//gabungin data ta akademik
 	/*
 	$source = Abstrak110p::all();
@@ -814,6 +813,32 @@ Route::get('transkrip', function(){
 });
 
 Route::get('datadata',function(){
+	// $angka1 = mt_rand();
+	// $angka2 = mt_getrandmax();
+	// echo ($angka1/$angka2);
+
+	//echo number_format(mt_rand() / mt_getrandmax(),10); 
+	//echo number_format(mt_rand() / mt_getrandmax(),10);
+	//0.0000195701
+
+	// $min = 0.0;
+	// $max = 0.1;
+	// $rand = mt_rand ($min*1000000000, $max*1000000000) / 1000000000;
+	// echo number_format($rand, 10);
+
+	// $random = number_format(mt_rand() / mt_getrandmax(),10);
+	// $number = $random * 0.0000195701;
+	// echo "0.0000195701<br />";
+	// echo(number_format($number,10));
+
+	$random = mt_rand() / mt_getrandmax();
+	$number = $random * 0.0000195701;
+	echo "0.0000195701<br />";
+	echo(number_format($number,10));
+
+
+
+
 	//masukkan matakuliah
 	// $mk = dbMK::all();
 	// foreach ($mk as $key => $value) {

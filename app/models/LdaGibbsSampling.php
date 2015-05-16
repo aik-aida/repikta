@@ -36,9 +36,9 @@
 			$this->vocab = $this->GetTermVocab();
 
 			//$this->beta = 0.01;
-			$this->sampleLAG = 0;	//100 //2
-			$this->ITERATIONS = 2;	//100	//2000
-			$this->burnIN = 1;	//50	//100
+			$this->sampleLAG = 2;	//100 //2
+			$this->ITERATIONS = 2000;	//100	//2000
+			$this->burnIN = 100;	//50	//100
 		}
 
 		public function TopicExtraction($k, $list_doc, $id, $ke, $grup){
@@ -53,6 +53,7 @@
 			$this->beta = (200/$this->Nterm);
 			$this->PrepareVariabel($this->Mdoc, $this->Nterm, $this->Ktopic);
 			$randTopic = $this->RandomTopicFirst($this->Mdoc, $this->corpus, $this->Ktopic);
+
 
 			
 			//echo "ITERASI";
@@ -81,7 +82,7 @@
 			$lama = ($akhir-$awal);
 			
 			$simpan = new dbLdaSave;
-			$simpan->percobaan_ke = 11;
+			$simpan->percobaan_ke = 3;
 			$simpan->group = $grup;
 			$simpan->id_kluster = $id;
 			$simpan->kluster_ke = $ke;
@@ -174,12 +175,28 @@
 			$topic = $this->zTopic[$m][$n];
 			$idTerm = $this->corpus[$m][$n];
 			//$new_topic = $last_topic;
+			if($m<5 && $n<5){
+				// echo "dokumen[".$m."] term[".$n.",".$idTerm."] topik_lama=".$topic."<br />";
+				// echo "nw=".$this->nw[$idTerm][$topic]." , ";
+				// echo "nd=".$this->nd[$m][$topic]." , ";
+				// echo "nwsum=".$this->nwsum[$topic]." , ";
+				// echo "ndsum=".$this->ndsum[$m]."<br />";
+			}
 			
+			
+
 			//membuat sementara item Z[m][n] menghilang
 			$this->nw[$idTerm][$topic]--;
 			$this->nd[$m][$topic]--;
 			$this->nwsum[$topic]--;
 			$this->ndsum[$m]--;
+
+			// if($m<5 && $n<5){
+			// 	echo "nw=".$this->nw[$idTerm][$topic]." , ";
+			// 	echo "nd=".$this->nd[$m][$topic]." , ";
+			// 	echo "nwsum=".$this->nwsum[$topic]." , ";
+			// 	echo "ndsum=".$this->ndsum[$m]."<br />";
+			// }
 			
 			//Multinomial Sampling dengan Metode Kumulatif
 			$P = array();
@@ -190,21 +207,45 @@
 				$c = $this->nd[$m][$k] + $this->alpha;
 				$d = $this->ndsum[$m] + ($this->Ktopic * $this->alpha);
 				$P[$k] = ($a/$b)*($c/$d);
+
+				// if($m<5 && $n<5){
+				// 	echo "P[".$k."] = ".number_format($P[$k], 10)."<br />";
+				// }
 			}
 			//Parameter Multinomial Kumulatif
 			//for ($k=1; $k<$this->Ktopic ; $k++) { 
 			for ($k=1; $k<count($P) ; $k++) { 
 				$P[$k] += $P[$k-1];
 			}
+
+			// if($m<5 && $n<5){
+			// 	echo "--- Parameter Multinomial Kumulatif ---<br />";
+			// 	for ($k=0; $k<$this->Ktopic ; $k++) { 
+			// 		echo "P[".$k."] = ".number_format($P[$k],10)."<br />";
+			// 	}
+			// }
+
 			//random sampling dikarenakan bentuk P[] yang tidak normal
 			$banyakK = ($this->Ktopic-1);
-			$value = mt_rand(0,$P[$banyakK]);
+
+			$random = mt_rand() / mt_getrandmax();
+			$value = $random * $P[$banyakK];
+			//$value = mt_rand(0,$P[$banyakK]);
+
+			// if($m<5 && $n<5){
+			// 	echo "NILAI value : ".$value."<br />";
+			// }
+
 			for ($k=0; $k<$this->Ktopic ; $k++) { 
 				if($value < $P[$k]){
 					$topic = $k;
 					break;
 				}
 			}
+
+			// if($m<5 && $n<5){
+			// 	echo "------------------------------------------------------------------------topik_baru=".$topic."<br />";
+			// }
 
 			//mengambalikan keberadaan item Z[m][n] dalam corpus
 			$this->nw[$idTerm][$topic]++;
@@ -220,14 +261,14 @@
 				for ($k=0; $k<$this->Ktopic ; $k++) { 
 					$a = $this->nd[$m][$k] + $this->alpha;
 					$b = $this->ndsum[$m] + ($this->Ktopic * $this->alpha);
-					$this->thetasum[$m][$k] += $a/$b;
+					$this->thetasum[$m][$k] += ($a/$b);
 				}
 			}
 			for ($k=0; $k<$this->Ktopic ; $k++) { 
 				for ($n=0; $n<$this->Nterm ; $n++) { 
 					$c = $this->nw[$n][$k] + $this->beta; 
 					$d = $this->nwsum[$k] + ($this->Nterm * $this->beta);
-					$this->phisum[$k][$n] += $c/$d;
+					$this->phisum[$k][$n] += ($c/$d);
 				}
 			}
 			$this->numstat++;
@@ -248,14 +289,18 @@
 					$this->nd[$m][$idTopic]++;			//menambahkan jumlah topik idTopic yang muncul pada dokumen m
 					$this->nwsum[$idTopic]++;			//menambahkan jumlah topik idTopic yang muncul dalam corpus dokumen
 
-					// if($n<70){
-					// 	echo $idTopic." , ";
-					// }
+					if($n<50){
+						//echo $idTopic." , ";
+					}
 				}
 				//echo "<br />";
 				$this->ndsum[$m] = $N;	//menambahkan banyak kemunculan topic untuk setiap dokumen m		
 			}
-			//echo "-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------<br />";
+			// echo "<br />";
+			// echo "-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------<br />";
+			// echo "<br />";
+
+			
 			return $this->zTopic;
 		}
 
@@ -359,5 +404,40 @@
 
 			$this->Mdoc = $M;
 		}
+
+		/*public function Print(){
+			echo "--- ND,SUM ---<br />";
+			//for ($m=0; $m<$M ; $m++) { 
+			for ($m=0; $m<5 ; $m++) { 
+				echo "(".$m.") ".$this->ndsum[$m]."<br />";
+			}
+
+			echo "--- ND ---<br />";
+			$ktop = ($K);
+			//for ($m=0; $m<$M ; $m++) { 
+			for ($m=0; $m<5 ; $m++) {
+				$N = count($C[$m]);
+				echo "(".$m.") ";
+				for ($k=0; $k<$ktop ; $k++) { 
+					echo $this->nd[$m][$k]." , ";
+				}
+				echo "<br />";
+			}
+
+			echo "--- NW,SUM ---<br />";
+			for ($k=0; $k<$ktop ; $k++) {
+				echo "(".$k.") ".$this->nwsum[$k]."<br />";
+			}
+
+			echo "--- NW ---<br />";
+			//for ($n=0; $n<$N ; $n++) {
+			for ($n=0; $n<5 ; $n++) {
+				echo "(".$n.") ";
+				for ($k=0; $k<$ktop ; $k++) { 
+					echo $this->nw[$n][$k]." , ";
+				}
+				echo "<br />";
+			}
+		}*/
 	}
 ?>
