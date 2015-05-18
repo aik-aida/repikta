@@ -3,7 +3,7 @@
 	class RepiktaController extends BaseController{
 
 		public function show_phi(){
-			$id_lda = 7;
+			$id_lda = 26;
 			$data_lda = dbLdaSave::find($id_lda);
 			$ktopik = $data_lda->k_topik;
 			$nterm = $data_lda->n_term;
@@ -26,13 +26,14 @@
 				}
 				arsort($hasil);
 				echo "jumlah = ".$sum."<br />";
-				$potong = $nterm-10;
-				$top10 = array_slice($hasil,0,10);
+				//$potong = $nterm-20;
+				$top10 = array_slice($hasil,0,20);
 				$i=1;
 				echo "TOPIK ".($k+1)."<br />";
 				echo "----------------------<br />";
 				foreach ($top10 as $key => $value) {
-					echo $i.") ".$key." --- ".$value."<br />"; $i++;
+					//echo $i.") ".$key." --- ".$value."<br />"; $i++;
+					echo $value."<br />"; $i++;
 				}
 			}
 			

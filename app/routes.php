@@ -54,7 +54,7 @@ Route::get('ekstrak_topik', function(){
 	$counter = new TimeExecution;
 	$awal = $counter->getTime();
 
-	$masing2topik = array(8,4,4);
+	$masing2topik = array(5,3,3);
 	$id_group = 1;
 	$id_result = DB::table('kmeans_result')->where('id_group', '=' , $id_group)->max('id');
 	$data_result = KmeansResult::find($id_result);
@@ -62,7 +62,7 @@ Route::get('ekstrak_topik', function(){
 	$hasil_kluster = json_decode($data_result->hasil_kluster);
 
 	for ($i=0; $i <$banyak_kluster ; $i++) { 
-	//for ($i=2; $i <3 ; $i++) { 
+	//for ($i=0; $i <1 ; $i++) { 
 		//$k = $masing2topik[2];
 		$k = $masing2topik[$i];
 		$lda = new LdaGibbsSampling();

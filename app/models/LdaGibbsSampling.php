@@ -35,7 +35,7 @@
 		public function __construct() {
 			$this->vocab = $this->GetTermVocab();
 
-			//$this->beta = 0.01;
+			$this->beta = 0.01;
 			$this->sampleLAG = 2;	//100 //2
 			$this->ITERATIONS = 2000;	//100	//2000
 			$this->burnIN = 100;	//50	//100
@@ -50,7 +50,7 @@
 			
 			$this->Ktopic = $k;
 			$this->alpha = (50/$this->Ktopic);
-			$this->beta = (200/$this->Nterm);
+			//$this->beta = (200/$this->Nterm);
 			$this->PrepareVariabel($this->Mdoc, $this->Nterm, $this->Ktopic);
 			$randTopic = $this->RandomTopicFirst($this->Mdoc, $this->corpus, $this->Ktopic);
 
@@ -69,7 +69,6 @@
 				}
 
 				if( ($i > $this->burnIN) && ( $this->sampleLAG > 0 ) && ( $i % $this->sampleLAG == 0) ){
-					echo "BURN_IN <br />";
 					$this->UpdateSUM();
 				}
 			}
@@ -82,7 +81,7 @@
 			$lama = ($akhir-$awal);
 			
 			$simpan = new dbLdaSave;
-			$simpan->percobaan_ke = 3;
+			$simpan->percobaan_ke = 4;
 			$simpan->group = $grup;
 			$simpan->id_kluster = $id;
 			$simpan->kluster_ke = $ke;
@@ -382,17 +381,33 @@
 				array_push($this->docName, $arrDOC[$m]);
 				$dokumen = Dokumen::find($arrDOC[$m]);
 				$this->corpus[$m] = array();
-				$katakata = explode(' ', $dokumen->abstrak_af_preproc);
-				$N = count($katakata);
+				// $katakata = explode(' ', $dokumen->abstrak_af_preproc);
+				// $N = count($katakata);
+
+				$jumlah_N = 50;
+
+				$nilai_tfidf = json_decode($dokumen->nilai_tfidf);
+				$tfidf_sorted = array();
+				foreach ($nilai_tfidf as $key => $value) {
+					$tfidf_sorted[$key] = $value;
+				}
+				arsort($tfidf_sorted);
+				$top30 = array_slice($tfidf_sorted,0,$jumlah_N);
+				$katakata = array_keys($top30);
+
+
 				
-				for ($n=0; $n < $N; $n++) { 
+				//for ($n=0; $n < $N; $n++) { 
+				for ($n=0; $n < $jumlah_N; $n++) {
 					$idx = array_search(trim($katakata[$n]), $this->vocab);
+
 					// if($idx == NULL) {	//jika kata tidak ada dalam kamus -> 'spasi' , maka id=-1
 					// 	if(strlen($katakata[$n])!=0){
 					// 	array_push($this->corpus[$m], -1);
 					// 	echo "()".strlen($katakata[$n])."-".$katakata[$n]."()<br />";
 					// 	}
 					// }else{
+
 					if(strlen(trim($katakata[$n]))!=0){
 						array_push($this->corpus[$m], $idx);
 						//echo trim($katakata[$n])."<br />";

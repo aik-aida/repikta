@@ -10,7 +10,7 @@
                             <table class="table table-bordered table-striped table-condensed">
                               <thead>
                               <tr>
-                                  <th class="numeric">ID</th>
+                                  <th class="numeric">No. Urut</th>
                                   <th>Term</th>
                                   <th class="numeric">Nilai Tf-Idf Term pada Dokumen {{ $id }}</th>
                               </tr>
@@ -20,8 +20,8 @@
                                   @for ($i = 0; $i < count($kamus); $i++)
                                   <tr>
                                     <td class="numeric">{{ ($i+1) }}</td>
-                                    <td>{{ $term = $kamus[$i]->kata_dasar }}</td>
-                                    <td class="numeric">{{$vectortfidf->$term}}</td>
+                                    <td>{{ $term = $kata[$i] }}</td>
+                                    <td class="numeric">{{$urut[$term]}}</td>
                                   </tr>
                                   @endfor
                               

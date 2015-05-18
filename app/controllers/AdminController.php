@@ -47,11 +47,22 @@
 			$kamus = KamusKata::get();
 			$dokumen_detail = Dokumen::find($id);
 			$vectortfidf = json_decode($dokumen_detail->nilai_tfidf);
+			//var_dump($vectortfidf);
+			$sort_tfidf = array();
+			foreach ($vectortfidf as $key => $value) {
+				$sort_tfidf[$key] = $value;
+			}
+			arsort($sort_tfidf);
+			$uruterm = array_keys($sort_tfidf);
+			//var_dump($uruterm);
+			//var_dump($sort_tfidf);
 
 			return View::make('dokumen_tfidf')
 					->with('id', $id)
 					->with('kamus', $kamus)
-					->with('vectortfidf', $vectortfidf);	
+					->with('vectortfidf', $vectortfidf)
+					->with('urut', $sort_tfidf)
+					->with('kata', $uruterm);
 		}
 
 		public function centroid_list(){
