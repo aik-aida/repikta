@@ -81,7 +81,7 @@
 			$lama = ($akhir-$awal);
 			
 			$simpan = new dbLdaSave;
-			$simpan->percobaan_ke = 4;
+			$simpan->percobaan_ke = 8;
 			$simpan->group = $grup;
 			$simpan->id_kluster = $id;
 			$simpan->kluster_ke = $ke;
@@ -381,10 +381,6 @@
 				array_push($this->docName, $arrDOC[$m]);
 				$dokumen = Dokumen::find($arrDOC[$m]);
 				$this->corpus[$m] = array();
-				// $katakata = explode(' ', $dokumen->abstrak_af_preproc);
-				// $N = count($katakata);
-
-				$jumlah_N = 50;
 
 				$nilai_tfidf = json_decode($dokumen->nilai_tfidf);
 				$tfidf_sorted = array();
@@ -392,22 +388,26 @@
 					$tfidf_sorted[$key] = $value;
 				}
 				arsort($tfidf_sorted);
-				$top30 = array_slice($tfidf_sorted,0,$jumlah_N);
-				$katakata = array_keys($top30);
 
+				// $N = 50;
+				// $top = array_slice($tfidf_sorted,0,$N);
+				// $katakata = array_keys($top);
 
-				
-				//for ($n=0; $n < $N; $n++) { 
-				for ($n=0; $n < $jumlah_N; $n++) {
+				$katakata = array();
+				foreach ($tfidf_sorted as $key => $value) {
+					if($value >= 0.003){
+						array_push($katakata, $key);
+					}
+					if($value < 0.003){
+						break;
+					}
+				}
+
+				// $katakata = explode(' ', $dokumen->abstrak_af_preproc);
+				$N = count($katakata);
+
+				for ($n=0; $n < $N; $n++) { 
 					$idx = array_search(trim($katakata[$n]), $this->vocab);
-
-					// if($idx == NULL) {	//jika kata tidak ada dalam kamus -> 'spasi' , maka id=-1
-					// 	if(strlen($katakata[$n])!=0){
-					// 	array_push($this->corpus[$m], -1);
-					// 	echo "()".strlen($katakata[$n])."-".$katakata[$n]."()<br />";
-					// 	}
-					// }else{
-
 					if(strlen(trim($katakata[$n]))!=0){
 						array_push($this->corpus[$m], $idx);
 						//echo trim($katakata[$n])."<br />";

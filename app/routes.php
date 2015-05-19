@@ -54,7 +54,7 @@ Route::get('ekstrak_topik', function(){
 	$counter = new TimeExecution;
 	$awal = $counter->getTime();
 
-	$masing2topik = array(5,3,3);
+	$masing2topik = array(5,3,4);
 	$id_group = 1;
 	$id_result = DB::table('kmeans_result')->where('id_group', '=' , $id_group)->max('id');
 	$data_result = KmeansResult::find($id_result);
@@ -369,6 +369,7 @@ Route::get('gettranskrip', function(){
 });
 
 Route::get('data', function(){
+
 	
 	//gabungin data ta akademik
 	/*
@@ -813,6 +814,23 @@ Route::get('transkrip', function(){
 });
 
 Route::get('datadata',function(){
+
+	$kamus = KamusKata::all();
+	foreach ($kamus as $key => $value) {
+		$indokumen = json_decode($value->indoc);
+		$update = KamusKata::find($value->id);
+		$update->jumlah_dokumen = count($indokumen);
+		$update->save();
+	}
+
+	$kamusjudul = KamusJudul::all();
+	foreach ($kamusjudul as $key => $value) {
+		$indokumen = json_decode($value->indoc);
+		$update = KamusJudul::find($value->id);
+		$update->jumlah_dokumen = count($indokumen);
+		$update->save();
+	}
+	
 	// $angka1 = mt_rand();
 	// $angka2 = mt_getrandmax();
 	// echo ($angka1/$angka2);
@@ -831,10 +849,10 @@ Route::get('datadata',function(){
 	// echo "0.0000195701<br />";
 	// echo(number_format($number,10));
 
-	$random = mt_rand() / mt_getrandmax();
-	$number = $random * 0.0000195701;
-	echo "0.0000195701<br />";
-	echo(number_format($number,10));
+	// $random = mt_rand() / mt_getrandmax();
+	// $number = $random * 0.0000195701;
+	// echo "0.0000195701<br />";
+	// echo(number_format($number,10));
 
 
 

@@ -11,7 +11,7 @@
 		}
 
 		public function dokumen_list(){
-			$corpus = Dokumen::get();
+			$corpus = Dokumen::where('training','=',true)->get();
 			return View::make('dokumen_main')
 					->with('corpus', $corpus);
 		}
