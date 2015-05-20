@@ -14,7 +14,7 @@
 		public $prevResultCluster;
 		public $stopMarking;
 		public $MAXiteration;
-		public $counter;
+		public $counter;	
 		public $dokumenID;
 		public $gencen;
 		public $idIndukResult;
