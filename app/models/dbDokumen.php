@@ -2,7 +2,7 @@
 	/**
 	* 
 	*/
-	class Dokumen extends Eloquent
+	class dbDokumen extends Eloquent
 	{
 		protected $connection = 'repikta';
 		protected $table = 'dokumen';

@@ -2,7 +2,7 @@
 	/**
 	* 
 	*/
-	class KmeansResult extends Eloquent
+	class dbKmeansResult extends Eloquent
 	{
 		protected $connection = 'repikta';
 		protected $table = 'kmeans_result';

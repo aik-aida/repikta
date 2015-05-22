@@ -57,7 +57,7 @@ Route::get('ekstrak_topik', function(){
 	$masing2topik = array(5,3,4);
 	$id_group = 1;
 	$id_result = DB::table('kmeans_result')->where('id_group', '=' , $id_group)->max('id');
-	$data_result = KmeansResult::find($id_result);
+	$data_result = dbKmeansResult::find($id_result);
 	$banyak_kluster = $data_result->jumlah_kluster;
 	$hasil_kluster = json_decode($data_result->hasil_kluster);
 
@@ -99,9 +99,9 @@ Route::get('clustering',function(){
 	
 	$kmeans = new Kmeans;
 
-	$doc_training = Dokumen::where('training','=',true)->get();
-	$centroid_choose = 
-	$number_k = 
+	$doc_training = dbDokumen::where('training','=',true)->get();
+	$centroid_choose = 2; //MANUAL CENTROID ID
+	// $number_k = 
 	$k = 3;
 	$n = count($doc_training);
 
@@ -110,7 +110,7 @@ Route::get('clustering',function(){
 	//ja:judul+abstrak
 	//g:generated
 	//m:manual
-	$id_group = $kmeans->Clustering($k, $n, 'ja', 'm');
+	$id_group = $kmeans->Clustering($k, $n, 'ja', 'm', $centroid_choose);
 	
 	for ($i=0; $i < count($kmeans->centroid); $i++) { 
 		echo "Kluster ".($i+1)."<br />";
@@ -139,7 +139,7 @@ Route::get('clustering',function(){
 	$id_group = 1;
 	$id = DB::table('kmeans_result')->where('id_group', '=' , $id_group)->max('id');
 	echo $id."<br />";
-	$hasil = KmeansResult::find($id);
+	$hasil = dbKmeansResult::find($id);
 	echo $hasil->jumlah_kluster."<br />";
 	$hasil_kluster = json_decode($hasil->hasil_kluster);
 
@@ -181,15 +181,15 @@ Route::get('inisial', function(){
 	echo "Pembobotan : ".($time9-$time8)."detik <br />";	
 	echo "done";
 });
-
-Route::get('cek',function(){
-	$string = "pemilu jaringan layanan jurusan berbasis kendaraan tujuan";
-	//tokenizing dan stemming sastrawi
-				$stemmerFactory = new \Sastrawi\Stemmer\StemmerFactory();
-				$stemmer  = $stemmerFactory->createStemmer();
-				$teks = $stemmer->stem($string);
-				echo $string."<br />";
-				echo $teks."<br />";
-});
 	
+Route::get('cek',function(){
+	// $dokumen = dbDokumen::find('5109100001');
+	// $tfidf = json_decode($dokumen->nilai_tfidf);
+	// var_dump($tfidf);
+
+	// $kata =  dbKamusKata::find('rancang');
+	// $indoc = json_decode($kata->indoc);
+	// var_dump($indoc);
+});
+
 ?>

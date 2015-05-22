@@ -25,8 +25,8 @@
 
 		public function __construct()
 		{
-			$this->dokumenData = Dokumen::where('training','=',true)->get();
-			$this->kamus = KamusKata::all();
+			$this->dokumenData = dbDokumen::where('training','=',true)->get();
+			$this->kamus = dbKamusKata::all();
 			//$this->gencen = CentroidGenerated::all();
 			$this->idcentroid = array();
 			$this->centroid = array();
@@ -42,7 +42,7 @@
 			}
 		}
 
-		public function Clustering($k, $n, $teks, $centroid)
+		public function Clustering($k, $n, $teks, $centroid, $idcen)
 		{
 			$counter = new TimeExecution;
 
@@ -51,12 +51,12 @@
 			$this->idC = $centroid;
 			//$this->RandomFirstCentroid($k);
 			echo $centroid."<br />";
-			if($centroid=='g') {
+			if($centroid=='g') { //generated centroid belum dirubah array
 				$this->GenerateCentroidMean($k, $n);
 				echo "generated<br />";
 			}
 			elseif ($centroid=='m') {
-				$this->GetManualCentroid($k,$teks);
+				$this->GetManualCentroid($k,$teks,$idcen);
 				echo "manual<br />";
 			}
 			echo $this->idTeks."<br />";
@@ -92,7 +92,7 @@
 		public function SaveProcess($ndoc, $time){
 			
 			$dt = new DateTime;
-			$kmeansNow = KmeansResult::get();
+			$kmeansNow = dbKmeansResult::get();
 			if($this->counter==1)
 			{
 				if(count($kmeansNow)==0){
@@ -111,7 +111,7 @@
 				}
 			}
 
-			$saveKmeans = new KmeansResult();
+			$saveKmeans = new dbKmeansResult();
 			$saveKmeans->teks = $this->idTeks;
 			$saveKmeans->centroid = $this->idC;
 			$saveKmeans->id_group = $this->idIndukResult;
@@ -128,9 +128,9 @@
 			$saveKmeans->save();
 		}
 
-		public function GetManualCentroid($k,$teks)
+		public function GetManualCentroid($k,$teks,$id)
 		{
-			$manCentroid = CentroidManual::where('k','=',$k)->where('teks','=',$teks)->get();
+			$manCentroid = dbCentroidManual::where('k','=',$k)->where('teks','=',$teks)->where('id','=',$id)->get();
 			echo $teks."<br />";
 			$this->k_number = $k;
 			$this->centroid = json_decode($manCentroid[0]->centroid);
@@ -259,7 +259,6 @@
 							//echo $vectorDoc->$term.",";
 						}
 						$avg = $sum/$n;
-						//$this->centroid[$i]->$term = $avg;
 						$newCentroid[$i]->$term = $avg;
 					}
 					else {
@@ -541,5 +540,6 @@
 			
 			//var_dump($this->centroid);
 		}
+
 	}
 ?>

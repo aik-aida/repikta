@@ -2,12 +2,11 @@
 	/**
 	* 
 	*/
-	class KamusJudul extends Eloquent
+	class dbCentroidManual extends Eloquent 
 	{
 		protected $connection = 'repikta';
-		protected $table = 'kamus_judul';
+		protected $table = 'manual_centroid';
 		public $timestamps = false;
-		//protected $primaryKey = 'kata_dasar';
 		protected $primaryKey = 'id';
 	}
 ?>

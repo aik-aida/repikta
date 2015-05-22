@@ -116,7 +116,7 @@
 		}
 
 		public function AverageOfAverage($dataRata){
-			$kamus = KamusKata::all();
+			$kamus = dbKamusKata::all();
 			$avg2 = (object) array();
 
 			foreach ($kamus as $key => $kata) {
@@ -132,7 +132,7 @@
 		}
 
 		public function CalculateAverageCluster($data){
-			$kamus = KamusKata::all();
+			$kamus = dbKamusKata::all();
 			for ($i=0; $i<$this->jumlahKluster ; $i++) {
 				$this->rata2kluster[$i] = (object) array();
 				$n = count($data[$i]);
@@ -163,7 +163,7 @@
 			for ($i=0; $i<$this->jumlahKluster ; $i++) { 
 				$this->dataKluster[$i] = array();
 				foreach ($klusterID[$i] as $key => $value) {
-					$doc = Dokumen::find($value);
+					$doc = dbDokumen::find($value);
 					array_push($this->dataKluster[$i], $doc);
 				}
 			}

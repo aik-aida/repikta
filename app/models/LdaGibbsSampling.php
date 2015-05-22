@@ -361,7 +361,7 @@
 		public function GetTermVocab() {
 			$this->vocab = array();
 			$temp_vocab = array();
-			$kamuskata = KamusKata::get();
+			$kamuskata = dbKamusKata::get();
 
 			foreach ($kamuskata as $key => $datakata) {
 				array_push($temp_vocab, $datakata->kata_dasar);

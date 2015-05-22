@@ -11,9 +11,9 @@
 		}
 
 		public function Reset_TfIdf(){
-			$all = Dokumen::all();
+			$all = dbDokumen::all();
 			foreach ($all as $key => $value) {
-				$doc = Dokumen::find($value->nrp);
+				$doc = dbDokumen::find($value->nrp);
 				$doc->nilai_tf_abstrak = '';
 				$doc->nilai_tfidf_abstrak = '';
 				$doc->nilai_tf_judul = '';
@@ -31,10 +31,10 @@
 			$bobot_judul = 0.7;
 			$bobot_abstrak = 0.3;
 
-			$dokumens = Dokumen::where('training','=',true)->get();
-			$words = KamusKata::all();
+			$dokumens = dbDokumen::where('training','=',true)->get();
+			$words = dbKamusKata::all();
 			foreach ($dokumens as $key => $dokumen) {
-				$tfidf = array();
+				$tfidf = (object) array();
 				$tfidf_j = json_decode($dokumen->nilai_tfidf_judul);
 				$tfidf_a = json_decode($dokumen->nilai_tfidf_abstrak);
 				$cn = 0;
@@ -42,22 +42,22 @@
 					$term = $kata->kata_dasar;
 
 					if(array_key_exists($term, $tfidf_j)){
-						$tfidf[$term] = ($bobot_judul*$tfidf_j->$term)+($bobot_abstrak*$tfidf_a->$term);
+						$tfidf->$term = ($bobot_judul*$tfidf_j->$term)+($bobot_abstrak*$tfidf_a->$term);
 					}else{
-						$tfidf[$term] = ($bobot_abstrak*$tfidf_a->$term);
+						$tfidf->$term = ($bobot_abstrak*$tfidf_a->$term);
 					}
 				}
 				
-				$doc = Dokumen::find($dokumen->nrp);
+				$doc = dbDokumen::find($dokumen->nrp);
 				$doc->nilai_tfidf = json_encode($tfidf);
 				$doc->save();
 			}
 		}
 
 		public function CountTF_IDF(){
-			$dokumens = Dokumen::where('training','=',true)->get();
-			$words = KamusKata::all();
-			$judul_words = KamusJudul::all();
+			$dokumens = dbDokumen::where('training','=',true)->get();
+			$words = dbKamusKata::all();
+			$judul_words = dbKamusJudul::all();
 
 			foreach ($dokumens as $key => $dokumen) {
 				$tfidf = (object) array();
@@ -76,7 +76,7 @@
 					$judul_tfidf->$term = (float)((float)($judul_tf->$term)*(float)($kata->idf));
 				}
 
-				$doc = Dokumen::find($dokumen->nrp);
+				$doc = dbDokumen::find($dokumen->nrp);
 				$doc->nilai_tfidf_abstrak = json_encode($tfidf);
 				$doc->nilai_tfidf_judul = json_encode($judul_tfidf);
 				$doc->save();
@@ -85,9 +85,9 @@
 		}
 
 		public function CountTF(){
-			$dokumens = Dokumen::where('training','=',true)->get();
-			$words = KamusKata::all();
-			$judul_words = KamusJudul::all();
+			$dokumens = dbDokumen::where('training','=',true)->get();
+			$words = dbKamusKata::all();
+			$judul_words = dbKamusJudul::all();
 			foreach ($dokumens as $key => $dokumen) {
 				$tfvector = (object) array();
 				foreach ($words as $key => $kata) {
@@ -105,7 +105,7 @@
 					$judul_tfvector->$term = (float)((float)$nword/(float)$nall);			
 				}
 
-				$doc = Dokumen::find($dokumen->nrp);
+				$doc = dbDokumen::find($dokumen->nrp);
 				$doc->nilai_tf_abstrak = json_encode($tfvector);
 				$doc->nilai_tf_judul = json_encode($judul_tfvector);
 				$doc->save();
@@ -114,9 +114,9 @@
 		}
 
 		public function CountIDF(){
-			$dokumens = Dokumen::where('training','=',true)->get();
+			$dokumens = dbDokumen::where('training','=',true)->get();
 
-			$words = KamusKata::all();
+			$words = dbKamusKata::all();
 			foreach ($words as $key => $kata) {
 				//echo($kata->kata_dasar)."<br />";
 				$count = 0;
@@ -133,14 +133,14 @@
 					$idf = (float)(log10((float)count($dokumens)/(float)$count_doc));
 					$iddoc = json_encode($docs);	
 
-						$kamus = KamusKata::find($kata->kata_dasar);
+						$kamus = dbKamusKata::find($kata->kata_dasar);
 						$kamus->idf = $idf;
 						$kamus->indoc = $iddoc;
 						$kamus->save();
 				}
 			}
 
-			$judul_words = KamusJudul::all();
+			$judul_words = dbKamusJudul::all();
 			foreach ($judul_words as $key => $kata) {
 				//echo($kata->kata_dasar)."<br />";
 				$count = 0;
@@ -157,7 +157,7 @@
 					$idf = (float)(log10((float)count($dokumens)/(float)$count_doc));
 					$iddoc = json_encode($docs);	
 
-						$kamus = KamusJudul::find($kata->kata_dasar);
+						$kamus = dbKamusJudul::find($kata->kata_dasar);
 						$kamus->idf = $idf;
 						$kamus->indoc = $iddoc;
 						$kamus->save();
@@ -168,7 +168,7 @@
 		public function DistinctTerm(){
 			$count = 0;
 			$countJ = 0;
-			$dokumen = Dokumen::where('training','=',true)->get();
+			$dokumen = dbDokumen::where('training','=',true)->get();
 
 			$cDoc = count($dokumen);
 			for ($i=0; $i < $cDoc	; $i++) { 
@@ -176,26 +176,26 @@
 				$words = explode(' ', $dokumen[$i]->abstrak_af_preproc);
 				$judul = explode(' ', $dokumen[$i]->judul_af_preproc);
 				foreach ($words as $key => $kata) {
-					if(KamusKata::find($kata)==null && $kata!=' ' && strlen($kata)!=0){
+					if(dbKamusKata::find($kata)==null && $kata!=' ' && strlen($kata)!=0){
 						//array_push($new, $kata);
-						$check = new KamusKata;
+						$check = new dbKamusKata;
 						$check->kata_dasar = $kata;
 						$check->save();
 						$count++;
 					}
 				}
 				foreach ($judul as $key => $kata) {
-					if(KamusKata::find($kata)==null && $kata!=' ' && strlen($kata)!=0){
+					if(dbKamusKata::find($kata)==null && $kata!=' ' && strlen($kata)!=0){
 						//array_push($new, $kata);
-						$check = new KamusKata;
+						$check = new dbKamusKata;
 						$check->kata_dasar = $kata;
 						$check->save();
 						$count++;
 					}
 
-					if(KamusJudul::find($kata)==null && $kata!=' ' && strlen($kata)!=0){
+					if(dbKamusJudul::find($kata)==null && $kata!=' ' && strlen($kata)!=0){
 						//array_push($new, $kata);
-						$check = new KamusJudul;
+						$check = new dbKamusJudul;
 						$check->kata_dasar = $kata;
 						$check->save();
 						$countJ++;
@@ -206,7 +206,7 @@
 
 		public function PreprocessingText(){
 			//mengambil seluruh data dokumen
-			$dokumens = Dokumen::all();
+			$dokumens = dbDokumen::all();
 
 			//pra proses untuk setiap dokumen
 			foreach ($dokumens as $key => $value) {
@@ -233,7 +233,7 @@
 				$judul->output = $this->AdditionalPreproc($judul->afremoval);
 
 				//menyimpan hasil pra proses dokumen
-				$update_preprocessing = Dokumen::find($value->nrp);
+				$update_preprocessing = dbDokumen::find($value->nrp);
 				$update_preprocessing->abstrak_af_preproc = " ".$teks->output." ";
 				$update_preprocessing->judul_af_preproc = " ".$judul->output." ";
 				$update_preprocessing->save();
@@ -264,7 +264,7 @@
 		}
 
 		public function Calculate_Save_Centroid($arrNRP){
-			$kamus = KamusKata::all();
+			$kamus = dbKamusKata::all();
 				$k_number = count($arrNRP);
 				echo "k:".$k_number."<br />";
 				$newCentroid = array();
@@ -276,8 +276,8 @@
 							$term = $kata->kata_dasar;
 							$sum = 0.0;
 							foreach ($arrNRP[$i] as $key => $nrp) {
-								$dokumen = Dokumen::find($nrp);
-								$vectorDoc = json_decode($dokumen->nilai_tfidf_abstrak);
+								$dokumen = dbDokumen::find($nrp);
+								$vectorDoc = json_decode($dokumen->nilai_tfidf); //untuk pake hasil pembobotan
 								$sum += $vectorDoc->$term;
 							}
 							$avg = $sum/$n;
@@ -285,12 +285,24 @@
 						}
 				}
 
-			$simpan = new CentroidManual;
-			$simpan->teks = 'ja';
-			$simpan->k = $k_number;
-			$simpan->dokumen_centroid = json_encode($arrNRP);
-			$simpan->centroid = json_encode($newCentroid);
-			$simpan->save();
+			$all = dbCentroidManual::all();
+			$cek = 0;
+			foreach ($all as $key => $value) {
+				if( $value->teks=='ja' && $value->k==$k_number && $value->dokumen_centroid==json_encode($arrNRP) && $value->centroid==json_encode($newCentroid) ){
+					$cek = 1;
+					echo "SUDAH KESIMPAN SEBELUMNYA, centroid no : ".$value->id."<br />";
+				}
+			}
+
+			if($cek==0) {
+				echo "CENTROID MANUAL BARU <br />";
+				$simpan = new dbCentroidManual;
+				$simpan->teks = 'ja';
+				$simpan->k = $k_number;
+				$simpan->dokumen_centroid = json_encode($arrNRP);
+				$simpan->centroid = json_encode($newCentroid);
+				$simpan->save();
+			}
 		}
 
 		public function ReadFile($pathFile){
@@ -348,13 +360,13 @@
 
 		public function Set_training_testing($train, $test){
 			foreach ($train as $key => $value) {
-				$doc = Dokumen::find($value);
+				$doc = dbDokumen::find($value);
 				$doc->training = true;
 				$doc->save();
 			}
 			
 			foreach ($test as $key => $value) {
-				$doc = Dokumen::find($value);
+				$doc = dbDokumen::find($value);
 				$doc->training = false;
 				$doc->save();
 			}
