@@ -55,7 +55,7 @@ Route::get('ekstrak_topik', function(){
 	$awal = $counter->getTime();
 
 	$masing2topik = array(5,3,4);
-	$id_group = 1;
+	$id_group = 2;
 	$id_result = DB::table('kmeans_result')->where('id_group', '=' , $id_group)->max('id');
 	$data_result = dbKmeansResult::find($id_result);
 	$banyak_kluster = $data_result->jumlah_kluster;

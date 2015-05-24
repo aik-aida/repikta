@@ -81,7 +81,7 @@
 			$lama = ($akhir-$awal);
 			
 			$simpan = new dbLdaSave;
-			$simpan->percobaan_ke = 8;
+			$simpan->percobaan_ke = 12;
 			$simpan->group = $grup;
 			$simpan->id_kluster = $id;
 			$simpan->kluster_ke = $ke;
@@ -379,7 +379,7 @@
 
 			for ($m=0; $m < $M; $m++) { 
 				array_push($this->docName, $arrDOC[$m]);
-				$dokumen = Dokumen::find($arrDOC[$m]);
+				$dokumen = dbDokumen::find($arrDOC[$m]);
 				$this->corpus[$m] = array();
 
 				$nilai_tfidf = json_decode($dokumen->nilai_tfidf);
