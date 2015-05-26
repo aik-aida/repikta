@@ -65,9 +65,7 @@
 			return $d;
 		}
 
-		public function GetClosest($nrp, $id_kluster){
-			$n = 5;
-
+		public function GetClosest($nrp, $id_kluster, $n){
 			$data = dbTranskripDistanceKluster::where('nrp','=',$nrp)
 											->where('index','=',$id_kluster)
 											->orderBy('distance', 'asc')
@@ -105,98 +103,104 @@
 		{
 			$idgroup_result = 2;
 			$id_hasil_lda = 11;
+			$n = 5;
 
+			//MENCARI KLUSTER PILIHAN
 			$kluster = $this->Choose_Kluster($nrp,$idgroup_result);
+
+			//GET DATA MAHASISWA
 			$mahasiswa = dbDokumen::find($nrp);
-			echo "NRP : ".$mahasiswa->nrp."<br />";
-			echo "NAMA : ".$mahasiswa->nama."<br /><br />";
-			echo "Anda direkomendasikan memilih Tugas Akhir pada bidang : ";
-			switch ($kluster) {
-				case 0:
-					echo "<b>Rekayasa Perangkat Lunak</b><br />";
-					break;
-				case 1:
-					echo "<b>Kecerdasan Citra dan Visual</b><br />";
-					break;
-				case 2:
-					echo "<b>Komputasi Berbasis Jaringan</b><br />";
-					break;
-			}
-			echo "<br />";
-			$nrp_terdekat_kluster = $this->GetClosest($nrp, $kluster);
+			// echo "NRP : ".$mahasiswa->nrp."<br />";
+			// echo "NAMA : ".$mahasiswa->nama."<br /><br />";
+			// echo "Anda direkomendasikan memilih Tugas Akhir pada bidang : ";
+			// switch ($kluster) {
+			// 	case 0:
+			// 		echo "<b>Rekayasa Perangkat Lunak</b><br />";
+			// 		break;
+			// 	case 1:
+			// 		echo "<b>Kecerdasan Citra dan Visual</b><br />";
+			// 		break;
+			// 	case 2:
+			// 		echo "<b>Komputasi Berbasis Jaringan</b><br />";
+			// 		break;
+			// }
+			// echo "<br />";
+			
+			//MENCARI n DOKUMEN TERDEKAT PADA KLUSTER TERPILIH
+			$nrp_terdekat_kluster = $this->GetClosest($nrp, $kluster,$n);
+
+			//MENDAPATKAN LDA TOPIK PADA KLUSTER TERPILIH
 			$lda_result = dbLdaSave::where('percobaan_ke','=',$id_hasil_lda)
 								->where('kluster_ke','=',$kluster)->get();
-			$list_nrp = json_decode($lda_result[0]->daftar_dokumen);
-			$theta_matrix = json_decode($lda_result[0]->matriks_theta);
-			$phi_matrix = json_decode($lda_result[0]->matriks_phi);
-			$k = $lda_result[0]->k_topik;
-			$nterm = $lda_result[0]->n_term;
-			$list_term = json_decode($lda_result[0]->matriks_term);
 
-			$topic = $this->Get20TermTopic($k, $phi_matrix, $nterm, $list_term);
+			$list_nrp = json_decode($lda_result[0]->daftar_dokumen);		//DAFTAR DOKUMEN PADA KLUSTER TERPILIH
+			$theta_matrix = json_decode($lda_result[0]->matriks_theta);		//THETA LDA PADA KLUSTER TERPILIH
+			$phi_matrix = json_decode($lda_result[0]->matriks_phi);			//PHI LDA PADA KLUSTER TERPILIH
+			$k = $lda_result[0]->k_topik;									//JUMLAH TOPIK PADA KLUSTER TERPILIH
+			$nterm = $lda_result[0]->n_term;								//BANYAK TERM LDA PADA KLUSTER TERPILIH
+			$list_term = json_decode($lda_result[0]->matriks_term);			//DAFTAR TERM LDA PADA KLUSTER TERPILIH
+
+			$topic = $this->Get20TermTopic($k, $phi_matrix, $nterm, $list_term); //LIST TERM TIAP TOPIK YANG AKAN DITAMPILKAN
 			
-			echo "Berikut Daftar Kata-Kata Topik yang direkomendasikan menurut prosentase kedekatan : <br /><br >";
+			//echo "Berikut Daftar Kata-Kata Topik yang direkomendasikan menurut prosentase kedekatan : <br /><br >";
 
-			// echo "--- ".$index_nrp."<br />";
-			// var_dump($list_nrp);
-			$topik_terdekat = array();
-			$kemunculan_topik = array();
+			$topik_terdekat = array();		//DAFTAR TOPIK n DOKUMEN TERDEKAT URUT BERDASARKAN DOKUMEN TERDEKAT
+			$kemunculan_topik = array();	//JUMLAH KEMUNCULAN MASING-MASING TOPIK DALAM n DOKUMEN TERDEKAT
 			
 			for ($i=0; $i <$k ; $i++) { 
 				$kemunculan_topik[$i]=0;
 			}
 			foreach ($nrp_terdekat_kluster as $key => $value) {
-				$index_nrp = array_search($value, $list_nrp);
-				$vtopic = $theta_matrix[$index_nrp];
-				$idtopic = array_search(max($vtopic), $vtopic);
+				$index_nrp = array_search($value, $list_nrp);		//mendapatkan id dokumen terdepat dalam matriks
+				$vtopic = $theta_matrix[$index_nrp];				//daftar probabilitas topik dokumen
+				$idtopic = array_search(max($vtopic), $vtopic);		//mendapatkan topik terpilih dokumen
 				array_push($topik_terdekat, $idtopic);
 				$kemunculan_topik[$idtopic]++;
-				//echo $value."-".$idtopic."<br />";
 			}
-			//var_dump($kemunculan_topik);
-			$distinct = array_unique($kemunculan_topik);
-			arsort($distinct);
-			//var_dump($distinct);
 
-			$urutan_idtopic = array();
-			echo "<html>";
-			echo "<table>";
-			echo "<tr>";
-			foreach ($distinct as $key => $value) {
-				if($value!=0){
-					
-					for ($i=0; $i <$k ; $i++) { 
-						if($kemunculan_topik[$i]==$value){
-							echo "<th>"."Topik ".($i+1)." [".(float)($value/$k)."%]"."</th>";
-							array_push($urutan_idtopic, $i);
-						}
-					}
-					
-				}
+			//MENGURUTKAN TOPIK BERDASAR KEMUNCULAN TERBANYAK DARI n DOKUMEN
+			arsort($kemunculan_topik);	
+
+			// echo "<html>";
+			// echo "<table>";
+
+			// echo "<tr>";
+			//ID TOPIK TERBANYAK UNTUK DIJADIKAN KRITERIA TOPIK
+			$first=0; $max=-100; $topik_kriteria=array();
+			foreach ($kemunculan_topik as $key => $value) {
+				if($first==0) $max=$value;
+				if($value==$max) array_push($topik_kriteria, $key);
+				$first++;
+				//if($value!=0) echo "<th>"."Topik ".($key+1)." [".(float)($value/$n)."%]"."</th>";
 			}
-			echo "</tr>";
-			// var_dump($urutan_idtopic);
-			// echo count($topic)."<br />";
+			//echo "</tr>";
 
 			for ($x=0; $x <20 ; $x++) { 
-				echo "<tr>";
-				for ($i=0; $i <count($urutan_idtopic) ; $i++) { 
-					echo "<td>".$topic[$urutan_idtopic[$i]][$x]."</td>";
+				//echo "<tr>";
+				foreach ($kemunculan_topik as $key => $value) {
+					//if($value!=0) echo "<td>".$topic[$key][$x]."</td>";
 				}
-				echo "</tr>";
+				//echo "</tr>";
 			}
 
+			// echo "</table>";
+			// echo "</html>";
+			
 
-			//   
-			//     <th>Month</th>
-			//     <th>Savings</th>
-			//   
-			//   <tr>
-			//     <td>January</td>
-			//     <td>$100</td>
-			//   </tr>
-			echo "</table>";
-			echo "</html>";
+			$simpan = new dbTestingRekomendasi;
+			$simpan->nrp_testing = $nrp;
+			$simpan->id_kmeans = $idgroup_result;
+			$simpan->id_lda = $id_hasil_lda;
+			$simpan->kluster_bidang = $kluster;
+			$simpan->n_doc_terdekat = $n;
+			$simpan->daftar_doc_terdekat = json_encode($nrp_terdekat_kluster);
+			$simpan->topik_doc_terdekat = json_encode($topik_terdekat);
+			$simpan->kemunculan_topik = json_encode($kemunculan_topik);
+			$simpan->k_topik_terpilih = count($topik_kriteria);
+			$simpan->daftar_topik_terpilih = json_encode($topik_kriteria);
+			$simpan->save();
+
+			return array($kluster, $topik_kriteria);
 		}
 	}
 ?>

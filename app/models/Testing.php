@@ -4,6 +4,11 @@
 	*/
 	class Testing
 	{
+		public $kamus;
+		public function __construct(){
+			$this->kamus = dbKamusKata::all();
+		}
+
 		public function TfIdf($bobot_judul, $bobot_abstrak)
 		{
 			$dokumens = dbDokumen::where('training','=',false)->get();
@@ -81,9 +86,72 @@
 			}
 		}
 
-		public function FunctionName($value='')
+		public function TopikVektor($kluster, $kumpulan)
 		{
-			# code...
+			$jumlah = count($kumpulan);
+			//echo($jumlah);
+
+			$id_hasil_lda = 11;
+			$lda_result = dbLdaSave::where('percobaan_ke','=',$id_hasil_lda)
+								->where('kluster_ke','=',$kluster)->get();
+			$list_nrp = json_decode($lda_result[0]->daftar_dokumen);		//DAFTAR DOKUMEN PADA KLUSTER TERPILIH
+			$theta_matrix = json_decode($lda_result[0]->matriks_theta);		//THETA LDA PADA KLUSTER TERPILIH
+			$phi_matrix = json_decode($lda_result[0]->matriks_phi);			//PHI LDA PADA KLUSTER TERPILIH
+			$k = $lda_result[0]->k_topik;									//JUMLAH TOPIK PADA KLUSTER TERPILIH
+			$nterm = $lda_result[0]->n_term;								//BANYAK TERM LDA PADA KLUSTER TERPILIH
+			$list_term = json_decode($lda_result[0]->matriks_term);			//DAFTAR TERM LDA PADA KLUSTER TERPILIH
+			$vectorTopik = (object) array();
+			if($jumlah==1){
+				for ($n=0; $n <$nterm ; $n++) { 
+					$vectorTopik->$list_term[$n] = $phi_matrix[$n][$kumpulan[0]];
+				}
+				//var_dump($vectorTopik);
+			}
+			else{
+				for ($n=0; $n <$nterm ; $n++) { 
+					$sum = 0.0;
+					foreach ($kumpulan as $key => $idtopic) {
+						$sum += $phi_matrix[$n][$idtopic];
+					}
+					$vectorTopik->$list_term[$n] = $sum/$jumlah;
+				}
+				//var_dump($vectorTopik);
+			}
+			return $vectorTopik;
+		}
+
+		public function CosineValRekomendasi($vTopik, $vDokumen)
+		{
+			return $this->CossineSimilarity($vTopik, $vDokumen);
+		}
+
+		public function CossineSimilarity($v1, $v2)
+		{
+			$dot = $this->Similarity_DotProduct($v1, $v2);
+			$mg1 = $this->Similarity_Magnitude($v1);
+			$mg2 = $this->Similarity_Magnitude($v2);
+			if(($mg1*$mg2)==0){
+				return 0;
+			}
+			else {
+				$cos = $dot/($mg1*$mg2);
+				return $cos;
+			}
+		}
+
+		public function Similarity_DotProduct($vector1, $vector2)
+		{
+			$dotprod = 0.0;
+			foreach ($this->kamus as $key => $kata) {
+				$term = $kata->kata_dasar;
+				$dotprod += (($vector1->$term)*($vector2->$term));
+			}
+			return (float) $dotprod;
+		}
+
+		public function Similarity_Magnitude($vector)	
+		{
+			return (float) sqrt($this->Similarity_DotProduct($vector, $vector));
 		}
 	}
 ?>

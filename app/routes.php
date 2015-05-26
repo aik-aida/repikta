@@ -22,8 +22,41 @@ Route::get('hai', function(){
 
 //Route::get('rekomendasi', 'Repikta@RekomendasiTopik');
 Route::get('rekomendasi', function(){
+	$nrp = '5109100003';
 	$main = new Repikta;
-	$main->RekomendasiTopik('5109100003');
+	$kluster_topkri = $main->RekomendasiTopik($nrp);
+	//var_dump($kluster_topkri);
+
+	$testing = new Testing;
+	$topikVektor = $testing->TopikVektor($kluster_topkri[0], $kluster_topkri[1]);
+
+	$mahasiswa = dbDokumen::find($nrp);
+	$dokumenVektor = json_decode($mahasiswa->nilai_tfidf);
+	$akurasi = $testing->CosineValRekomendasi($topikVektor, $dokumenVektor);
+	echo $nrp." --- ".$akurasi." ---<br />";
+});
+
+Route::get('catat', function(){
+	$dokumens = dbDokumen::where('training','=',false)->get();
+	foreach ($dokumens as $key => $mhs) {
+		$nrp = $mhs->nrp;
+
+		$main = new Repikta;
+		$kluster_topkri = $main->RekomendasiTopik($nrp);
+		$testing = new Testing;
+		$topikVektor = $testing->TopikVektor($kluster_topkri[0], $kluster_topkri[1]);
+
+		$mahasiswa = dbDokumen::find($nrp);
+		$dokumenVektor = json_decode($mahasiswa->nilai_tfidf);
+		$akurasi = $testing->CosineValRekomendasi($topikVektor, $dokumenVektor);
+		echo $nrp." --- ".$akurasi." ---<br />";
+
+		$simpan = new dbTestingAkurasi;
+		$simpan->nrp_testing = $nrp;
+		$simpan->topik_vektor = json_encode($topikVektor);
+		$simpan->cosine_similarity = $akurasi;
+		$simpan->save();
+	}
 });
 
 Route::post('read_transkrip', 'TranskripController@read');
@@ -264,19 +297,24 @@ Route::get('cek',function(){
 	// echo $tfidf->$term."<br />";
 	//var_dump($tfidf);
 
-	$id_group = 1;
-	$id_result = DB::table('kmeans_result')->where('id_group', '=' , $id_group)->max('id');
-	$data_kluster = dbKmeansResult::find($id_result);
-	$hasil_kluster = json_decode($data_kluster->hasil_kluster);
+	// $id_group = 1;
+	// $id_result = DB::table('kmeans_result')->where('id_group', '=' , $id_group)->max('id');
+	// $data_kluster = dbKmeansResult::find($id_result);
+	// $hasil_kluster = json_decode($data_kluster->hasil_kluster);
 
-	$id_group2 = 2;
-	$id_result2 = DB::table('kmeans_result')->where('id_group', '=' , $id_group2)->max('id');
-	$data_kluster2 = dbKmeansResult::find($id_result2);
-	$hasil_kluster2 = json_decode($data_kluster2->hasil_kluster);
-	if($hasil_kluster == $hasil_kluster2)
-		echo "SAMAAAAA";
-	else
-		echo "NO :(";
+	// $id_group2 = 2;
+	// $id_result2 = DB::table('kmeans_result')->where('id_group', '=' , $id_group2)->max('id');
+	// $data_kluster2 = dbKmeansResult::find($id_result2);
+	// $hasil_kluster2 = json_decode($data_kluster2->hasil_kluster);
+	// if($hasil_kluster == $hasil_kluster2)
+	// 	echo "SAMAAAAA";
+	// else
+	// 	echo "NO :(";
+
+	$data = dbTestingAkurasi::all();
+	foreach ($data as $key => $value) {
+		echo $value->cosine_similarity."<br />";
+	}
 });
 
 ?>
