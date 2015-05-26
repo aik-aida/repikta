@@ -81,6 +81,14 @@ Route::get('kluster', 'AdminController@kluster_list');
 
 Route::post('kluster/detail', 'AdminController@kluster_detail');
 
+Route::get('testing', 'AdminController@testing_list');
+
+Route::post('testing/transkrip', 'AdminController@testing_transkrip');
+
+Route::post('testing/rekomendasi', 'AdminController@testing_rekomendasi');
+
+Route::get('akurasi', 'AdminController@akurasi');
+
 Route::get('lihatPHI', 'RepiktaController@show_phi');
 Route::get('lihatTETA', 'RepiktaController@show_theta');
 
@@ -266,7 +274,7 @@ Route::get('inisial', function(){
 	echo "done";
 });
 
-Route::get('testing', function(){
+Route::get('testingtfidf', function(){
 	$test = new Testing;
 	$test->TfIdf(0.7, 0.3);
 	echo "--- SELESAI ---";
