@@ -72,7 +72,7 @@
                       <ul class="sub">
                           <li><a  href={{ URL::to('kamus')}}>Kamus</a></li>
                           <li><a  href={{ URL::to('dokumen')}}>Dokumen</a></li>
-                          <li><a  href={{ URL::to('centroid')}}>Centroid Mean</a></li>
+                          <!-- <li><a  href={{ URL::to('centroid')}}>Centroid Mean</a></li> -->
                       </ul>
                   </li>
 
@@ -82,7 +82,7 @@
                           <span>Kluster Dokumen</span>
                       </a>
                       <ul class="sub">
-                          <li><a  href={{ URL::to('kamus')}}>Eksekusi Kluster Baru</a></li>
+                          <!-- <li><a  href={{ URL::to('kamus')}}>Eksekusi Kluster Baru</a></li> -->
                           <li><a  href={{ URL::to('kluster')}}>Daftar Kluster</a></li>
                       </ul>
                   </li>
@@ -98,6 +98,16 @@
                           <li><a  href="lock_screen.html">Lock Screen</a></li>
                       </ul>
                        -->
+                  </li>
+                  <li class="sub-menu">
+                      <a href="javascript:;" >
+                          <i class="fa fa-cogs"></i>
+                          <span>Testing</span>
+                      </a>
+                      <ul class="sub">
+                          <li><a  href={{ URL::to('testing')}}>Rekomendasi Topik</a></li>
+                          <li><a  href={{ URL::to('akurasi')}}>Akurasi</a></li>
+                      </ul>
                   </li>
                   <!-- 
                   <li class="sub-menu">

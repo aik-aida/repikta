@@ -3,7 +3,7 @@
 	class RepiktaController extends BaseController{
 
 		public function show_phi(){
-			$id_lda = 32;
+			$id_lda = 44;
 			$data_lda = dbLdaSave::find($id_lda);
 			$ktopik = $data_lda->k_topik;
 			$nterm = $data_lda->n_term;

@@ -5,13 +5,13 @@
 	class AdminController extends BaseController
 	{
 		public function kamus_list(){
-			$kamus = KamusKata::get();
+			$kamus = dbKamusKata::get();
 			return View::make('kamus_main')
 					->with('kamus', $kamus);
 		}
 
 		public function dokumen_list(){
-			$corpus = Dokumen::where('training','=',true)->get();
+			$corpus = dbDokumen::where('training','=',true)->get();
 			return View::make('dokumen_main')
 					->with('corpus', $corpus);
 		}
@@ -20,7 +20,7 @@
 			$data = Input::only(['iddoc']);
 			$id = $data['iddoc'];
 
-			$dokumen_detail = Dokumen::find($id);
+			$dokumen_detail = dbDokumen::find($id);
 
 			return View::make('dokumen_detail')
 					->with('dokumen', $dokumen_detail);
@@ -30,8 +30,8 @@
 			$data = Input::only(['iddoc']);
 			$id = $data['iddoc'];
 
-			$kamus = KamusKata::get();
-			$dokumen_detail = Dokumen::find($id);
+			$kamus = dbKamusKata::get();
+			$dokumen_detail = dbDokumen::find($id);
 			$vectortf = json_decode($dokumen_detail->nilai_tf);
 
 			return View::make('dokumen_tf')
@@ -44,8 +44,8 @@
 			$data = Input::only(['iddoc']);
 			$id = $data['iddoc'];
 
-			$kamus = KamusKata::get();
-			$dokumen_detail = Dokumen::find($id);
+			$kamus = dbKamusKata::get();
+			$dokumen_detail = dbDokumen::find($id);
 			$vectortfidf = json_decode($dokumen_detail->nilai_tfidf);
 			//var_dump($vectortfidf);
 			$sort_tfidf = array();
@@ -66,27 +66,27 @@
 		}
 
 		public function centroid_list(){
-			$gencen = CentroidGenerated::get();
-			return View::make('centroid_main')
-					->with('centroids', $gencen);
+			// $gencen = CentroidGenerated::get();
+			// return View::make('centroid_main')
+			// 		->with('centroids', $gencen);
 		}
 
 		public function centroid_detail(){
-			$data = Input::only(['idcentroid']);
-			$id = $data['idcentroid'];
-			//echo $id;
-			$kamus = KamusKata::get();
-			$centroid_obj = CentroidGenerated::find($id);
-			$centroid = json_decode($centroid_obj->centroid);
-			$corpus = json_decode($centroid_obj->dokumen);
-			// echo count($centroid_obj)."<br />";
-			// var_dump($centroid);
+			// $data = Input::only(['idcentroid']);
+			// $id = $data['idcentroid'];
+			// //echo $id;
+			// $kamus = KamusKata::get();
+			// $centroid_obj = CentroidGenerated::find($id);
+			// $centroid = json_decode($centroid_obj->centroid);
+			// $corpus = json_decode($centroid_obj->dokumen);
+			// // echo count($centroid_obj)."<br />";
+			// // var_dump($centroid);
 
-			return View::make('centroid_detail')
-					->with('id', $id)
-					->with('data', $centroid)
-					->with('corpus', $corpus)
-					->with('kamus', $kamus);
+			// return View::make('centroid_detail')
+			// 		->with('id', $id)
+			// 		->with('data', $centroid)
+			// 		->with('corpus', $corpus)
+			// 		->with('kamus', $kamus);
 		}
 
 		public function kluster_list(){
@@ -97,7 +97,7 @@
 			$id_first = array();
 
 
-			$data = KmeansResult::get();
+			$data = dbKmeansResult::get();
 
 			$id_kluster = DB::table('kmeans_result')->select('id_group')->distinct()->get();
 
@@ -164,6 +164,45 @@
 					->with('hasilkluster', $hasil_kluster)
 					->with('datakluster', $penamaan);
 
+		}
+
+		public function testing_list()
+		{
+			$dokumens = dbDokumen::where('training','=',false)->get();
+			return View::make('testing_dokumen')
+					->with('data', $dokumens);
+			
+		}
+
+		public function testing_transkrip()
+		{
+			$data = Input::only(['nrp']);
+			$id = $data['nrp'];
+
+			$dokumen_detail = dbDokumen::find($id);
+
+			return View::make('testing_transkrip')
+					->with('data', $dokumen_detail);
+			
+		}
+
+		public function testing_rekomendasi()
+		{
+			$data = Input::only(['nrp']);
+			$id = $data['nrp'];
+
+			$dokumen_detail = dbDokumen::find($id);
+
+			return View::make('testing_rekomendasi')
+					->with('data', $dokumen_detail);
+		}
+
+		public function akurasi()
+		{
+			$dokumens = dbDokumen::where('training','=',false)->get();
+			return View::make('akurasi')
+					->with('data', $dokumens);
+			
 		}
 	}
 ?>
