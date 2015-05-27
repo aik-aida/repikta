@@ -102,5 +102,5 @@
                       </div><!-- /content-panel -->
                </div>
             
-          </div><!-- /row -->
+            </div><!-- /row -->
 @endsection

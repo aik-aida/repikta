@@ -25,17 +25,56 @@
                                   </ul>
                               </div>
                               <div class="task-content">
-                                Anda direkomendasikan memilih Tugas Akhir pada bidang : <br />
-                                <div class="" align="center"><h2> RPL </h2></div>
+                                <ul class="task-list">
+                                  <li>
+                                    <div class="task-title">
+                                      Anda direkomendasikan memilih Tugas Akhir pada bidang : <br />
+                                      <div class="" align="center"><h2>{{ $bidang }}</h2></div>
+                                    </div>
+                                  </li>                                 
+                                </ul>
                               </div>
-                              <!-- <div class="add-task-row">
-                                      {{ Form::open(array('url' => 'testing/rekomendasi', 'method' => 'post')) }}
-                                      {{ Form::hidden('nrp', $data->nrp) }}
-                                      {{ Form::submit('Lihat Rekomendasi Topik TA', array('class' => 'btn btn-primary btn-lg btn-block pull-center')) }}
-                                      {{ Form::close() }}
-                              </div> -->
+                              <div class="add-task-row">
+                                Berikut Topik yang direkomendasikan menurut prosentase kedekatan :
+                              </div>
                           </div>
                       </section>
                   </div><!-- /col-md-12-->
+            </div><!-- /row -->
+
+            <div class="row mt">
+             @for ($i = 0; $i < $ktopik; $i++)
+                @if($muncul_topik[$i]!=0)
+                   <div class="col-lg-2 col-md-2 col-sm-12">
+                          <div class="content-panel">
+                              <h4><i class="fa fa-angle-right"></i> Topik {{ ($idmuncul[$i]+1) }}</h4>
+                              <section id="unseen">
+                                <table class="table table-bordered table-striped table-condensed">
+                                  <thead>
+                                  <tr>
+                                      <th align="center">
+                                        [{{ ($muncul_topik[$i]/$n)*100 }}%]
+                                      </th>
+                                  </tr>
+                                  <tr>
+                                      <th>Daftar Kata</th>
+                                  </tr>
+                                  </thead>
+                                  <tbody>
+                                    @for ($x = 0; $x < $nshow; $x++)
+                                        <tr>
+                                          <td align="center">
+                                            <a  href={{ URL::to('rekomendasi/dokumen', array('kata' =>$topic[$idmuncul[$i]][$x] ))}}>{{ $topic[$idmuncul[$i]][$x] }}</a>
+                                            
+                                          </td>
+                                        </tr>
+                                    @endfor
+                                  </tbody>
+                              </table>
+                              </section>
+                          </div><!-- /content-panel -->
+                   </div><!-- /col-lg-4 -->
+                @endif         
+              @endfor
             </div><!-- /row -->
 @endsection
