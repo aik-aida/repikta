@@ -60,25 +60,29 @@
 			$judul_words = dbKamusJudul::all();
 
 			foreach ($dokumens as $key => $dokumen) {
-				$tfidf = (object) array();
-				$tf = json_decode($dokumen->nilai_tf_abstrak);
+				// $tfidf = (object) array();
+				// $tf = json_decode($dokumen->nilai_tf_abstrak);
 
-				$judul_tfidf = (object) array();
-				$judul_tf = json_decode($dokumen->nilai_tf_judul);
+				// $judul_tfidf = (object) array();
+				// $judul_tf = json_decode($dokumen->nilai_tf_judul);
+
+				$tfidf = (object) array();
+				$tf = json_decode($dokumen->nilai_tf);
 
 				foreach ($words as $key => $kata) {
 					$term = $kata->kata_dasar;
 					$tfidf->$term = (float)((float)($tf->$term)*(float)($kata->idf));
 				}
 
-				foreach ($judul_words as $key => $kata) {
-					$term = $kata->kata_dasar;
-					$judul_tfidf->$term = (float)((float)($judul_tf->$term)*(float)($kata->idf));
-				}
+				// foreach ($judul_words as $key => $kata) {
+				// 	$term = $kata->kata_dasar;
+				// 	$judul_tfidf->$term = (float)((float)($judul_tf->$term)*(float)($kata->idf));
+				// }
 
 				$doc = dbDokumen::find($dokumen->nrp);
-				$doc->nilai_tfidf_abstrak = json_encode($tfidf);
-				$doc->nilai_tfidf_judul = json_encode($judul_tfidf);
+				$doc->nilai_tfidf = json_encode($tfidf);
+				// $doc->nilai_tfidf_abstrak = json_encode($tfidf);
+				// $doc->nilai_tfidf_judul = json_encode($judul_tfidf);
 				$doc->save();
 				//echo $dokumen->nrp."<br />";
 			}
@@ -89,25 +93,27 @@
 			$words = dbKamusKata::all();
 			$judul_words = dbKamusJudul::all();
 			foreach ($dokumens as $key => $dokumen) {
+				$teks = $dokumen->judul_af_preproc.' '.$dokumen->abstrak_af_preproc.' ';
 				$tfvector = (object) array();
 				foreach ($words as $key => $kata) {
 					$term = $kata->kata_dasar;
-					$nword = substr_count($dokumen->abstrak_af_preproc, ' '.$term.' ');
-					$nall = str_word_count($dokumen->abstrak_af_preproc,0);
+					$nword = substr_count($teks, ' '.$term.' ');
+					$nall = str_word_count($teks,0);
 					$tfvector->$term = (float)((float)$nword/(float)$nall);			
 				}
 
-				$judul_tfvector = (object) array();
-				foreach ($judul_words as $key => $kata) {
-					$term = $kata->kata_dasar;
-					$nword = substr_count($dokumen->judul_af_preproc, ' '.$term.' ');
-					$nall = str_word_count($dokumen->judul_af_preproc,0);
-					$judul_tfvector->$term = (float)((float)$nword/(float)$nall);			
-				}
+				// $judul_tfvector = (object) array();
+				// foreach ($judul_words as $key => $kata) {
+				// 	$term = $kata->kata_dasar;
+				// 	$nword = substr_count($dokumen->judul_af_preproc, ' '.$term.' ');
+				// 	$nall = str_word_count($dokumen->judul_af_preproc,0);
+				// 	$judul_tfvector->$term = (float)((float)$nword/(float)$nall);			
+				// }
 
 				$doc = dbDokumen::find($dokumen->nrp);
-				$doc->nilai_tf_abstrak = json_encode($tfvector);
-				$doc->nilai_tf_judul = json_encode($judul_tfvector);
+				$doc->nilai_tf = json_encode($tfvector);
+				//$doc->nilai_tf_abstrak = json_encode($tfvector);
+				//$doc->nilai_tf_judul = json_encode($judul_tfvector);
 				$doc->save();
 				//echo $dokumen->nrp."<br />";
 			}
@@ -118,7 +124,31 @@
 
 			$words = dbKamusKata::all();
 			foreach ($words as $key => $kata) {
-				//echo($kata->kata_dasar)."<br />";
+				$count = 0;
+				$count_doc = 0;
+				$docs = array();
+				foreach ($dokumens as $key => $dokumen) {
+					$teks = $dokumen->judul_af_preproc.' '.$dokumen->abstrak_af_preproc.' ';
+					$count = substr_count($teks, ' '.$kata->kata_dasar.' ');
+					if($count>0){
+						$count_doc++;
+						array_push($docs, $dokumen->nrp);
+					}
+				}
+				if($count_doc>0){
+					$idf = (float)(log10((float)count($dokumens)/(float)$count_doc));
+					$iddoc = json_encode($docs);	
+
+						$kamus = dbKamusKata::find($kata->kata_dasar);
+						$kamus->idf = $idf;
+						$kamus->indoc = $iddoc;
+						$kamus->jumlah_dokumen = count($docs);
+						$kamus->save();
+				}
+			}
+
+			/*
+			foreach ($words as $key => $kata) {
 				$count = 0;
 				$count_doc = 0;
 				$docs = array();
@@ -142,7 +172,6 @@
 
 			$judul_words = dbKamusJudul::all();
 			foreach ($judul_words as $key => $kata) {
-				//echo($kata->kata_dasar)."<br />";
 				$count = 0;
 				$count_doc = 0;
 				$docs = array();
@@ -163,6 +192,32 @@
 						$kamus->save();
 				}
 			}
+			*/
+		}
+
+		public function MinMaxIDF()
+		{
+			$kamus = dbKamusKata::all();
+			$corpus = dbDokumen::where('training','=',true)->get();
+			$timer = new TimeExecution;
+			echo "minmax";
+			$count = 0;
+			$A = $timer->getTime();
+			foreach ($kamus as $key => $kata) {
+				$term = $kata->kata_dasar;
+				$minmax = array();
+				foreach ($corpus as $key => $doc) {
+					$vector = json_decode($doc->nilai_tfidf);
+					array_push($minmax , $vector->$term);
+				}
+				echo($count++); echo " - "; echo($term); echo "<br />";
+				$updateMinMax = dbKamusKata::find($term);
+				$updateMinMax->min_value = min($minmax);
+				$updateMinMax->max_value = max($minmax);
+				$updateMinMax->save();
+			}
+			$Z = $timer->getTime();
+			echo "sudaaah, yeay! ".($Z-$A)." detik";
 		}
 
 		public function DistinctTerm(){

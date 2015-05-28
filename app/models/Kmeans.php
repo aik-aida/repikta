@@ -27,7 +27,7 @@
 		{
 			$this->dokumenData = dbDokumen::where('training','=',true)->get();
 			$this->kamus = dbKamusKata::all();
-			//$this->gencen = CentroidGenerated::all();
+			
 			$this->idcentroid = array();
 			$this->centroid = array();
 			$this->prevCentroid = array();			
@@ -46,19 +46,18 @@
 		{
 			$counter = new TimeExecution;
 
-			$this->centroid=array();
+			$this->centroid = array();
 			$this->idTeks = $teks;
 			$this->idC = $centroid;
-			//$this->RandomFirstCentroid($k);
 			echo $centroid."<br />";
 			if($centroid=='g') { //generated centroid belum dirubah array
 				$this->GenerateCentroidMean($k, $n);
 				echo "generated<br />";
 			}
-			elseif ($centroid=='m') {
-				$this->GetManualCentroid($k,$teks,$idcen);
-				echo "manual<br />";
-			}
+			// elseif ($centroid=='m') {
+			// 	$this->GetManualCentroid($k,$teks,$idcen);
+			// 	echo "manual<br />";
+			// }
 			echo $this->idTeks."<br />";
 
 			
@@ -277,6 +276,7 @@
 
 		public function GenerateCentroidMean($k, $n)
 		{
+			$this->gencen = dbCentroidGenerated::all();
 			$this->k_number = $k;
 			$dokumenIDx = array();
 			$generated = false;
@@ -284,19 +284,16 @@
 				$doc = $this->dokumenData[$i];
 				array_push($dokumenIDx, $doc->nrp);
 			}
-			//echo count($this->gencen)."string";
 			if(count($this->gencen)==0){
 				$generated = false;
 				echo "<br /><br />*** CENTROID BARU ***<br /><br />";
 			}
 			else{
 				foreach ($this->gencen as $key => $data) {
-					//if(json_decode($data->dokumen)==$this->dokumenID && $data->k==$k && $data->jumlah_dokumen==$n){
 					if(json_decode($data->dokumen)==$dokumenIDx && $data->k==$k && $data->jumlah_dokumen==$n && $data->teks==$this->idTeks){
 						$getcentroid = array();
 						$getcentroid = json_decode($data->centroid);
 						$this->centroid = $getcentroid;
-						//$this->idcentroid = json_decode($data->centroid);
 						$this->idcentroid = $data->id;
 						$generated = true;
 						echo "<br /><br />*** CENTROID DATABASE ID=".$data->id." ***<br /><br />";
@@ -304,36 +301,14 @@
 				}
 			}
 
-			// if($generated)
-			// 	echo "<br /><br />*** CENTROID DATABASE ID=".$data->id." ***<br /><br />";
-			// else
-			// 	echo "<br /><br />*** CENTROID BARU ***<br /><br />";
-
 			
 			if(!$generated){ 
+				echo "<br /><br />*** CENTROID BARU ***<br /><br />";
 				$centroid_arr = array();
 				
 				for ($i=0; $i <$k ; $i++) { 
 					$centroid_arr[$i] = (object) array();
 				}
-
-				//$kata = KamusKata::find('muslim');
-				//echo $kata->min_value." - ".$kata->max_value."<br />";
-				// foreach ($this->kamus as $key => $kata) {
-				// 	$term = $kata->kata_dasar;
-				// 	$min = $kata->min_value;
-				// 	$max = $kata->max_value;
-				// 	$skala = ($max-$min)/$k;
-				// 	$tengah = $skala/2;
-				// 	//echo($tengah);
-
-				// 	for ($i=0; $i <$k ; $i++) { 
-				// 		$mean = ($i*$skala)+$tengah;
-				// 		$centroid_arr[$i]->$term = $mean;
-				// 		//echo $mean."<br />";
-				// 	}
-
-				// }
 
 				foreach ($this->kamus as $key => $kata) {
 					$term = $kata->kata_dasar;
@@ -353,54 +328,28 @@
 					$max = max($minmax);
 					$skala = ($max-$min)/$k;
 					$tengah = $skala/2;
-					//echo($tengah);
 
 					for ($i=0; $i <$k ; $i++) { 
 						$mean = ($i*$skala)+$tengah;
 						$centroid_arr[$i]->$term = $mean;
-						//echo $mean."<br />";
 					}
-
-					//echo($count++); echo " - "; echo($term); echo "<br />";
-					//var_dump($minmax);
-					//echo(count($minmax));
-					//echo($term);
-
-					// $updateMinMax = KamusKata::find($term);
-					// $updateMinMax->min_value = min($minmax);
-					// $updateMinMax->max_value = max($minmax);
-					// $updateMinMax->save();
 				}
 	
 
 				
 
-				$saveCentroid = new CentroidGenerated;
+				$saveCentroid = new dbCentroidGenerated;
 				$saveCentroid->teks = $this->idTeks;
 				$saveCentroid->k = $k;
 				$saveCentroid->jumlah_dokumen = $n;
-				//$saveCentroid->dokumen = json_encode($this->dokumenID);
 				$saveCentroid->dokumen = json_encode($dokumenIDx);
 				$saveCentroid->centroid = json_encode($centroid_arr);
 				$saveCentroid->save();
 
-				//$data = CentroidGenerated::where('k','=',$k)->where('dokumen','=',json_encode($this->dokumenID))->where('jumlah_dokumen','=',$n)->get();
-				$data = CentroidGenerated::where('k','=',$k)->where('teks','=',$this->idTeks)->where('dokumen','=',json_encode($dokumenIDx))->where('jumlah_dokumen','=',$n)->get();
+				$data = dbCentroidGenerated::where('k','=',$k)->where('teks','=',$this->idTeks)->where('dokumen','=',json_encode($dokumenIDx))->where('jumlah_dokumen','=',$n)->get();
 
 				$this->centroid = json_decode($data[0]->centroid);
-				//$this->centroid = $centroid_arr;
 				$this->idcentroid = $data[0]->id;
-				// foreach ($this->centroid as $key => $cen) {
-				// 	echo "<br />";
-				// 	for ($i=0; $i < 5; $i++) { 
-				// 		echo $cen[$i]."<br />";
-				// 	}
-				// 	echo "----------------------------------<br />";
-				// }
-					
-				// echo "<br /><br />--- First Centroid ---<br />";
-				// var_dump($centroid_arr);
-				// echo "<br />----------------------------<br /><br />";
 			}
 			
 			
