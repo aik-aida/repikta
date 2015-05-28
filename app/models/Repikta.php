@@ -4,6 +4,20 @@
 	*/
 	class Repikta
 	{
+		public function GetKlusterName($id)
+		{
+			switch ($id) {
+				case 0:
+					return "Rekayasa Perangkat Lunak";
+					break;
+				case 1:
+					return "Kecerdasan Citra dan Visual";
+					break;
+				case 2:
+					return "Komputasi Berbasis Jaringan";
+					break;
+			}
+		}
 
 		public function Generate_Transkrip_Kriteria($idgroup){
 			$id_result = DB::table('kmeans_result')->where('id_group', '=' , $idgroup)->max('id');

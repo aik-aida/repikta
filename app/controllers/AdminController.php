@@ -163,7 +163,6 @@
 					->with('nlama', $sum)
 					->with('hasilkluster', $hasil_kluster)
 					->with('datakluster', $penamaan);
-
 		}
 
 		public function testing_list()
@@ -171,7 +170,6 @@
 			$dokumens = dbDokumen::where('training','=',false)->get();
 			return View::make('testing_dokumen')
 					->with('data', $dokumens);
-			
 		}
 
 		public function testing_transkrip()
@@ -189,12 +187,98 @@
 		public function testing_rekomendasi()
 		{
 			$data = Input::only(['nrp']);
-			$id = $data['nrp'];
+			$nrp = $data['nrp'];
 
-			$dokumen_detail = dbDokumen::find($id);
+			$idgroup_result = 2;
+			$id_hasil_lda = 11;
+			$n = 5;
+			$nshow = 20;
+			$repikta = new Repikta;
+
+			//MENCARI KLUSTER PILIHAN
+			$kluster = $repikta->Choose_Kluster($nrp,$idgroup_result);
+			$nama_bidang = $repikta->GetKlusterName($kluster);
+
+			//MENDAPATKAN LDA TOPIK PADA KLUSTER TERPILIH
+			$lda_result = dbLdaSave::where('percobaan_ke','=',$id_hasil_lda)
+								->where('kluster_ke','=',$kluster)->get();
+
+			$list_nrp = json_decode($lda_result[0]->daftar_dokumen);		//DAFTAR DOKUMEN PADA KLUSTER TERPILIH
+			$theta_matrix = json_decode($lda_result[0]->matriks_theta);		//THETA LDA PADA KLUSTER TERPILIH
+			$phi_matrix = json_decode($lda_result[0]->matriks_phi);			//PHI LDA PADA KLUSTER TERPILIH
+			$k = $lda_result[0]->k_topik;									//JUMLAH TOPIK PADA KLUSTER TERPILIH
+			$nterm = $lda_result[0]->n_term;								//BANYAK TERM LDA PADA KLUSTER TERPILIH
+			$list_term = json_decode($lda_result[0]->matriks_term);			//DAFTAR TERM LDA PADA KLUSTER TERPILIH
+
+			//LIST TERM TIAP TOPIK YANG AKAN DITAMPILKAN
+			$topic = $repikta->Get20TermTopic($k, $phi_matrix, $nterm, $list_term); 
+
+			//MENCARI n DOKUMEN TERDEKAT PADA KLUSTER TERPILIH
+			$nrp_terdekat_kluster = $repikta->GetClosest($nrp, $kluster,$n);
+
+			$topik_terdekat = array();		//DAFTAR TOPIK n DOKUMEN TERDEKAT URUT BERDASARKAN DOKUMEN TERDEKAT
+			$kemunculan_topik = array();	//JUMLAH KEMUNCULAN MASING-MASING TOPIK DALAM n DOKUMEN TERDEKAT
+			
+			for ($i=0; $i <$k ; $i++) { 
+				$kemunculan_topik[$i]=0;
+			}
+			foreach ($nrp_terdekat_kluster as $key => $value) {
+				$index_nrp = array_search($value, $list_nrp);		//mendapatkan id dokumen terdepat dalam matriks
+				$vtopic = $theta_matrix[$index_nrp];				//daftar probabilitas topik dokumen
+				$idtopic = array_search(max($vtopic), $vtopic);		//mendapatkan topik terpilih dokumen
+				array_push($topik_terdekat, $idtopic);
+				$kemunculan_topik[$idtopic]++;
+			}
+
+			//MENGURUTKAN TOPIK BERDASAR KEMUNCULAN TERBANYAK DARI n DOKUMEN
+			arsort($kemunculan_topik);
+
+			$idtopic_muncul = array();
+			$jumlah_muncul = array();
+			foreach ($kemunculan_topik as $key => $value) {
+				array_push($idtopic_muncul, $key);
+				array_push($jumlah_muncul, $value);
+			}
+
+			$dokumen_detail = dbDokumen::find($nrp);
 
 			return View::make('testing_rekomendasi')
-					->with('data', $dokumen_detail);
+					->with('data', $dokumen_detail)
+					->with('bidang', $nama_bidang)
+					->with('muncul_topik', $jumlah_muncul)
+					->with('idmuncul', $idtopic_muncul)
+					->with('nshow', $nshow)
+					->with('topic', $topic)
+					->with('ktopik', $k)
+					->with('n', $n);
+		}
+
+		public function rekomendasi_katadokumen($param)
+		{
+			$datakata = dbKamusKata::find($param);
+			$list_doc = json_decode($datakata->indoc);
+			$data_doc = array();
+			foreach ($list_doc as $key => $nrp) {
+				$doc = dbDokumen::find($nrp);
+				array_push($data_doc, $doc);
+			}
+
+			return View::make('rekomendasi_dokumen')
+						->with('term', $param)
+						->with('daftar_doc', $data_doc);
+		}
+
+		public function rekomendasi_dokumen()
+		{
+			$data = Input::only(['iddoc']);
+			$id = $data['iddoc'];
+			$dataterm = Input::only(['term']);
+			$term = $dataterm['term'];
+
+			$dokumen_detail = dbDokumen::find($id);
+			return View::make('rekomendasi_dokumen_detail')
+					->with('dokumen', $dokumen_detail)
+					->with('term', $term);
 		}
 
 		public function akurasi()

@@ -1,4 +1,4 @@
-<?php
+ <?php
 
 /*
 |--------------------------------------------------------------------------
@@ -20,7 +20,43 @@ Route::get('hai', function(){
 	return View::make('tabpanel');
 });
 
-//Route::get('rekomendasi', 'Repikta@RekomendasiTopik');
+Route::post('read_transkrip', 'TranskripController@read');
+
+Route::post('autentifikasi', 'BaseController@login');
+
+Route::get('centroid', 'AdminController@centroid_list');
+
+Route::post('centroid/detail', 'AdminController@centroid_detail');
+
+Route::get('kamus', 'AdminController@kamus_list');
+
+Route::get('dokumen', 'AdminController@dokumen_list');
+
+Route::post('dokumen/detail', 'AdminController@dokumen_detail');
+
+Route::post('dokumen/nilai_tf', 'AdminController@dokumen_tf');
+
+Route::post('dokumen/nilai_tfidf', 'AdminController@dokumen_tfidf');
+
+Route::get('kluster', 'AdminController@kluster_list');
+
+Route::post('kluster/detail', 'AdminController@kluster_detail');
+
+Route::get('testing', 'AdminController@testing_list');
+
+Route::post('testing/transkrip', 'AdminController@testing_transkrip');
+
+Route::post('testing/rekomendasi', 'AdminController@testing_rekomendasi');
+
+Route::get('rekomendasi/dokumen/{param}', 'AdminController@rekomendasi_katadokumen');
+
+Route::post('rekomendasi/dokumen/detail', 'AdminController@rekomendasi_dokumen');
+
+Route::get('akurasi', 'AdminController@akurasi');
+
+Route::get('lihatPHI', 'RepiktaController@show_phi');
+Route::get('lihatTETA', 'RepiktaController@show_theta');
+
 Route::get('rekomendasi', function(){
 	$nrp = '5109100003';
 	$main = new Repikta;
@@ -58,39 +94,6 @@ Route::get('catat', function(){
 		$simpan->save();
 	}
 });
-
-Route::post('read_transkrip', 'TranskripController@read');
-
-Route::post('autentifikasi', 'BaseController@login');
-
-Route::get('centroid', 'AdminController@centroid_list');
-
-Route::post('centroid/detail', 'AdminController@centroid_detail');
-
-Route::get('kamus', 'AdminController@kamus_list');
-
-Route::get('dokumen', 'AdminController@dokumen_list');
-
-Route::post('dokumen/detail', 'AdminController@dokumen_detail');
-
-Route::post('dokumen/nilai_tf', 'AdminController@dokumen_tf');
-
-Route::post('dokumen/nilai_tfidf', 'AdminController@dokumen_tfidf');
-
-Route::get('kluster', 'AdminController@kluster_list');
-
-Route::post('kluster/detail', 'AdminController@kluster_detail');
-
-Route::get('testing', 'AdminController@testing_list');
-
-Route::post('testing/transkrip', 'AdminController@testing_transkrip');
-
-Route::post('testing/rekomendasi', 'AdminController@testing_rekomendasi');
-
-Route::get('akurasi', 'AdminController@akurasi');
-
-Route::get('lihatPHI', 'RepiktaController@show_phi');
-Route::get('lihatTETA', 'RepiktaController@show_theta');
 
 Route::get('dokumen_terdekat', function(){
 	$repikta = new Repikta;
@@ -342,8 +345,17 @@ Route::get('cek',function(){
 	// else
 	// 	echo "NO :(";
 
-	$data = dbTestingAkurasi::all();
+	// $data = dbTestingAkurasi::all();
+	// foreach ($data as $key => $value) {
+	// 	echo $value->cosine_similarity."<br />";
+	// }
+
+	$data = dbKamusKata::all();
 	foreach ($data as $key => $value) {
+		$indoc = json_decode($value->indoc);
+		$update = dbKamusKata::find($value->kata_dasar);
+		$update->jumlah_dokumen = count($indoc);
+		$update->save();
 		echo $value->cosine_similarity."<br />";
 	}
 });
