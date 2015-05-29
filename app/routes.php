@@ -197,18 +197,20 @@ Route::get('clustering',function(){
 		
 	$n = count($doc_training);
 
-	$k_generated = array(3,6,8,10,16);
-	
-	foreach ($k_generated as $key => $value) {
+	// $k_generated = array(3,6,8,10,16);
+	// foreach ($k_generated as $key => $value) {
+	$k_manual = array(8,6,3);
+	//foreach ($k_manual as $key => $value) {
 		$kmeans = new Kmeans;
-		$k = $value;
+		//$k = $value; 
+		$k = 8;
 		echo "n=".$n." - k=".$k."<br />"."<br />";
 		//a:abstrak
 		//ja:judul+abstrak
 		//g:generated
 		//m:manual
-		//$id_group = $kmeans->Clustering($k, $n, 'ja', 'g', $centroid_choose);
-		$id_group = $kmeans->Clustering($k, $n, 'ja', 'g', null);
+		$id_group = $kmeans->Clustering($k, $n, 'ja', 'm');
+		//$id_group = $kmeans->Clustering($k, $n, 'ja', 'g');
 		
 		for ($i=0; $i < count($kmeans->centroid); $i++) { 
 			echo "Kluster ".($i+1)."<br />";
@@ -243,7 +245,7 @@ Route::get('clustering',function(){
 		$nilai_dekat = $KedekatanKluster->ClusterValue($hasil->jumlah_kluster, $hasil_kluster, $id, 'ja');
 		$endTime_CV = $counter_CV->getTime();
 		echo $nilai_dekat." - LAMA : ".($endTime_CV-$startTime_CV)." detik <br />";
-	}
+	//}
 });
 
 Route::get('cv', function(){
@@ -268,11 +270,11 @@ Route::get('inisial', function(){
 	$time1 = $counter->getTime();
 
 	$prepoc = new Preprocessing;
-	$prepoc->Reset_TfIdf();
+	// $prepoc->Reset_TfIdf();
 
 	$time2 = $counter->getTime();
-	// $file_cent = $prepoc->ReadFile("./data/dt_centroid.txt");
-	// $dt_cent = $prepoc->ReadCentroid($file_cent);
+	$file_cent = $prepoc->ReadFile("./data/dt_centroid.txt");
+	$dt_cent = $prepoc->ReadCentroid($file_cent);
 	// $dt_train = $prepoc->ReadFile("./data/dt_training.txt");
 	// $dt_test = $prepoc->ReadFile("./data/dt_testing.txt");
 	// $prepoc->Set_training_testing($dt_train, $dt_test);
@@ -282,20 +284,20 @@ Route::get('inisial', function(){
 	// $prepoc->PreprocessingText(); $time4 = $counter->getTime();
 	// $prepoc->DistinctTerm(); $time5 = $counter->getTime();
 
-	$prepoc->CountIDF(); $time6 = $counter->getTime();
-	$prepoc->CountTF(); $time7 = $counter->getTime();
-	$prepoc->CountTF_IDF(); $time8 = $counter->getTime();
-	$prepoc->MinMaxIDF(); 
+	// $prepoc->CountIDF(); $time6 = $counter->getTime();
+	// $prepoc->CountTF(); $time7 = $counter->getTime();
+	// $prepoc->CountTF_IDF(); $time8 = $counter->getTime();
+	// $prepoc->MinMaxIDF(); 
 	// $prepoc->PembobotanTF_IDF(); $time9 = $counter->getTime();
 
-	// $prepoc->Calculate_Save_Centroid($dt_cent);
+	$prepoc->Calculate_Save_Centroid($dt_cent);
 	
 	// echo "preparing data : ".($time3-$time2)."detik <br />";	
 	// echo "Preprocessing text : ".($time4-$time3)."detik <br />";	
 	// echo "distinct term : ".($time5-$time4)."detik <br />";	
-	echo "hitung IDF : ".($time6-$time2)."detik <br />";	
-	echo "hitung TF : ".($time7-$time6)."detik <br />";	
-	echo "hitung TF-IDF : ".($time8-$time7)."detik <br />";	
+	// echo "hitung IDF : ".($time6-$time2)."detik <br />";	
+	// echo "hitung TF : ".($time7-$time6)."detik <br />";	
+	// echo "hitung TF-IDF : ".($time8-$time7)."detik <br />";	
 	// echo "Pembobotan : ".($time9-$time8)."detik <br />";	
 	echo "done";
 });

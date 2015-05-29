@@ -319,9 +319,20 @@
 		}
 
 		public function Calculate_Save_Centroid($arrNRP){
-			$kamus = dbKamusKata::all();
-				$k_number = count($arrNRP);
-				echo "k:".$k_number."<br />";
+			$k_number = count($arrNRP);
+			echo "k:".$k_number."<br />";
+
+			$all = dbCentroidManual::all();
+			$cek = 0;
+			foreach ($all as $key => $value) {
+				if( $value->teks=='ja' && $value->k==$k_number && $value->dokumen_centroid==json_encode($arrNRP)){
+					$cek = 1;
+					echo "SUDAH KESIMPAN SEBELUMNYA, centroid no : ".$value->id."<br />";
+				}
+			}
+
+			if($cek==0) {
+				$kamus = dbKamusKata::all();
 				$newCentroid = array();
 				for ($i=0; $i < $k_number; $i++) { 
 						$newCentroid[$i] = (object) array();
@@ -340,16 +351,6 @@
 						}
 				}
 
-			$all = dbCentroidManual::all();
-			$cek = 0;
-			foreach ($all as $key => $value) {
-				if( $value->teks=='ja' && $value->k==$k_number && $value->dokumen_centroid==json_encode($arrNRP) && $value->centroid==json_encode($newCentroid) ){
-					$cek = 1;
-					echo "SUDAH KESIMPAN SEBELUMNYA, centroid no : ".$value->id."<br />";
-				}
-			}
-
-			if($cek==0) {
 				echo "CENTROID MANUAL BARU <br />";
 				$simpan = new dbCentroidManual;
 				$simpan->teks = 'ja';
@@ -376,40 +377,19 @@
 			$id=0;
 			$centroid = array();
 			foreach ($arr as $key => $value) {
-				//echo $value."<br />";
-				if($id==1 && substr($value, 0, 2)=="51"){
-					array_push($centroid[0], $value);
-				}
-				
-				if ($id==2 && substr($value, 0, 2)=="51") {
-					array_push($centroid[1], $value);
-				}
-				
-				if ($id==3 && substr($value, 0, 2)=="51") {
-					array_push($centroid[2], $value);
+
+				if(strlen($value)==10 && substr($value, 0, 2)=="51"){
+					array_push($centroid[$id-1], $value);
 				}
 
-				if($value==1){
-					$id=1;
-					$centroid[0]=array();
-					//echo "1<br />";
-				}
-				
-				if ($value==2) {
-					$id=2;
-					$centroid[1]=array();
-					//echo "2<br />";
-				}
-				
-				if ($value==3) {
-					$id=3;
-					$centroid[2]=array();
-					//echo "3<br />";
+				if(strlen($value)==1){
+					$centroid[$id]=array();
+					$id++;
 				}
 				
 			}
 
-			//var_dump($centroid);
+			var_dump($centroid);
 			return $centroid;
 		}
 

@@ -42,7 +42,7 @@
 			}
 		}
 
-		public function Clustering($k, $n, $teks, $centroid, $idcen)
+		public function Clustering($k, $n, $teks, $centroid)
 		{
 			$counter = new TimeExecution;
 
@@ -54,10 +54,10 @@
 				$this->GenerateCentroidMean($k, $n);
 				echo "generated<br />";
 			}
-			// elseif ($centroid=='m') {
-			// 	$this->GetManualCentroid($k,$teks,$idcen);
-			// 	echo "manual<br />";
-			// }
+			elseif ($centroid=='m') {
+				$this->GetManualCentroid($k,$teks);
+				echo "manual<br />";
+			}
 			echo $this->idTeks."<br />";
 
 			
@@ -127,9 +127,9 @@
 			$saveKmeans->save();
 		}
 
-		public function GetManualCentroid($k,$teks,$id)
+		public function GetManualCentroid($k,$teks)
 		{
-			$manCentroid = dbCentroidManual::where('k','=',$k)->where('teks','=',$teks)->where('id','=',$id)->get();
+			$manCentroid = dbCentroidManual::where('k','=',$k)->where('teks','=',$teks)->get();
 			echo $teks."<br />";
 			$this->k_number = $k;
 			$this->centroid = json_decode($manCentroid[0]->centroid);
