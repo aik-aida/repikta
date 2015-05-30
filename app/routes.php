@@ -205,7 +205,9 @@ Route::get('clustering',function(){
 		//$k = $value; 
 		$k = 8;
 		echo "n=".$n." - k=".$k."<br />"."<br />";
+
 		//a:abstrak
+		//j:judul
 		//ja:judul+abstrak
 		//g:generated
 		//m:manual
@@ -271,7 +273,9 @@ Route::get('inisial', function(){
 
 	$prepoc = new Preprocessing;
 	// $prepoc->Reset_TfIdf();
+	// $prepoc->Reset_Idf();
 
+	$tipe_centroid = 'a';
 	$time2 = $counter->getTime();
 	$file_cent = $prepoc->ReadFile("./data/dt_centroid.txt");
 	$dt_cent = $prepoc->ReadCentroid($file_cent);
@@ -290,7 +294,7 @@ Route::get('inisial', function(){
 	// $prepoc->MinMaxIDF(); 
 	// $prepoc->PembobotanTF_IDF(); $time9 = $counter->getTime();
 
-	$prepoc->Calculate_Save_Centroid($dt_cent);
+	$prepoc->Calculate_Save_Centroid($dt_cent, $tipe_centroid);
 	
 	// echo "preparing data : ".($time3-$time2)."detik <br />";	
 	// echo "Preprocessing text : ".($time4-$time3)."detik <br />";	

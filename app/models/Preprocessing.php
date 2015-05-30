@@ -18,8 +18,30 @@
 				$doc->nilai_tfidf_abstrak = '';
 				$doc->nilai_tf_judul = '';
 				$doc->nilai_tfidf_judul = '';
+				$doc->nilai_tf = '';
 				$doc->nilai_tfidf = '';
 				$doc->save();
+			}
+		}
+
+		public function Reset_Idf(){
+			$kamus = dbKamusKata::all();
+			$kamusjudul = dbKamusJudul::all();
+			foreach ($kamus as $key => $value) {
+				$kms = dbKamusKata::find($value->kata_dasar);
+				$kms->idf = 0;
+				$kms->jumlah_dokumen = 0;
+				$kms->indoc = '';
+				$kms->min_value = '';
+				$kms->max_value = '';
+				$kms->save();
+			}
+			foreach ($kamusjudul as $key => $value) {
+				$kms = dbKamusJudul::find($value->kata_dasar);
+				$kms->idf = 0;
+				$kms->jumlah_dokumen = 0;
+				$kms->indoc = '';
+				$kms->save();
 			}
 		}
 
@@ -60,31 +82,31 @@
 			$judul_words = dbKamusJudul::all();
 
 			foreach ($dokumens as $key => $dokumen) {
-				// $tfidf = (object) array();
-				// $tf = json_decode($dokumen->nilai_tf_abstrak);
-
-				// $judul_tfidf = (object) array();
-				// $judul_tf = json_decode($dokumen->nilai_tf_judul);
-
 				$tfidf = (object) array();
-				$tf = json_decode($dokumen->nilai_tf);
+				$tf = json_decode($dokumen->nilai_tf_abstrak);
+
+				$judul_tfidf = (object) array();
+				$judul_tf = json_decode($dokumen->nilai_tf_judul);
+
+				// $tfidf = (object) array();
+				// $tf = json_decode($dokumen->nilai_tf);
 
 				foreach ($words as $key => $kata) {
 					$term = $kata->kata_dasar;
 					$tfidf->$term = (float)((float)($tf->$term)*(float)($kata->idf));
 				}
 
-				// foreach ($judul_words as $key => $kata) {
-				// 	$term = $kata->kata_dasar;
-				// 	$judul_tfidf->$term = (float)((float)($judul_tf->$term)*(float)($kata->idf));
-				// }
+				foreach ($judul_words as $key => $kata) {
+					$term = $kata->kata_dasar;
+					$judul_tfidf->$term = (float)((float)($judul_tf->$term)*(float)($kata->idf));
+				}
 
 				$doc = dbDokumen::find($dokumen->nrp);
-				$doc->nilai_tfidf = json_encode($tfidf);
-				// $doc->nilai_tfidf_abstrak = json_encode($tfidf);
-				// $doc->nilai_tfidf_judul = json_encode($judul_tfidf);
+				//$doc->nilai_tfidf = json_encode($tfidf);
+				$doc->nilai_tfidf_abstrak = json_encode($tfidf);
+				$doc->nilai_tfidf_judul = json_encode($judul_tfidf);
 				$doc->save();
-				//echo $dokumen->nrp."<br />";
+				echo $dokumen->nrp."<br />";
 			}
 		}
 
@@ -93,27 +115,27 @@
 			$words = dbKamusKata::all();
 			$judul_words = dbKamusJudul::all();
 			foreach ($dokumens as $key => $dokumen) {
-				$teks = $dokumen->judul_af_preproc.' '.$dokumen->abstrak_af_preproc.' ';
+				//$teks = $dokumen->judul_af_preproc.' '.$dokumen->abstrak_af_preproc.' ';
 				$tfvector = (object) array();
 				foreach ($words as $key => $kata) {
 					$term = $kata->kata_dasar;
-					$nword = substr_count($teks, ' '.$term.' ');
-					$nall = str_word_count($teks,0);
+					$nword = substr_count($dokumen->abstrak_af_preproc, ' '.$term.' ');
+					$nall = str_word_count($dokumen->abstrak_af_preproc,0);
 					$tfvector->$term = (float)((float)$nword/(float)$nall);			
 				}
 
-				// $judul_tfvector = (object) array();
-				// foreach ($judul_words as $key => $kata) {
-				// 	$term = $kata->kata_dasar;
-				// 	$nword = substr_count($dokumen->judul_af_preproc, ' '.$term.' ');
-				// 	$nall = str_word_count($dokumen->judul_af_preproc,0);
-				// 	$judul_tfvector->$term = (float)((float)$nword/(float)$nall);			
-				// }
+				$judul_tfvector = (object) array();
+				foreach ($judul_words as $key => $kata) {
+					$term = $kata->kata_dasar;
+					$nword = substr_count($dokumen->judul_af_preproc, ' '.$term.' ');
+					$nall = str_word_count($dokumen->judul_af_preproc,0);
+					$judul_tfvector->$term = (float)((float)$nword/(float)$nall);			
+				}
 
 				$doc = dbDokumen::find($dokumen->nrp);
-				$doc->nilai_tf = json_encode($tfvector);
-				//$doc->nilai_tf_abstrak = json_encode($tfvector);
-				//$doc->nilai_tf_judul = json_encode($judul_tfvector);
+				//$doc->nilai_tf = json_encode($tfvector);
+				$doc->nilai_tf_abstrak = json_encode($tfvector);
+				$doc->nilai_tf_judul = json_encode($judul_tfvector);
 				$doc->save();
 				//echo $dokumen->nrp."<br />";
 			}
@@ -128,31 +150,7 @@
 				$count_doc = 0;
 				$docs = array();
 				foreach ($dokumens as $key => $dokumen) {
-					$teks = $dokumen->judul_af_preproc.' '.$dokumen->abstrak_af_preproc.' ';
-					$count = substr_count($teks, ' '.$kata->kata_dasar.' ');
-					if($count>0){
-						$count_doc++;
-						array_push($docs, $dokumen->nrp);
-					}
-				}
-				if($count_doc>0){
-					$idf = (float)(log10((float)count($dokumens)/(float)$count_doc));
-					$iddoc = json_encode($docs);	
-
-						$kamus = dbKamusKata::find($kata->kata_dasar);
-						$kamus->idf = $idf;
-						$kamus->indoc = $iddoc;
-						$kamus->jumlah_dokumen = count($docs);
-						$kamus->save();
-				}
-			}
-
-			/*
-			foreach ($words as $key => $kata) {
-				$count = 0;
-				$count_doc = 0;
-				$docs = array();
-				foreach ($dokumens as $key => $dokumen) {
+					//$teks = $dokumen->judul_af_preproc.' '.$dokumen->abstrak_af_preproc.' ';
 					$count = substr_count($dokumen->abstrak_af_preproc, ' '.$kata->kata_dasar.' ');
 					if($count>0){
 						$count_doc++;
@@ -166,6 +164,7 @@
 						$kamus = dbKamusKata::find($kata->kata_dasar);
 						$kamus->idf = $idf;
 						$kamus->indoc = $iddoc;
+						$kamus->jumlah_dokumen = count($docs);
 						$kamus->save();
 				}
 			}
@@ -189,10 +188,11 @@
 						$kamus = dbKamusJudul::find($kata->kata_dasar);
 						$kamus->idf = $idf;
 						$kamus->indoc = $iddoc;
+						$kamus->jumlah_dokumen = count($docs);
 						$kamus->save();
 				}
 			}
-			*/
+			
 		}
 
 		public function MinMaxIDF()
@@ -318,21 +318,25 @@
 			return str_replace($delword, '', $teks);
 		}
 
-		public function Calculate_Save_Centroid($arrNRP){
+		public function Calculate_Save_Centroid($arrNRP, $tipe_centroid){
 			$k_number = count($arrNRP);
 			echo "k:".$k_number."<br />";
 
 			$all = dbCentroidManual::all();
 			$cek = 0;
 			foreach ($all as $key => $value) {
-				if( $value->teks=='ja' && $value->k==$k_number && $value->dokumen_centroid==json_encode($arrNRP)){
+				if( $value->teks==$tipe_centroid && $value->k==$k_number && $value->dokumen_centroid==json_encode($arrNRP)){
 					$cek = 1;
 					echo "SUDAH KESIMPAN SEBELUMNYA, centroid no : ".$value->id."<br />";
 				}
 			}
 
 			if($cek==0) {
-				$kamus = dbKamusKata::all();
+				if($tipe_centroid=='j'){
+					$kamus = dbKamusJudul::all();
+				}else{
+					$kamus = dbKamusKata::all();
+				}
 				$newCentroid = array();
 				for ($i=0; $i < $k_number; $i++) { 
 						$newCentroid[$i] = (object) array();
@@ -343,7 +347,18 @@
 							$sum = 0.0;
 							foreach ($arrNRP[$i] as $key => $nrp) {
 								$dokumen = dbDokumen::find($nrp);
-								$vectorDoc = json_decode($dokumen->nilai_tfidf); //untuk pake hasil pembobotan
+								if($tipe_centroid=='ja'){
+									$vectorDoc = json_decode($dokumen->nilai_tfidf); //untuk pake hasil pembobotan
+									//echo "judul-abstrak<br />";
+								}elseif ($tipe_centroid=='j') {
+									$vectorDoc = json_decode($dokumen->nilai_tfidf_judul); //untuk pake hasil pembobotan
+									//echo "judul<br />";
+								}elseif ($tipe_centroid=='a') {
+									$vectorDoc = json_decode($dokumen->nilai_tfidf_abstrak); //untuk pake hasil pembobotan
+									//echo "asbtral<br />";
+								}
+								
+								
 								$sum += $vectorDoc->$term;
 							}
 							$avg = $sum/$n;
@@ -353,7 +368,7 @@
 
 				echo "CENTROID MANUAL BARU <br />";
 				$simpan = new dbCentroidManual;
-				$simpan->teks = 'ja';
+				$simpan->teks = $tipe_centroid;
 				$simpan->k = $k_number;
 				$simpan->dokumen_centroid = json_encode($arrNRP);
 				$simpan->centroid = json_encode($newCentroid);
