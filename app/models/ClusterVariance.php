@@ -52,10 +52,12 @@
 
 			if($nData>1){
 				foreach ($kluster_i as $key => $dokumen) {
-					if($this->idTeks=='ab'){
+					if($this->idTeks=='a'){
 						$di = json_decode($dokumen->nilai_tfidf_abstrak);
 					}elseif ($this->idTeks=='ja') {
 						$di = json_decode($dokumen->nilai_tfidf);
+					}elseif ($this->idTeks=='j') {
+						$di = json_decode($dokumen->nilai_tfidf_judul);
 					}
 					
 					$dibar = $this->rata2kluster[$i];
@@ -141,10 +143,12 @@
 					$sum = 0.0;
 					if($n>0){
 						foreach ($data[$i] as $key => $dokumen) {
-							if($this->idTeks=='ab'){
+							if($this->idTeks=='a'){
 								$vectorDoc = json_decode($dokumen->nilai_tfidf_abstrak);
 							}elseif ($this->idTeks=='ja') {
 								$vectorDoc = json_decode($dokumen->nilai_tfidf);
+							}elseif ($this->idTeks=='j') {
+								$vectorDoc = json_decode($dokumen->nilai_tfidf_judul);
 							}
 							
 							$sum += $vectorDoc->$term;

@@ -255,14 +255,14 @@ Route::get('cv', function(){
 	$counter_CV = new TimeExecution;
 	$startTime_CV = $counter_CV->getTime();
 	$KedekatanKluster = new ClusterVariance;
-	$id_group = 1;
+	$id_group = 9;
 	$id = DB::table('kmeans_result')->where('id_group', '=' , $id_group)->max('id');
 	echo $id."<br />";
 	$hasil = dbKmeansResult::find($id);
 	echo $hasil->jumlah_kluster."<br />";
 	$hasil_kluster = json_decode($hasil->hasil_kluster);
 
-	$nilai_dekat = $KedekatanKluster->ClusterValue($hasil->jumlah_kluster, $hasil_kluster, $id, 'ja');
+	$nilai_dekat = $KedekatanKluster->ClusterValue($hasil->jumlah_kluster, $hasil_kluster, $id, 'j');
 	$endTime_CV = $counter_CV->getTime();
 	echo $nilai_dekat." - LAMA : ".($endTime_CV-$startTime_CV)." detik <br />";
 });
