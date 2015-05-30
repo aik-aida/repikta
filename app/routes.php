@@ -203,7 +203,7 @@ Route::get('clustering',function(){
 	//foreach ($k_manual as $key => $value) {
 		$kmeans = new Kmeans;
 		//$k = $value; 
-		$k = 8;
+		$k = 3;
 		echo "n=".$n." - k=".$k."<br />"."<br />";
 
 		//a:abstrak
@@ -211,7 +211,7 @@ Route::get('clustering',function(){
 		//ja:judul+abstrak
 		//g:generated
 		//m:manual
-		$id_group = $kmeans->Clustering($k, $n, 'ja', 'm');
+		$id_group = $kmeans->Clustering($k, $n, 'j', 'm');
 		//$id_group = $kmeans->Clustering($k, $n, 'ja', 'g');
 		
 		for ($i=0; $i < count($kmeans->centroid); $i++) { 
