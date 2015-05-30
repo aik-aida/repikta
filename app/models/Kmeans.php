@@ -163,25 +163,27 @@
 		public function FindClosestCluster($doc)
 		{
 			//echo(count($this->centroid));
-			echo "doc ".$doc->nrp." |";
+			//echo "doc ".$doc->nrp." |";
 			$cossineArray = array();
 
 			if($this->idTeks=='ja'){
 				$vectorDoc = json_decode($doc->nilai_tfidf);
 			}elseif ($this->idTeks=='a') {
 				$vectorDoc = json_decode($doc->nilai_tfidf_abstrak);
+			}elseif ($this->idTeks=='j') {
+				$vectorDoc = json_decode($doc->nilai_tfidf_judul);
 			}
 			
 
 			for ($i=0; $i < count($this->centroid); $i++) { 
 				$cossineArray[$i] = $this->CossineSimilarity($this->centroid[$i], $vectorDoc);
-				echo $cossineArray[$i]."|";
+				//echo $cossineArray[$i]."|";
 			}
 
 			$index = array_search(max($cossineArray), $cossineArray);
 			//var_dump($cossineArray);
 			//echo "<br />";
-			echo " -> ".$index."<br />";
+			//echo " -> ".$index."<br />";
 			return $index;
 		}
 
@@ -252,6 +254,10 @@
 								$vectorDoc = json_decode($dokumen->nilai_tfidf);
 							}elseif ($this->idTeks=='a') {
 								$vectorDoc = json_decode($dokumen->nilai_tfidf_abstrak);
+								echo "abstrak<br />";
+							}elseif ($this->idTeks=='j') {
+								$vectorDoc = json_decode($dokumen->nilai_tfidf_judul);
+								echo "judul<br />";
 							}
 							
 							$sum += $vectorDoc->$term;
@@ -320,6 +326,8 @@
 							$vector = json_decode($doc->nilai_tfidf);	
 						}elseif ($this->idTeks=='a') {
 							$vector = json_decode($doc->nilai_tfidf_abstrak);
+						}elseif ($this->idTeks=='j') {
+							$vector = json_decode($doc->nilai_tfidf_judul);
 						}
 						
 						array_push($minmax , $vector->$term);
