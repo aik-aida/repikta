@@ -199,11 +199,11 @@ Route::get('clustering',function(){
 
 	// $k_generated = array(3,6,8,10,16);
 	// foreach ($k_generated as $key => $value) {
-	$k_manual = array(8,6,3);
+	//$k_manual = array(8,6,3);
 	//foreach ($k_manual as $key => $value) {
 		$kmeans = new Kmeans;
 		//$k = $value; 
-		$k = 8;
+		$k = 3;
 		echo "n=".$n." - k=".$k."<br />"."<br />";
 		//a:abstrak
 		//ja:judul+abstrak
