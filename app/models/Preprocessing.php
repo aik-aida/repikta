@@ -49,9 +49,9 @@
 
 		}
 
-		public function PembobotanTF_IDF(){
-			$bobot_judul = 0.7;
-			$bobot_abstrak = 0.3;
+		public function PembobotanTF_IDF($j,$a){
+			$bobot_judul = $j;
+			$bobot_abstrak = $a;
 
 			$dokumens = dbDokumen::where('training','=',true)->get();
 			$words = dbKamusKata::all();

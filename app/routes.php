@@ -211,7 +211,7 @@ Route::get('clustering',function(){
 		//ja:judul+abstrak
 		//g:generated
 		//m:manual
-		$id_group = $kmeans->Clustering($k, $n, 'j', 'm');
+		$id_group = $kmeans->Clustering($k, $n, 'ja', 'm');
 		//$id_group = $kmeans->Clustering($k, $n, 'ja', 'g');
 		
 		for ($i=0; $i < count($kmeans->centroid); $i++) { 
@@ -275,10 +275,10 @@ Route::get('inisial', function(){
 	// $prepoc->Reset_TfIdf();
 	// $prepoc->Reset_Idf();
 
-	$tipe_centroid = 'a';
-	$time2 = $counter->getTime();
-	$file_cent = $prepoc->ReadFile("./data/dt_centroid.txt");
-	$dt_cent = $prepoc->ReadCentroid($file_cent);
+	// $tipe_centroid = 'a';
+	// $time2 = $counter->getTime();
+	// $file_cent = $prepoc->ReadFile("./data/dt_centroid.txt");
+	// $dt_cent = $prepoc->ReadCentroid($file_cent);
 	// $dt_train = $prepoc->ReadFile("./data/dt_training.txt");
 	// $dt_test = $prepoc->ReadFile("./data/dt_testing.txt");
 	// $prepoc->Set_training_testing($dt_train, $dt_test);
@@ -292,9 +292,9 @@ Route::get('inisial', function(){
 	// $prepoc->CountTF(); $time7 = $counter->getTime();
 	// $prepoc->CountTF_IDF(); $time8 = $counter->getTime();
 	// $prepoc->MinMaxIDF(); 
-	// $prepoc->PembobotanTF_IDF(); $time9 = $counter->getTime();
+	$prepoc->PembobotanTF_IDF(0.1,0.9); $time9 = $counter->getTime();
 
-	$prepoc->Calculate_Save_Centroid($dt_cent, $tipe_centroid);
+	// $prepoc->Calculate_Save_Centroid($dt_cent, $tipe_centroid);
 	
 	// echo "preparing data : ".($time3-$time2)."detik <br />";	
 	// echo "Preprocessing text : ".($time4-$time3)."detik <br />";	
