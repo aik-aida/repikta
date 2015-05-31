@@ -62,6 +62,7 @@
 				$cn = 0;
 				foreach ($words as $key => $kata) {
 					$term = $kata->kata_dasar;
+					
 
 					if(array_key_exists($term, $tfidf_j)){
 						$tfidf->$term = ($bobot_judul*$tfidf_j->$term)+($bobot_abstrak*$tfidf_a->$term);
