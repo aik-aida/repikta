@@ -117,7 +117,7 @@
 			return ($sum/($this->jumlahKluster-1));
 		}
 
-		public function AverageOfAverage($dataRata){
+		public function AverageOfAverage($dataRata){ //ini
 			$kamus = dbKamusKata::all();
 			$avg2 = (object) array();
 
@@ -133,7 +133,7 @@
 			return $avg2;
 		}
 
-		public function CalculateAverageCluster($data){
+		public function CalculateAverageCluster($data){ //ini
 			$kamus = dbKamusKata::all();
 			for ($i=0; $i<$this->jumlahKluster ; $i++) {
 				$this->rata2kluster[$i] = (object) array();
