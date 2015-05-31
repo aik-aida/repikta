@@ -199,7 +199,7 @@ Route::get('clustering',function(){
 
 	// $k_generated = array(3,6,8,10,16);
 	// foreach ($k_generated as $key => $value) {
-	$k_manual = array(8,6,3);
+	//$k_manual = array(8,6,3);
 	//foreach ($k_manual as $key => $value) {
 		$kmeans = new Kmeans;
 		//$k = $value; 
@@ -292,8 +292,8 @@ Route::get('inisial', function(){
 	// $prepoc->CountTF(); $time7 = $counter->getTime();
 	// $prepoc->CountTF_IDF(); $time8 = $counter->getTime();
 	// $prepoc->MinMaxIDF(); 
-	$prepoc->PembobotanTF_IDF(0.7,0.3); $time9 = $counter->getTime();
 
+	$prepoc->PembobotanTF_IDF(0.7,0.3); $time9 = $counter->getTime();
 	// $prepoc->Calculate_Save_Centroid($dt_cent, $tipe_centroid);
 	
 	// echo "preparing data : ".($time3-$time2)."detik <br />";	
