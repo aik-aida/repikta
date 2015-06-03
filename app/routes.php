@@ -293,7 +293,7 @@ Route::get('inisial', function(){
 	// $prepoc->CountTF_IDF(); $time8 = $counter->getTime();
 	// $prepoc->MinMaxIDF(); 
 
-	$prepoc->PembobotanTF_IDF(0.7,0.3); $time9 = $counter->getTime();
+	$prepoc->PembobotanTF_IDF(0.75,0.25); $time9 = $counter->getTime();
 	// $prepoc->Calculate_Save_Centroid($dt_cent, $tipe_centroid);
 	
 	// echo "preparing data : ".($time3-$time2)."detik <br />";	
