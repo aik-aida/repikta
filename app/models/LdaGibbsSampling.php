@@ -38,7 +38,7 @@
 			$this->beta = 0.01;
 			$this->sampleLAG = 2;	//100 //2
 			$this->ITERATIONS = 2000;	//100	//2000
-			$this->burnIN = 100;	//50	//100
+			$this->burnIN = 10;	//50	//100
 		}
 
 		public function TopicExtraction($k, $list_doc, $id, $ke, $grup){

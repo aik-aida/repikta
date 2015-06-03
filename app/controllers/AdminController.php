@@ -281,6 +281,29 @@
 					->with('term', $term);
 		}
 
+		public function survey_login()
+		{
+			return View::make('survey_login');
+		}
+
+		public function survey_penjelasan()
+		{
+			$data_nrp = Input::only(['nrp']);
+			$nrp = $data_nrp['nrp'];
+
+			$data_nama = Input::only(['nama']);
+			$nama = $data_nama['nama'];
+
+			$now = 0;
+			$all = 20;
+
+			return View::make('survey_penjelasan')
+					->with('nrp', $nrp)
+					->with('nama', $nama)
+					->with('now', $now)
+					->with('all', $all);
+		}
+
 		public function survey_dokumen()
 		{
 			$dokumen = dbDokumen::find('5109100003');

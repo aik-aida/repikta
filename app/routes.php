@@ -52,6 +52,10 @@ Route::get('rekomendasi/dokumen/{param}', 'AdminController@rekomendasi_katadokum
 
 Route::post('rekomendasi/dokumen/detail', 'AdminController@rekomendasi_dokumen');
 
+Route::get('survey', 'AdminController@survey_login');
+
+Route::post('survey/penjelasan', 'AdminController@survey_penjelasan');
+
 Route::get('survey/dokumen', 'AdminController@survey_dokumen');
 
 Route::post('survey/dokumen/nilai', 'AdminController@survey_nilai');
@@ -150,12 +154,17 @@ Route::get('terdekat', function(){
 });
 
 Route::get('ekstrak_topik', function(){
+	//HASIL CLUSTERNG YANG DIPAKAI, ID 42 , ID_GROUP 41 -- traingin 240
+	//HASIL CLUSTERNG YANG DIPAKAI, ID 4 , ID_GROUP 1 -- traingin 80
+	//HASIL CLUSTERNG YANG DIPAKAI, ID  , ID_GROUP  -- traingin 160
+	$id_group = 1;
 	$counter = new TimeExecution;
 	$awal = $counter->getTime();
 
-	$masing2topik = array(5,3,4);
-	$id_group = 2;
+	$masing2topik = array(9,4,5);
+	
 	$id_result = DB::table('kmeans_result')->where('id_group', '=' , $id_group)->max('id');
+	echo "Group=".$id_group." - id_result=".$id_result."<br />";
 	$data_result = dbKmeansResult::find($id_result);
 	$banyak_kluster = $data_result->jumlah_kluster;
 	$hasil_kluster = json_decode($data_result->hasil_kluster);
@@ -195,11 +204,13 @@ Route::get('ekstrak_topik', function(){
 Route::get('clustering',function(){
 	$counter = new TimeExecution;
 	$startTime = $counter->getTime();
+
 	$doc_training = dbDokumen::where('training','=',true)->get();
 		// $centroid_choose = 2; //MANUAL CENTROID ID
 		// $number_k = 
 		
 	$n = count($doc_training);
+	echo "dokumen training = ".$n."<br />";
 
 	// $k_generated = array(3,6,8,10,16);
 	// foreach ($k_generated as $key => $value) {
@@ -280,41 +291,45 @@ Route::get('inisial', function(){
 	// $prepoc->Reset_Idf();
 
 	// $tipe_centroid = 'a';
-	// $time2 = $counter->getTime();
+	$time2 = $counter->getTime();
 	// $file_cent = $prepoc->ReadFile("./data/dt_centroid.txt");
 	// $dt_cent = $prepoc->ReadCentroid($file_cent);
-	// $dt_train = $prepoc->ReadFile("./data/dt_training.txt");
-	// $dt_test = $prepoc->ReadFile("./data/dt_testing.txt");
-	// $prepoc->Set_training_testing($dt_train, $dt_test);
+	$dt_train = $prepoc->ReadFile("./data/dt_training.txt");
+	$dt_test = $prepoc->ReadFile("./data/dt_testing.txt");
+	$prepoc->Set_training_testing($dt_train, $dt_test);
 
 	
-	// $time3 = $counter->getTime();
-	// $prepoc->PreprocessingText(); $time4 = $counter->getTime();
-	// $prepoc->DistinctTerm(); $time5 = $counter->getTime();
+	$time3 = $counter->getTime();
+	$prepoc->PreprocessingText(); $time4 = $counter->getTime();
+	$prepoc->DistinctTerm(); $time5 = $counter->getTime();
 
-	// $prepoc->CountIDF(); $time6 = $counter->getTime();
-	// $prepoc->CountTF(); $time7 = $counter->getTime();
-	// $prepoc->CountTF_IDF(); $time8 = $counter->getTime();
+	$prepoc->CountIDF(); $time6 = $counter->getTime();
+	$prepoc->CountTF(); $time7 = $counter->getTime();
+	$prepoc->CountTF_IDF(); $time8 = $counter->getTime();
 	// $prepoc->MinMaxIDF(); 
 
 
 	$prepoc->PembobotanTF_IDF(0.2,0.8); $time9 = $counter->getTime();
 	// $prepoc->Calculate_Save_Centroid($dt_cent, $tipe_centroid);
 	
-	// echo "preparing data : ".($time3-$time2)."detik <br />";	
-	// echo "Preprocessing text : ".($time4-$time3)."detik <br />";	
-	// echo "distinct term : ".($time5-$time4)."detik <br />";	
-	// echo "hitung IDF : ".($time6-$time2)."detik <br />";	
-	// echo "hitung TF : ".($time7-$time6)."detik <br />";	
-	// echo "hitung TF-IDF : ".($time8-$time7)."detik <br />";	
-	// echo "Pembobotan : ".($time9-$time8)."detik <br />";	
+	echo "preparing data : ".($time3-$time2)."detik <br />";	
+	echo "Preprocessing text : ".($time4-$time3)."detik <br />";	
+	echo "distinct term : ".($time5-$time4)."detik <br />";	
+	echo "hitung IDF : ".($time6-$time5)."detik <br />";	
+	echo "hitung TF : ".($time7-$time6)."detik <br />";	
+	echo "hitung TF-IDF : ".($time8-$time7)."detik <br />";	
+	echo "Pembobotan : ".($time9-$time8)."detik <br />";	
 	echo "done";
 });
 
-Route::get('testingtfidf', function(){
-	$test = new Testing;
-	$test->TfIdf(0.7, 0.3);
-	echo "--- SELESAI ---";
+Route::get('reset_dokumen', function(){
+	$dokumens = dbDokumen::all();
+	foreach ($dokumens as $key => $doc) {
+		$update = dbDokumen::find($doc->nrp);
+		$update->training = -1;
+		$update->save();
+	}
+	echo "cek cek cek :)";
 });
 
 Route::get('masukkan', function(){

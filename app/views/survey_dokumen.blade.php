@@ -3,11 +3,12 @@
 @section('content')
 
             <div class="col-md-9 mb">
-                <div class="row" >
+                <div class="row" style="color:black">
                   <div class="col-md-12">
                       <section class="task-panel tasks-widget">
-                        
-                              <div class="" align="center"><h4><i class="fa fa-tasks"></i> Rekomendasi Topik Tugas Akhir  
+                          <div class="panel-body" align="center">
+                            <div class="task-title">
+                                <div class="" align="center"><h4><i class="fa fa-tasks"></i> Rekomendasi Topik Tugas Akhir  
                                     <span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span>
                                     <span class="badge bg-warning">nrp</span>
                                     <span class="task-title-sp"> {{ $dokumen->nrp }} </span>
@@ -16,7 +17,8 @@
                                     <span class="task-title-sp"> {{ $dokumen->nama }} </span>
                                     <span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span>
                                     </h4>
-                        </div>
+                                </div>
+                              </div>
                                     <ul class="task-list" align="center">
                                       <li>
                                         <div class="task-title">
@@ -28,13 +30,13 @@
                                     </ul>
                                   <div class="add-task-row" align="center">
                                     <table class="table table-hover">
-                                      <thead align="center">
+                                      <!-- <thead align="center">
                                       <tr align="center">
                                           <th align="center">Bobot</th>
                                           <th align="center">Identitas</th>
                                           <th align="center">Kata-Kata yang merepresentasikan Topik</th>
                                       </tr>
-                                      </thead>
+                                      </thead> -->
                                       <tbody>
                                       @for ($i = 0; $i < $ntopik; $i++)
                                         <tr>
@@ -50,15 +52,16 @@
                                       </tbody>
                                   </table>
                                   </div>
+                          </div>
                             
                           </section>
                       </div><!-- /col-md-12-->
                 </div><!-- /row -->
 
-                <div class="row" >
+                <div class="row " style="color:white">
                       <div class="col-md-12">
                           <section class="task-panel tasks-widget">
-                              <div class="panel-body" align="center">   
+                              <div class="panel-body darkblue-panel" align="center">   
                                   <div class="task-title">
                                       <h4><b>
                                           {{$dokumen->judul_ta}}
@@ -72,17 +75,6 @@
                           </section>
                       </div><!-- /col-md-12-->
                 </div><!-- /row -->
-
-                    
-
-              <div class="darkblue-panel pn">
-                <div class="darkblue-header">
-                  <h5><b>{{$dokumen->judul_ta}}</b></h5>
-                </div>
-                <div class="blog-text">
-                  <font color="white">{{$dokumen->abstraksi_ta}}{{$dokumen->abstraksi_ta}}</font>
-                </div>
-              </div>
             </div><!-- /col-md-4 -->
               
                   <div class="col-lg-3 ds">

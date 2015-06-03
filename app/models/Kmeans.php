@@ -26,8 +26,8 @@
 		public function __construct()
 		{
 			$this->dokumenData = dbDokumen::where('training','=',true)->get();
-			//$this->kamus = dbKamusKata::all();
-			$this->kamus = dbKamusJudul::all();
+			$this->kamus = dbKamusKata::all();
+			//$this->kamus = dbKamusJudul::all();
 			
 			$this->idcentroid = array();
 			$this->centroid = array();
