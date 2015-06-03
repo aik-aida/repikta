@@ -11,6 +11,7 @@
                               <thead>
                               <tr>
                                   <th class="numeric">ID Kluster</th>
+                                  <th class="numeric">Bobot</th>
                                   <th class="numeric">Jumlah Kluster</th>
                                   <th class="numeric">ID Centroid Awal</th>
                                   <th class="numeric">Jumlah Dokumen</th>
@@ -24,6 +25,7 @@
                                   @for($i=0 ; $i<$jumlah ; $i++)
                                   <tr>
                                     <td class="numeric">{{ $data[$i]->id_group }}</td>
+                                    <td class="numeric">{{ $data[$i]->bobot }}</td>
                                     <td class="numeric">{{ $data[$i]->jumlah_kluster }}</td>
                                     <td class="numeric">{{ $data[$i]->centroid_awal }}</td>
                                     <td class="numeric">{{ $data[$i]->jumlah_dokumen }}</td>

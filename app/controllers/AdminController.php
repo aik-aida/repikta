@@ -281,6 +281,46 @@
 					->with('term', $term);
 		}
 
+		public function survey_dokumen()
+		{
+			$dokumen = dbDokumen::find('5109100003');
+			$nrp_user = '5111100020';
+			$nama_user = 'Aida Muflichah';
+			$now = 19;
+			$all = 20;
+			$topic = array('aida', 'muflichah', 'anak', 'baik', 'rajin', 'pangkal', 'pandai', 'bismillah', 'TA', 'selesai', 'maksimal', 'lulus', 'sw', '112', 'dan', 'segera', 'dapat', 'kerja', 'aamiin', 'aamiin');
+			$daftar = array();
+			$daftar[0] = $topic;
+			$daftar[1] = $topic;
+			$daftar[2] = $topic;
+			$daftar[3] = $topic;
+			$bobot = array(40, 20, 20, 20);
+			$ntopik = count($bobot);
+
+			return View::make('survey_dokumen')
+					->with('dokumen', $dokumen)
+					->with('nrp', $nrp_user)
+					->with('nama', $nama_user)
+					->with('now', $now)
+					->with('all', $all)
+					->with('daftar', $daftar)
+					->with('bobot', $bobot)
+					->with('ntopik', $ntopik);
+		}
+
+		public function survey_nilai()
+		{
+			$data_nrp = Input::only(['nrp']);
+			$nrp = $data_nrp['nrp'];
+
+			$data_nilai = Input::only(['nilai']);
+			$nilai = $data_nilai['nilai'];
+
+			return View::make('survey_read')
+						->with('nilai', $nilai)
+						->with('nrp', $nrp);
+		}
+
 		public function akurasi()
 		{
 			$dokumens = dbDokumen::where('training','=',false)->get();
