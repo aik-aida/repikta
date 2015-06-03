@@ -50,6 +50,7 @@
 		}
 
 		public function PembobotanTF_IDF($j,$a){
+			echo $j."-".$a;
 			$bobot_judul = $j;
 			$bobot_abstrak = $a;
 

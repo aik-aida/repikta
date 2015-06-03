@@ -52,6 +52,10 @@ Route::get('rekomendasi/dokumen/{param}', 'AdminController@rekomendasi_katadokum
 
 Route::post('rekomendasi/dokumen/detail', 'AdminController@rekomendasi_dokumen');
 
+Route::get('survey/dokumen', 'AdminController@survey_dokumen');
+
+Route::post('survey/dokumen/nilai', 'AdminController@survey_nilai');
+
 Route::get('akurasi', 'AdminController@akurasi');
 
 Route::get('lihatPHI', 'RepiktaController@show_phi');
@@ -293,7 +297,8 @@ Route::get('inisial', function(){
 	// $prepoc->CountTF_IDF(); $time8 = $counter->getTime();
 	// $prepoc->MinMaxIDF(); 
 
-	$prepoc->PembobotanTF_IDF(0.75,0.25); $time9 = $counter->getTime();
+
+	$prepoc->PembobotanTF_IDF(0.2,0.8); $time9 = $counter->getTime();
 	// $prepoc->Calculate_Save_Centroid($dt_cent, $tipe_centroid);
 	
 	// echo "preparing data : ".($time3-$time2)."detik <br />";	
@@ -310,6 +315,54 @@ Route::get('testingtfidf', function(){
 	$test = new Testing;
 	$test->TfIdf(0.7, 0.3);
 	echo "--- SELESAI ---";
+});
+
+Route::get('masukkan', function(){
+	$cv_aik = DB::table('cluster_variance_atud')->get();
+	foreach ($cv_aik as $key => $value) {
+		//echo $value->keterangan;
+		$bobot = $value->keterangan;
+
+		$id_result = $value->id_hasil_kluster;
+		$result = DB::table('kmeans_result_atud')->where('id', '=' , $id_result)->get();
+		$id_group = $result[0]->id_group;
+		
+
+		//echo $id_group;
+		$detail_result = DB::table('kmeans_result_atud')->where('id_group', '=' , $id_group)->get();
+		foreach ($detail_result as $key => $val) {
+			//echo $val->id."<br />";
+			$saveKmeans = new dbKmeansResult();
+			$saveKmeans->bobot = $bobot;
+			$saveKmeans->teks = $val->teks;
+			$saveKmeans->centroid = $val->centroid;
+			$saveKmeans->id_group = $val->id_group;
+			$saveKmeans->jumlah_kluster = $val->jumlah_kluster;
+			$saveKmeans->centroid_awal = $val->centroid_awal;
+			$saveKmeans->centroid_step = $val->centroid_step;
+			$saveKmeans->centroid_next = $val->centroid_next;
+			$saveKmeans->jumlah_dokumen = $val->jumlah_dokumen;
+			$saveKmeans->hasil_kluster = $val->hasil_kluster;
+			$saveKmeans->keterangan_iterasi = $val->keterangan_iterasi;
+			$saveKmeans->lama_eksekusi = $val->lama_eksekusi;
+			$saveKmeans->waktu_simpan = $val->waktu_simpan;
+			$saveKmeans->save();
+		}
+
+		$max = DB::table('kmeans_result')->where('id_group', '=' , $id_group)->max('id');
+
+		$simpan = new dbClusterVariance;
+		$simpan->k = $value->k;
+		$simpan->keterangan = $value->keterangan;
+		$simpan->id_hasil_kluster = $max;
+		$simpan->dmasing2 = $value->dmasing2;
+		$simpan->drata2 = $value->drata2;
+		$simpan->varian_within = $value->varian_within;
+		$simpan->varian_between = $value->varian_between;
+		$simpan->cluster_variance = $value->cluster_variance;
+		$simpan->save();
+	}
+	echo "cek cek cek";
 });
 	
 Route::get('cek',function(){
