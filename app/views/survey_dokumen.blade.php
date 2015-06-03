@@ -3,28 +3,6 @@
 @section('content')
 
             <div class="col-md-9 mb">
-              <!-- <div class="weather-2 pn">
-                <div class="weather-2-header">
-                  <div class="row">
-                    <div class="col-sm-6 col-xs-6">
-                      <p>{{$dokumen->nrp}}</p>
-                    </div>
-                    <div class="col-sm-6 col-xs-6 goright">
-                      <p>{{$dokumen->nama}}</p>
-                    </div>
-                  </div>
-                </div>
-                <div class="row centered">
-                  <div class="task-title">
-                    Anda direkomendasikan memilih Tugas Akhir pada bidang :
-                    <div align="center"><h4>Rekayasa Perangkat Lunak</h4></div>
-                  </div> 
-                  <div class="add-task-row">
-                    Berikut Topik yang direkomendasikan menurut prosentase kedekatan :
-                  </div>    
-                </div>
-              </div>
- -->
                 <div class="row" >
                   <div class="col-md-12">
                       <section class="task-panel tasks-widget">
@@ -78,34 +56,24 @@
                 </div><!-- /row -->
 
                 <div class="row" >
-                  <div class="col-md-12">
-                      <section class="task-panel tasks-widget">
-                        
-                              <div class="" align="center"><h4><i class="fa fa-tasks"></i> Rekomendasi Topik Tugas Akhir  
-                                    <span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span>
-                                    <span class="badge bg-warning">nrp</span>
-                                    <span class="task-title-sp"> {{ $dokumen->nrp }} </span>
-                                    <span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span>
-                                    <span class="badge bg-theme">nama</span>
-                                    <span class="task-title-sp"> {{ $dokumen->nama }} </span>
-                                    <span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span>
-                                    </h4>
-                        </div>
-                                    <ul class="task-list" align="center">
-                                      <li>
-                                        <div class="task-title">
-                                          Anda direkomendasikan memilih Tugas Akhir pada bidang :
-                                          <div class="" align="center"><h3>Rekayasa Perangkat Lunak</h3></div>
-                                          Berikut Topik yang direkomendasikan menurut prosentase kedekatan :
-                                        </div>
-                                      </li>                                 
-                                    </ul>
-                            
+                      <div class="col-md-12">
+                          <section class="task-panel tasks-widget">
+                              <div class="panel-body" align="center">   
+                                  <div class="task-title">
+                                      <h4><b>
+                                          {{$dokumen->judul_ta}}
+                                          </b>
+                                      </h4>
+                                  </div>
+                                  <div class="add-task-row">
+                                      {{$dokumen->abstraksi_ta}}
+                                  </div>
+                              </div>
                           </section>
                       </div><!-- /col-md-12-->
                 </div><!-- /row -->
 
-              
+                    
 
               <div class="darkblue-panel pn">
                 <div class="darkblue-header">

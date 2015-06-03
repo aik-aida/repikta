@@ -297,7 +297,7 @@ Route::get('inisial', function(){
 	// $prepoc->CountTF_IDF(); $time8 = $counter->getTime();
 	// $prepoc->MinMaxIDF(); 
 
-	$prepoc->PembobotanTF_IDF(0.5,0.5); $time9 = $counter->getTime();
+	$prepoc->PembobotanTF_IDF(0.2,0.8); $time9 = $counter->getTime();
 	// $prepoc->Calculate_Save_Centroid($dt_cent, $tipe_centroid);
 	
 	// echo "preparing data : ".($time3-$time2)."detik <br />";	
@@ -317,18 +317,18 @@ Route::get('testingtfidf', function(){
 });
 
 Route::get('masukkan', function(){
-	$cv_aik = DB::table('cluster_variance_lp')->get();
+	$cv_aik = DB::table('cluster_variance_atud')->get();
 	foreach ($cv_aik as $key => $value) {
 		//echo $value->keterangan;
 		$bobot = $value->keterangan;
 
 		$id_result = $value->id_hasil_kluster;
-		$result = DB::table('kmeans_result_lp')->where('id', '=' , $id_result)->get();
+		$result = DB::table('kmeans_result_atud')->where('id', '=' , $id_result)->get();
 		$id_group = $result[0]->id_group;
 		
 
 		//echo $id_group;
-		$detail_result = DB::table('kmeans_result_lp')->where('id_group', '=' , $id_group)->get();
+		$detail_result = DB::table('kmeans_result_atud')->where('id_group', '=' , $id_group)->get();
 		foreach ($detail_result as $key => $val) {
 			//echo $val->id."<br />";
 			$saveKmeans = new dbKmeansResult();
