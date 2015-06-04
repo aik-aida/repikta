@@ -25,45 +25,58 @@ Route::post('read_transkrip', 'TranskripController@read');
 Route::post('autentifikasi', 'BaseController@login');
 
 Route::get('centroid', 'AdminController@centroid_list');
-
 Route::post('centroid/detail', 'AdminController@centroid_detail');
 
 Route::get('kamus', 'AdminController@kamus_list');
 
 Route::get('dokumen', 'AdminController@dokumen_list');
-
 Route::post('dokumen/detail', 'AdminController@dokumen_detail');
-
 Route::post('dokumen/nilai_tf', 'AdminController@dokumen_tf');
-
 Route::post('dokumen/nilai_tfidf', 'AdminController@dokumen_tfidf');
 
 Route::get('kluster', 'AdminController@kluster_list');
-
 Route::post('kluster/detail', 'AdminController@kluster_detail');
 
 Route::get('testing', 'AdminController@testing_list');
-
 Route::post('testing/transkrip', 'AdminController@testing_transkrip');
-
 Route::post('testing/rekomendasi', 'AdminController@testing_rekomendasi');
 
 Route::get('rekomendasi/dokumen/{param}', 'AdminController@rekomendasi_katadokumen');
-
 Route::post('rekomendasi/dokumen/detail', 'AdminController@rekomendasi_dokumen');
 
 Route::get('survey', 'AdminController@survey_login');
-
 Route::post('survey/penjelasan', 'AdminController@survey_penjelasan');
-
-Route::get('survey/dokumen', 'AdminController@survey_dokumen');
-
+Route::post('survey/dokumen', 'AdminController@survey_dokumen');
 Route::post('survey/dokumen/nilai', 'AdminController@survey_nilai');
+Route::post('survey/masukan', 'AdminController@survey_masukan');
+Route::post('survey/selesai', 'AdminController@survey_selesai');
 
 Route::get('akurasi', 'AdminController@akurasi');
 
 Route::get('lihatPHI', 'RepiktaController@show_phi');
 Route::get('lihatTETA', 'RepiktaController@show_theta');
+
+Route::get('survey_build', function(){
+	$lda_percobaan_ke = 1;
+	$treshold = 0.2;
+	$dokumen_survey = dbTestingAkurasi::where('lda_ke','=',$lda_percobaan_ke)
+									-> where('cosine_similarity','>=',$treshold)
+									->orderBy('cosine_similarity', 'desc')->get();
+	$dokumen_survey_nrp = array();
+	$dokumen_survey_data = array();
+	foreach ($dokumen_survey as $key => $doc) {
+		array_push($dokumen_survey_nrp, $doc->nrp_testing);
+		$data_survey = dbTestingRekomendasi::where('id_lda','=',$lda_percobaan_ke)
+											->where('nrp_testing','=',$doc->nrp_testing)
+											->get();
+		array_push($dokumen_survey_data, $data_survey[0]);
+	}
+
+	$simpan_survey = new dbSurveyDaftar;
+	$simpan_survey->id_group_lda = $lda_percobaan_ke;
+	$simpan_survey->dokumen_survey = json_encode($dokumen_survey_nrp);
+	$simpan_survey->save();
+});
 
 Route::get('rekomendasi', function(){
 	$nrp = '5109100003';
@@ -81,21 +94,27 @@ Route::get('rekomendasi', function(){
 });
 
 Route::get('catat', function(){
+	$pra = new Testing;
+	$pra->TfIdf(0.2,0.8);
+	$idgroup_result = 41;
+	$id_hasil_lda = 1;
 	$dokumens = dbDokumen::where('training','=',false)->get();
 	foreach ($dokumens as $key => $mhs) {
 		$nrp = $mhs->nrp;
 
 		$main = new Repikta;
-		$kluster_topkri = $main->RekomendasiTopik($nrp);
+		$kluster_topkri = $main->RekomendasiTopik($nrp, $idgroup_result, $id_hasil_lda);
 		$testing = new Testing;
-		$topikVektor = $testing->TopikVektor($kluster_topkri[0], $kluster_topkri[1]);
-
+		$topikVektor = $testing->TopikVektor($kluster_topkri[0], $kluster_topkri[1], $id_hasil_lda);
+		
 		$mahasiswa = dbDokumen::find($nrp);
 		$dokumenVektor = json_decode($mahasiswa->nilai_tfidf);
+		//echo count($dokumenVektor)." - ".count($topikVektor),"<br />";
 		$akurasi = $testing->CosineValRekomendasi($topikVektor, $dokumenVektor);
 		echo $nrp." --- ".$akurasi." ---<br />";
 
 		$simpan = new dbTestingAkurasi;
+		$simpan->lda_ke = $id_hasil_lda;
 		$simpan->nrp_testing = $nrp;
 		$simpan->topik_vektor = json_encode($topikVektor);
 		$simpan->cosine_similarity = $akurasi;
@@ -108,56 +127,12 @@ Route::get('dokumen_terdekat', function(){
 	$repikta->GetClosest();
 });
 
-Route::get('terdekat', function(){
-	$id_group = 2;
-	$dokumen_testing = dbDokumen::where('training','=',false)->get();
-	$id_result = DB::table('kmeans_result')->where('id_group', '=' , $id_group)->max('id');
-	$data_kluster = dbKmeansResult::find($id_result);
-	$hasil_kluster = json_decode($data_kluster->hasil_kluster);
-	$repikta = new Repikta;
-	for ($i=0; $i <count($dokumen_testing) ; $i++) { 
-		$counter = new TimeExecution;
-		$startTime = $counter->getTime();
-		$nrp = $dokumen_testing[$i]->nrp;
-		echo $nrp."<br />";
-		$idk = $repikta->Choose_Kluster($nrp, $id_group);
-		echo "dekat ".$idk."<br /> ";
-
-		$distance = array();
-		foreach ($hasil_kluster[$idk] as $key => $nrppembanding) {
-			$counter_t = new TimeExecution;
-			$startTime_t = $counter_t->getTime();
-			$pembanding_doc = dbDokumen::find($nrppembanding);
-			$nrp_tr = json_decode($dokumen_testing[$i]->transkrip);
-			$pembanding_tr = json_decode($pembanding_doc->transkrip);
-			$dist = $repikta->EuclideanTranskrip($nrp_tr, $pembanding_tr);
-			array_push($distance, $dist);
-			//echo $nrppembanding."-".$dist."<br />";
-			$endTime_t = $counter_t->getTime();
-			$simpan = new dbTranskripDistanceKluster;
-			$simpan->group = $id_group;
-			$simpan->id_kluster = $id_result;
-			$simpan->index = $idk;
-			$simpan->nrp = $nrp;
-			$simpan->pembanding = $nrppembanding;
-			$simpan->distance = $dist;
-			$simpan->lama = ($endTime_t-$startTime_t);
-			$simpan->save();
-		}
-
-		$index = array_search(min($distance), $distance);
-		echo "TERDEKAT ".$hasil_kluster[$idk][$index]."<br />";
-		$endTime = $counter->getTime();
-		echo ($endTime-$startTime)." detik <br />";
-		echo "<br />";
-	}
-});
 
 Route::get('ekstrak_topik', function(){
 	//HASIL CLUSTERNG YANG DIPAKAI, ID 42 , ID_GROUP 41 -- traingin 240
 	//HASIL CLUSTERNG YANG DIPAKAI, ID 4 , ID_GROUP 1 -- traingin 80
 	//HASIL CLUSTERNG YANG DIPAKAI, ID  , ID_GROUP  -- traingin 160
-	$id_group = 1;
+	$id_group = 41;
 	$counter = new TimeExecution;
 	$awal = $counter->getTime();
 
@@ -245,8 +220,7 @@ Route::get('clustering',function(){
 		$endTime = $counter->getTime();
 		echo ($endTime-$startTime)."detik <br />";
 
-		// $rk = new Repikta;
-		// $rk->Generate_Transkrip_Kriteria($id_group);
+		//
 
 		//--Cluster Varian--
 		$counter_CV = new TimeExecution;
@@ -330,6 +304,161 @@ Route::get('reset_dokumen', function(){
 		$update->save();
 	}
 	echo "cek cek cek :)";
+});
+
+Route::get('transkrip_kriteria', function(){
+	//HASIL CLUSTERNG YANG DIPAKAI, ID 42 , ID_GROUP 41 -- traingin 240
+	//HASIL CLUSTERNG YANG DIPAKAI, ID 4 , ID_GROUP 1 -- traingin 80
+	//HASIL CLUSTERNG YANG DIPAKAI, ID  , ID_GROUP  -- traingin 160
+	$id_group = 41;
+	$rk = new Repikta;
+	$rk->Generate_Transkrip_Kriteria($id_group);
+	echo "Transkrip Kriteria done";
+});
+
+Route::get('gettranskrip', function(){
+	$nrps = dbDokumen::select('nrp')->get();
+	foreach ($nrps as $key => $value) {
+		//echo $value->nrp."<br />";
+		$nrp = $value->nrp;
+		$json_transkrip = (object) array();
+		$matakuliah = dbMataKuliah::all();
+		foreach ($matakuliah as $key => $mk) {
+			$kode = $mk->mk_kode;
+			$nilai = dbTranskrip::where('nrp', '=', $nrp)->where('mk_id', '=', $kode)->get();
+			if(count($nilai)==1){
+				$huruf = $nilai[0]->nilai_huruf;
+				$angka = -1.0;
+				switch ($huruf) {
+					case 'A':
+						$angka = 4.0;
+						break;
+					case 'AB':
+						$angka = 3.5;
+						break;
+					case 'B':
+						$angka = 3;
+						break;
+					case 'BC':
+						$angka = 2.5;
+						break;
+					case 'C':
+						$angka = 2;
+						break;
+					case 'D':
+						$angka = 1;
+						break;
+					case 'E':
+						$angka = 0;
+						break;
+				}
+
+				$json_transkrip->$kode = $angka;
+			}
+			elseif(count($nilai)==0){
+				$json_transkrip->$kode = 0.0;
+			}
+			elseif(count($nilai)>1){
+				echo $value->nrp." - ";
+				echo $mk->mk_kode." - ";
+				echo "masih ada yang double, aaaak !!!<br />";
+			}
+		}
+
+		$transkrip = json_encode($json_transkrip);
+		//echo  $transkrip."<br />";
+
+		$update = dbDokumen::find($nrp);
+		$update->transkrip = $transkrip;
+		$update->save();
+	}
+	echo "SELESAI<br />";
+});
+
+Route::get('all_distance',function(){
+	$dokumen_testing = dbDokumen::where('training','=',false)->get();
+	$dokumen_training = dbDokumen::where('training','=',true)->get();
+	echo "testing : ".count($dokumen_testing)."<br />";
+	echo "training : ".count($dokumen_training)."<br />";
+	$repikta = new Repikta;
+	$distance = array();
+	for ($i=0; $i <count($dokumen_testing) ; $i++) { 
+		$counter = new TimeExecution;
+		$startTime = $counter->getTime();
+		$nrp = $dokumen_testing[$i]->nrp;
+		echo $nrp."<br />";
+
+		$distance = array();
+		foreach ($dokumen_training as $key => $docpembanding) {
+			if($nrp!=$docpembanding->nrp){
+				$counter_t = new TimeExecution;
+				$startTime_t = $counter_t->getTime();
+				$nrp_tr = json_decode($dokumen_testing[$i]->transkrip);
+				$pembanding_tr = json_decode($docpembanding->transkrip);
+				$dist = $repikta->EuclideanTranskrip($nrp_tr, $pembanding_tr);
+				array_push($distance, $dist);
+				//echo $docpembanding->nrp."-".$dist."<br />";
+				$endTime_t = $counter_t->getTime();
+				$simpan = new dbTranskripDistanceAll;
+				$simpan->nrp = $nrp; 
+				$simpan->pembanding = $docpembanding->nrp;
+				$simpan->distance = $dist;
+				$simpan->lama = ($endTime_t-$startTime_t);
+				$simpan->save();
+			}
+		}
+
+		$index = array_search(min($distance), $distance);
+		echo "TERDEKAT ".$dokumen_training[$index]->nrp."<br />";
+		$endTime = $counter->getTime();
+		echo ($endTime-$startTime)." detik <br />";
+		echo "<br />";
+	}
+});
+
+Route::get('distance_list_kluster_terdekat', function(){
+	$id_group = 41;
+	$dokumen_testing = dbDokumen::where('training','=',false)->get();
+	$id_result = DB::table('kmeans_result')->where('id_group', '=' , $id_group)->max('id');
+	$data_kluster = dbKmeansResult::find($id_result);
+	$hasil_kluster = json_decode($data_kluster->hasil_kluster);
+	$repikta = new Repikta;
+	for ($i=0; $i <count($dokumen_testing) ; $i++) { 
+		$counter = new TimeExecution;
+		$startTime = $counter->getTime();
+		$nrp = $dokumen_testing[$i]->nrp;
+		echo $nrp."<br />";
+		$idk = $repikta->Choose_Kluster($nrp, $id_group);
+		echo "dekat ".$idk."<br /> ";
+
+		$distance = array();
+		foreach ($hasil_kluster[$idk] as $key => $nrppembanding) {
+			$counter_t = new TimeExecution;
+			$startTime_t = $counter_t->getTime();
+			$pembanding_doc = dbDokumen::find($nrppembanding);
+			$nrp_tr = json_decode($dokumen_testing[$i]->transkrip);
+			$pembanding_tr = json_decode($pembanding_doc->transkrip);
+			$dist = $repikta->EuclideanTranskrip($nrp_tr, $pembanding_tr);
+			array_push($distance, $dist);
+			//echo $nrppembanding."-".$dist."<br />";
+			$endTime_t = $counter_t->getTime();
+			$simpan = new dbTranskripDistanceKluster;
+			$simpan->group = $id_group;
+			$simpan->id_kluster = $id_result;
+			$simpan->index = $idk;
+			$simpan->nrp = $nrp;
+			$simpan->pembanding = $nrppembanding;
+			$simpan->distance = $dist;
+			$simpan->lama = ($endTime_t-$startTime_t);
+			$simpan->save();
+		}
+
+		$index = array_search(min($distance), $distance);
+		echo "TERDEKAT ".$hasil_kluster[$idk][$index]."<br />";
+		$endTime = $counter->getTime();
+		echo ($endTime-$startTime)." detik <br />";
+		echo "<br />";
+	}
 });
 
 Route::get('masukkan', function(){

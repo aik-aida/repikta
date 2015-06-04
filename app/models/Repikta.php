@@ -113,10 +113,8 @@
 			return $arr;
 		}
 
-		public function RekomendasiTopik($nrp)
+		public function RekomendasiTopik($nrp, $idgroup_result, $id_hasil_lda)
 		{
-			$idgroup_result = 2;
-			$id_hasil_lda = 11;
 			$n = 5;
 
 			//MENCARI KLUSTER PILIHAN

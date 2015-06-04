@@ -17,7 +17,7 @@
                               </thead>
                               <tbody>
                               
-                                  @for ($i = 0; $i < count($kamus); $i++)
+                                  @for ($i = 0; $i < count($kata); $i++)
                                   <tr>
                                     <td class="numeric">{{ ($i+1) }}</td>
                                     <td>{{ $term = $kata[$i] }}</td>

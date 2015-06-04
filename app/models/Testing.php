@@ -86,12 +86,11 @@
 			}
 		}
 
-		public function TopikVektor($kluster, $kumpulan)
+		public function TopikVektor($kluster, $kumpulan, $id_hasil_lda)
 		{
 			$jumlah = count($kumpulan);
 			//echo($jumlah);
 
-			$id_hasil_lda = 11;
 			$lda_result = dbLdaSave::where('percobaan_ke','=',$id_hasil_lda)
 								->where('kluster_ke','=',$kluster)->get();
 			$list_nrp = json_decode($lda_result[0]->daftar_dokumen);		//DAFTAR DOKUMEN PADA KLUSTER TERPILIH

@@ -56,6 +56,12 @@
 			$uruterm = array_keys($sort_tfidf);
 			//var_dump($uruterm);
 			//var_dump($sort_tfidf);
+			// $kata = $uruterm;
+			// $urut = $sort_tfidf;
+			// for ($i = 0; $i < count($uruterm); $i++){
+			// 	$term = $kata[$i];
+			// 	echo $urut[$term]."<br />";
+			// }
 
 			return View::make('dokumen_tfidf')
 					->with('id', $id)
@@ -189,8 +195,9 @@
 			$data = Input::only(['nrp']);
 			$nrp = $data['nrp'];
 
-			$idgroup_result = 2;
-			$id_hasil_lda = 11;
+			$current_use = dbCurrentUse::all();
+			$idgroup_result = $current_use[0]->id_kluster;
+			$id_hasil_lda = $current_use[0]->id_lda;
 			$n = 5;
 			$nshow = 20;
 			$repikta = new Repikta;
@@ -294,10 +301,16 @@
 			$data_nama = Input::only(['nama']);
 			$nama = $data_nama['nama'];
 
-			$now = 0;
-			$all = 20;
+			$id_survey = 1;
+			$survey = dbSurveyDaftar::find($id_survey);
+			$docs = json_decode($survey->dokumen_survey);
 
+			$now = 0;
+			$all = count($docs);
+
+			
 			return View::make('survey_penjelasan')
+					->with('survey', $id_survey)
 					->with('nrp', $nrp)
 					->with('nama', $nama)
 					->with('now', $now)
@@ -306,29 +319,164 @@
 
 		public function survey_dokumen()
 		{
-			$dokumen = dbDokumen::find('5109100003');
-			$nrp_user = '5111100020';
-			$nama_user = 'Aida Muflichah';
-			$now = 19;
-			$all = 20;
-			$topic = array('aida', 'muflichah', 'anak', 'baik', 'rajin', 'pangkal', 'pandai', 'bismillah', 'TA', 'selesai', 'maksimal', 'lulus', 'sw', '112', 'dan', 'segera', 'dapat', 'kerja', 'aamiin', 'aamiin');
-			$daftar = array();
-			$daftar[0] = $topic;
-			$daftar[1] = $topic;
-			$daftar[2] = $topic;
-			$daftar[3] = $topic;
-			$bobot = array(40, 20, 20, 20);
-			$ntopik = count($bobot);
+			$data_nrp = Input::only(['nrp']);
+			$nrp_user = $data_nrp['nrp'];
+
+			$data_nama = Input::only(['nama']);
+			$nama_user = $data_nama['nama'];
+
+			$data_idx = Input::only(['number']);
+			$idx = $data_idx['number'];
+
+			$data_survey = Input::only(['survey']);
+			$id_survey = $data_survey['survey'];
+
+			if($idx>0){
+				$data_nilai = Input::only(['nilai']);
+				$nilai = $data_nilai['nilai'];
+
+				$data_dokumen = Input::only(['dokumen']);
+				$dokumen = $data_dokumen['dokumen'];
+
+				$simpan_nilai = new dbSurveyData;
+				$simpan_nilai->id_survey = $id_survey;
+				$simpan_nilai->nrp_penguji = $nrp_user;
+				$simpan_nilai->dokumen = $dokumen;
+				$simpan_nilai->nilai = $nilai;
+				$simpan_nilai->save();
+			}
+
+			$current_use = dbCurrentUse::all();
+			$idgroup_result = $current_use[0]->id_kluster;
+			$id_hasil_lda = $current_use[0]->id_lda;
+			
+			$survey = dbSurveyDaftar::find($id_survey);
+			$docs = json_decode($survey->dokumen_survey);
+			$dokumen = dbDokumen::find($docs[$idx]);
+
+			$data = dbTestingRekomendasi::where('nrp_testing','=',$dokumen->nrp)
+										->where('id_kmeans','=',$idgroup_result)
+										->where('id_lda','=',$id_hasil_lda)
+										->get();
+
+			$kluster = $data[0]->kluster_bidang;
+			$kemunculan_topik = json_decode($data[0]->kemunculan_topik);
+
+			$n = 5;
+			$nshow = 20;
+			$repikta = new Repikta;
+
+			//MENDAPATKAN LDA TOPIK PADA KLUSTER TERPILIH
+			$lda_result = dbLdaSave::where('percobaan_ke','=',$id_hasil_lda)
+								->where('kluster_ke','=',$kluster)->get();
+
+			$list_nrp = json_decode($lda_result[0]->daftar_dokumen);		//DAFTAR DOKUMEN PADA KLUSTER TERPILIH
+			$theta_matrix = json_decode($lda_result[0]->matriks_theta);		//THETA LDA PADA KLUSTER TERPILIH
+			$phi_matrix = json_decode($lda_result[0]->matriks_phi);			//PHI LDA PADA KLUSTER TERPILIH
+			$k = $lda_result[0]->k_topik;									//JUMLAH TOPIK PADA KLUSTER TERPILIH
+			$nterm = $lda_result[0]->n_term;								//BANYAK TERM LDA PADA KLUSTER TERPILIH
+			$list_term = json_decode($lda_result[0]->matriks_term);			//DAFTAR TERM LDA PADA KLUSTER TERPILIH
+
+			//MENCARI KLUSTER PILIHAN
+			$nama_bidang = $repikta->GetKlusterName($kluster);
+
+			//LIST TERM TIAP TOPIK YANG AKAN DITAMPILKAN
+			$topic = $repikta->Get20TermTopic($k, $phi_matrix, $nterm, $list_term);
+
+			$idtopic_muncul = array();
+			$jumlah_muncul = array();
+			foreach ($kemunculan_topik as $key => $value) {
+				array_push($idtopic_muncul, $key);
+				array_push($jumlah_muncul, $value);
+			}
+
+			$now = $idx+1;
+			$all = count($docs);
+
+			$daftar_nama_topic = array();
+			$daftar_topic = array();
+			$daftar_bobot = array();
+
+			for ($i = 0; $i < $k; $i++){
+                if($jumlah_muncul[$i]!=0) {
+                	array_push($daftar_nama_topic, ($idtopic_muncul[$i]+1) ); //id topik
+                	array_push($daftar_bobot,  (($jumlah_muncul[$i]/$n)*100) ); //bobot
+                	$kata_topik = array();
+					for ($x = 0; $x < $nshow; $x++){
+						array_push($kata_topik, $topic[$idtopic_muncul[$i]][$x] );  //kata
+					}
+					array_push($daftar_topic, $kata_topik);
+				}
+			}
+			$ntopik = count($daftar_bobot);
+			
 
 			return View::make('survey_dokumen')
+					->with('survey', $id_survey)
 					->with('dokumen', $dokumen)
 					->with('nrp', $nrp_user)
 					->with('nama', $nama_user)
 					->with('now', $now)
 					->with('all', $all)
-					->with('daftar', $daftar)
-					->with('bobot', $bobot)
-					->with('ntopik', $ntopik);
+					->with('bidang', $nama_bidang)
+					->with('daftar', $daftar_topic)
+					->with('bobot', $daftar_bobot)
+					->with('ntopik', $ntopik)
+					->with('nama_topic', $daftar_nama_topic);
+		}
+
+		public function survey_masukan()
+		{
+			$data_nrp = Input::only(['nrp']);
+			$nrp = $data_nrp['nrp'];
+
+			$data_nama = Input::only(['nama']);
+			$nama = $data_nama['nama'];
+
+			$data_survey = Input::only(['survey']);
+			$id_survey = $data_survey['survey'];
+
+			$data_nilai = Input::only(['nilai']);
+			$nilai = $data_nilai['nilai'];
+
+			$data_dokumen = Input::only(['dokumen']);
+			$dokumen = $data_dokumen['dokumen'];
+
+			$simpan_nilai = new dbSurveyData;
+			$simpan_nilai->id_survey = $id_survey;
+			$simpan_nilai->nrp_penguji = $nrp;
+			$simpan_nilai->dokumen = $dokumen;
+			$simpan_nilai->nilai = $nilai;
+			$simpan_nilai->save();
+
+			return View::make('survey_masukan')
+						->with('survey', $id_survey)
+						->with('nrp', $nrp)
+						->with('nama', $nama);
+		}
+
+		public function survey_selesai()
+		{
+			$data_nrp = Input::only(['nrp']);
+			$nrp = $data_nrp['nrp'];
+
+			$data_nama = Input::only(['nama']);
+			$nama = $data_nama['nama'];
+
+			$data_survey = Input::only(['survey']);
+			$id_survey = $data_survey['survey'];
+
+			$data_masukan = Input::only(['masukan']);
+			$masukan = $data_masukan['masukan'];
+
+			$simpan = new dbSurveyPenguji;
+			$simpan->id_survey = $id_survey;
+			$simpan->nrp = $nrp;
+			$simpan->nama = $nama;
+			$simpan->masukan = $masukan;
+			$simpan->save();
+
+			return View::make('survey_done');
 		}
 
 		public function survey_nilai()

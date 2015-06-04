@@ -393,17 +393,17 @@
 				// $top = array_slice($tfidf_sorted,0,$N);
 				// $katakata = array_keys($top);
 
-				$katakata = array();
-				foreach ($tfidf_sorted as $key => $value) {
-					if($value >= 0.003){
-						array_push($katakata, $key);
-					}
-					if($value < 0.003){
-						break;
-					}
-				}
+				// $katakata = array();
+				// foreach ($tfidf_sorted as $key => $value) {
+				// 	if($value >= 0.003){
+				// 		array_push($katakata, $key);
+				// 	}
+				// 	if($value < 0.003){
+				// 		break;
+				// 	}
+				// }
 
-				// $katakata = explode(' ', $dokumen->abstrak_af_preproc);
+				$katakata = explode(' ', $dokumen->abstrak_af_preproc);
 				$N = count($katakata);
 
 				for ($n=0; $n < $N; $n++) { 
@@ -419,40 +419,5 @@
 
 			$this->Mdoc = $M;
 		}
-
-		/*public function Print(){
-			echo "--- ND,SUM ---<br />";
-			//for ($m=0; $m<$M ; $m++) { 
-			for ($m=0; $m<5 ; $m++) { 
-				echo "(".$m.") ".$this->ndsum[$m]."<br />";
-			}
-
-			echo "--- ND ---<br />";
-			$ktop = ($K);
-			//for ($m=0; $m<$M ; $m++) { 
-			for ($m=0; $m<5 ; $m++) {
-				$N = count($C[$m]);
-				echo "(".$m.") ";
-				for ($k=0; $k<$ktop ; $k++) { 
-					echo $this->nd[$m][$k]." , ";
-				}
-				echo "<br />";
-			}
-
-			echo "--- NW,SUM ---<br />";
-			for ($k=0; $k<$ktop ; $k++) {
-				echo "(".$k.") ".$this->nwsum[$k]."<br />";
-			}
-
-			echo "--- NW ---<br />";
-			//for ($n=0; $n<$N ; $n++) {
-			for ($n=0; $n<5 ; $n++) {
-				echo "(".$n.") ";
-				for ($k=0; $k<$ktop ; $k++) { 
-					echo $this->nw[$n][$k]." , ";
-				}
-				echo "<br />";
-			}
-		}*/
 	}
 ?>

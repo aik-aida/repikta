@@ -23,7 +23,7 @@
                                       <li>
                                         <div class="task-title">
                                           Anda direkomendasikan memilih Tugas Akhir pada bidang :
-                                          <div class="" align="center"><h3>Rekayasa Perangkat Lunak</h3></div>
+                                          <div class="" align="center"><h3>{{ $bidang }}</h3></div>
                                           Berikut Topik yang direkomendasikan menurut prosentase kedekatan :
                                         </div>
                                       </li>                                 
@@ -41,7 +41,7 @@
                                       @for ($i = 0; $i < $ntopik; $i++)
                                         <tr>
                                           <td>{{ $bobot[$i] }}%</td>
-                                          <td>Topik {{ ($i+1) }}</td>
+                                          <td>Topik {{ ($nama_topic[$i]+1) }}</td>
                                           <td>
                                             @foreach ($daftar[$i] as $kata)
                                               {{ $kata }}, &nbsp;
@@ -80,10 +80,13 @@
                   <div class="col-lg-3 ds">
                     <!--COMPLETED ACTIONS DONUTS CHART-->
                       <h3><b>PENILAIAN REKOMENDASI TOPIK TA</b></h3>
-                      {{ Form::open(array('url' => 'survey/dokumen/nilai', 'method' => 'post')) }}
-                      {{ Form::hidden('nrp', $dokumen->nrp) }}
+                      @if($now==$all)
+                        {{ Form::open(array('url' => 'survey/masukan', 'method' => 'post')) }}
+                      @else
+                        {{ Form::open(array('url' => 'survey/dokumen', 'method' => 'post')) }}
+                      @endif
                       <br />
-                      Bagaimanakah kedekatan topik yang direkomendasikan dengan Judul dan Abstraksi Tugas Akhir yang dikerjakan ? dilihat dari kata-kata topik yang dikeluarkan.
+                      Bagaimanakah kedekatan topik yang direkomendasikan dengan Judul dan Abstraksi Tugas Akhir yang dikerjakan ?
                       <div class="desc">
                       <b>
                         <div class="thumb">
@@ -91,7 +94,7 @@
                         </div>
                         <div class="details">
                           <p>Sangat Mendekati</b><br/>
-                             (*) keterangan : <br/>
+                             (*) <b>bidang TA cocok</b>, & intisari TA ditemukan pada kata-kata <b>2 topik rekomendasi teratas</b> <br/>
                           </p>
                         </div>
                       </div>
@@ -102,7 +105,7 @@
                         </div>
                         <div class="details">
                           <p>Mendekati</b><br/>
-                             (*) keterangan : <br/>
+                             (*) <b>bidang TA cocok</b>, & intisari TA ditemukan pada kata-kata topik rekomendasi <br/>
                           </p>
                         </div>
                       </div>
@@ -113,7 +116,7 @@
                         </div>
                         <div class="details">
                           <p>Tidak Mendekati</b><br/>
-                             (*) keterangan : <br/>
+                             (*) <b>bidang TA cocok</b>, tetapi intisari TA susah ditemukan <br/>
                           </p>
                         </div>
                       </div>
@@ -124,11 +127,17 @@
                         </div>
                         <div class="details">
                           <p>Sangat Tidak Mendekati</b><br/>
-                             (*) keterangan : <br/>
+                             (*) <b>bidang TA tidak cocok</b> <br/>
                           </p>
                         </div>
                       </div>
-                      {{ Form::submit('Simpan Nilai', array('class' => 'btn btn-primary btn-lg btn-block pull-center')) }}
+
+                      {{ Form::hidden('dokumen', $dokumen->nrp) }}
+                      {{ Form::hidden('nrp', $nrp) }}
+                      {{ Form::hidden('nama', $nama) }}
+                      {{ Form::hidden('number', $now) }}
+                      {{ Form::hidden('survey', $survey) }}
+                      {{ Form::submit('Simpan Nilai dan Lanjut', array('class' => 'btn btn-primary btn-lg btn-block pull-center')) }}
                       {{ Form::close() }}
                   </div><!-- /col-lg-3 -->
            
