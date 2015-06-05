@@ -4,6 +4,11 @@
 	*/
 	class AdminController extends BaseController
 	{
+		public function dashboard()
+		{
+			return View::make('dashboard');
+		}
+
 		public function kamus_list(){
 			$kamus = dbKamusKata::get();
 			return View::make('kamus_main')
