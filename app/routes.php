@@ -132,7 +132,7 @@ Route::get('ekstrak_topik', function(){
 	//HASIL CLUSTERNG YANG DIPAKAI, ID 42 , ID_GROUP 41 -- traingin 240
 	//HASIL CLUSTERNG YANG DIPAKAI, ID 4 , ID_GROUP 1 -- traingin 80
 	//HASIL CLUSTERNG YANG DIPAKAI, ID  , ID_GROUP  -- traingin 160
-	$id_group = 41;
+	$id_group = 1;
 	$counter = new TimeExecution;
 	$awal = $counter->getTime();
 
@@ -220,7 +220,10 @@ Route::get('clustering',function(){
 		$endTime = $counter->getTime();
 		echo ($endTime-$startTime)."detik <br />";
 
-		//
+		//--Transkrip Kriteria
+		$rk = new Repikta;
+		$rk->Generate_Transkrip_Kriteria($id_group);
+		echo "Transkrip Kriteria done";
 
 		//--Cluster Varian--
 		$counter_CV = new TimeExecution;
@@ -261,8 +264,8 @@ Route::get('inisial', function(){
 	$time1 = $counter->getTime();
 
 	$prepoc = new Preprocessing;
-	// $prepoc->Reset_TfIdf();
-	// $prepoc->Reset_Idf();
+	$prepoc->Reset_TfIdf();
+	$prepoc->Reset_Idf();
 
 	// $tipe_centroid = 'a';
 	$time2 = $counter->getTime();
