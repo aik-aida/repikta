@@ -91,7 +91,7 @@
 			$jumlah = count($kumpulan);
 			//echo($jumlah);
 
-			$lda_result = dbLdaSave::where('percobaan_ke','=',$id_hasil_lda)
+			$lda_result = dbLdaSave::where('group','=',$id_hasil_lda)
 								->where('kluster_ke','=',$kluster)->get();
 			$list_nrp = json_decode($lda_result[0]->daftar_dokumen);		//DAFTAR DOKUMEN PADA KLUSTER TERPILIH
 			$theta_matrix = json_decode($lda_result[0]->matriks_theta);		//THETA LDA PADA KLUSTER TERPILIH

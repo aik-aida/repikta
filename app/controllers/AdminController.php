@@ -6,7 +6,70 @@
 	{
 		public function dashboard()
 		{
-			return View::make('dashboard');
+			$current_use = dbCurrentUse::all();
+			$idgroup_result = $current_use[0]->id_kluster;
+			$id_hasil_lda = $current_use[0]->id_lda;
+
+			$idresult = DB::table('kmeans_result')->where('id_group', '=' , $idgroup_result)->max('id');
+			$result = DB::table('kmeans_result')->where('id', '=' , $idresult)->get();
+			$kelompok = json_decode($result[0]->hasil_kluster);
+
+			
+
+			$main = new Repikta;
+			$banyak_bidang = count($kelompok);
+			$nama_bidang = array();
+			$banyak_topik_bidang = array();
+
+			for ($i=0; $i <$banyak_bidang ; $i++) { 
+				array_push($nama_bidang, $main->GetKlusterName($i));
+				$lda_result = dbLdaSave::where('percobaan_ke','=',$id_hasil_lda)
+								->where('kluster_ke','=',$i)->get();
+				array_push($banyak_topik_bidang, $lda_result[0]->k_topik);
+			}
+
+			$nama_topik_bidang = array();
+			for ($i=0; $i <$banyak_bidang ; $i++) { 
+				$nama_topik = array();
+				for ($j=0; $j < $banyak_topik_bidang[$i]; $j++) { 
+					array_push($nama_topik, ('Topik '.($j+1)));
+				}
+				array_push($nama_topik_bidang, $nama_topik);
+			}
+
+			return View::make('dashboard')
+						->with('n_bidang', $banyak_bidang)
+						->with('nama_bidang', $nama_bidang)
+						->with('nama_topik_bidang', $nama_topik_bidang);
+		}
+
+		public function dashboard_topik()
+		{
+			$data = Input::only(['id_klaster']);
+			$id = $data['id_klaster'];
+
+			$current_use = dbCurrentUse::all();
+			$idgroup_result = $current_use[0]->id_kluster;
+			$id_hasil_lda = $current_use[0]->id_lda;
+
+			$main = new Repikta;
+			$nama_bidang = $main->GetKlusterName($id);
+			$lda_result = dbLdaSave::where('percobaan_ke','=',$id_hasil_lda)
+								->where('kluster_ke','=',$id)->get();
+
+			$list_nrp = json_decode($lda_result[0]->daftar_dokumen);		//DAFTAR DOKUMEN PADA KLUSTER TERPILIH
+			$theta_matrix = json_decode($lda_result[0]->matriks_theta);		//THETA LDA PADA KLUSTER TERPILIH
+			$phi_matrix = json_decode($lda_result[0]->matriks_phi);			//PHI LDA PADA KLUSTER TERPILIH
+			$k = $lda_result[0]->k_topik;									//JUMLAH TOPIK PADA KLUSTER TERPILIH
+			$nterm = $lda_result[0]->n_term;								//BANYAK TERM LDA PADA KLUSTER TERPILIH
+			$list_term = json_decode($lda_result[0]->matriks_term);			//DAFTAR TERM LDA PADA KLUSTER TERPILIH
+
+			$topic = $main->Get20TermTopic($k, $phi_matrix, $nterm, $list_term);
+			
+			return View::make('dashboard_topic')
+						->with('nama_bidang', $nama_bidang)
+						->with('ktopik', $k)
+						->with('list_topic', $topic);
 		}
 
 		public function kamus_list(){

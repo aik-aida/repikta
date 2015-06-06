@@ -25,6 +25,7 @@ Route::post('read_transkrip', 'TranskripController@read');
 Route::post('autentifikasi', 'BaseController@login');
 
 Route::get('dashboard', 'AdminController@dashboard');
+Route::post('dashboard/topik', 'AdminController@dashboard_topik');
 
 Route::get('centroid', 'AdminController@centroid_list');
 Route::post('centroid/detail', 'AdminController@centroid_detail');
@@ -97,8 +98,8 @@ Route::get('rekomendasi', function(){
 
 Route::get('catat', function(){
 	$pra = new Testing;
-	$pra->TfIdf(0.2,0.8);
-	$idgroup_result = 41;
+	//$pra->TfIdf(0.2,0.8);
+	$idgroup_result = 1;
 	$id_hasil_lda = 1;
 	$dokumens = dbDokumen::where('training','=',false)->get();
 	foreach ($dokumens as $key => $mhs) {
@@ -135,6 +136,9 @@ Route::get('ekstrak_topik', function(){
 	//HASIL CLUSTERNG YANG DIPAKAI, ID 4 , ID_GROUP 1 -- traingin 80
 	//HASIL CLUSTERNG YANG DIPAKAI, ID  , ID_GROUP  -- traingin 160
 	$id_group = 1;
+	$maxID = DB::table('lda_saved')->max('percobaan_ke');
+	$no_percobaan = ($maxID+1);
+
 	$counter = new TimeExecution;
 	$awal = $counter->getTime();
 
@@ -151,7 +155,7 @@ Route::get('ekstrak_topik', function(){
 		//$k = $masing2topik[2];
 		$k = $masing2topik[$i];
 		$lda = new LdaGibbsSampling();
-		$lda->TopicExtraction($k, $hasil_kluster[$i], $id_result, $i, $id_group);
+		$lda->TopicExtraction($k, $hasil_kluster[$i], $id_result, $i, $id_group, $no_percobaan);
 		//$lda->TopicExtraction($k, $hasil_kluster[2], $id_result, 2, $id_group);
 	}
 
@@ -315,7 +319,7 @@ Route::get('transkrip_kriteria', function(){
 	//HASIL CLUSTERNG YANG DIPAKAI, ID 42 , ID_GROUP 41 -- traingin 240
 	//HASIL CLUSTERNG YANG DIPAKAI, ID 4 , ID_GROUP 1 -- traingin 80
 	//HASIL CLUSTERNG YANG DIPAKAI, ID  , ID_GROUP  -- traingin 160
-	$id_group = 41;
+	$id_group = 1;
 	$rk = new Repikta;
 	$rk->Generate_Transkrip_Kriteria($id_group);
 	echo "Transkrip Kriteria done";
@@ -422,7 +426,7 @@ Route::get('all_distance',function(){
 });
 
 Route::get('distance_list_kluster_terdekat', function(){
-	$id_group = 41;
+	$id_group = 1;
 	$dokumen_testing = dbDokumen::where('training','=',false)->get();
 	$id_result = DB::table('kmeans_result')->where('id_group', '=' , $id_group)->max('id');
 	$data_kluster = dbKmeansResult::find($id_result);

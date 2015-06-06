@@ -41,7 +41,7 @@
 			$this->burnIN = 10;	//50	//100
 		}
 
-		public function TopicExtraction($k, $list_doc, $id, $ke, $grup){
+		public function TopicExtraction($k, $list_doc, $id, $ke, $grup, $no_percobaan){
 			$counter = new TimeExecution;
 			$awal = $counter->getTime();
 
@@ -81,7 +81,7 @@
 			$lama = ($akhir-$awal);
 			
 			$simpan = new dbLdaSave;
-			$simpan->percobaan_ke = 12;
+			$simpan->percobaan_ke = $no_percobaan;
 			$simpan->group = $grup;
 			$simpan->id_kluster = $id;
 			$simpan->kluster_ke = $ke;
