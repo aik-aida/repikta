@@ -24,6 +24,8 @@ Route::post('read_transkrip', 'TranskripController@read');
 
 Route::post('autentifikasi', 'BaseController@login');
 
+Route::get('dashboard', 'AdminController@dashboard');
+
 Route::get('centroid', 'AdminController@centroid_list');
 Route::post('centroid/detail', 'AdminController@centroid_detail');
 

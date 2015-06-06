@@ -58,7 +58,7 @@
               	  <h5 class="centered"></h5>
               	  	
                   <li class="mt">
-                      <a href="index.html">
+                      <a  href={{ URL::to('dashboard')}}>
                           <i class="fa fa-dashboard"></i>
                           <span>Dashboard</span>
                       </a>
