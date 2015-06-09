@@ -252,6 +252,30 @@ ul.top-menu > li > .logout {
     padding-bottom: 10px;
 }
 
+#sidebar_uptranskrip {
+    width: 620px;
+    height: 85%;
+    position: fixed;
+    background: #424a5d;
+}
+
+#sidebar_uptranskrip h5 {
+    color: #f2f2f2;
+    font-weight: 700;
+}
+
+#sidebar_uptranskrip ul li {
+    position: relative;
+}
+
+#sidebar_uptranskrip .sub-menu > .sub li  {
+    padding-left: 32px;
+}
+
+#sidebar_uptranskrip .sub-menu > .sub li:last-child {
+    padding-bottom: 80px;
+}
+
 /*LEFT NAVIGATION ICON*/
 .dcjq-icon {
     height:17px;

@@ -1,7 +1,7 @@
 @extends('layout.dashgum')
 
 @section('content')
-            <div class="row mt" >
+            <div class="row mt" style="color:black">
                   <div class="col-md-12">
                       <section class="task-panel tasks-widget">
                     <div class="panel-heading">
@@ -42,7 +42,7 @@
                   </div><!-- /col-md-12-->
             </div><!-- /row -->
 
-            <div class="row mt">
+            <div class="row mt" style="color:black">
              @for ($i = 0; $i < $ktopik; $i++)
                 @if($muncul_topik[$i]!=0)
                    <div class="col-lg-2 col-md-2 col-sm-12">

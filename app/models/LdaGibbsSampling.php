@@ -158,9 +158,9 @@
 						$this->theta[$m][$k] = $this->thetasum[$m][$k]/$this->numstat;
 					}
 					else {
-						$a = $this->nd[$m][$k] + $this->alpha;
-						$b = $this->ndsum[$m] + ($this->Ktopic * $this->alpha);
-						$this->theta[$m][$k] = $a/$b;
+						$c = $this->nd[$m][$k] + $this->alpha;
+						$d = $this->ndsum[$m] + ($this->Ktopic * $this->alpha);
+						$this->theta[$m][$k] = $c/$d;
 					}
 				}
 			}
@@ -258,16 +258,16 @@
 		public function UpdateSUM() {
 			for ($m=0; $m<$this->Mdoc ; $m++) { 
 				for ($k=0; $k<$this->Ktopic ; $k++) { 
-					$a = $this->nd[$m][$k] + $this->alpha;
-					$b = $this->ndsum[$m] + ($this->Ktopic * $this->alpha);
-					$this->thetasum[$m][$k] += ($a/$b);
+					$c = $this->nd[$m][$k] + $this->alpha;
+					$d = $this->ndsum[$m] + ($this->Ktopic * $this->alpha);
+					$this->thetasum[$m][$k] += ($c/$d);
 				}
 			}
 			for ($k=0; $k<$this->Ktopic ; $k++) { 
 				for ($n=0; $n<$this->Nterm ; $n++) { 
-					$c = $this->nw[$n][$k] + $this->beta; 
-					$d = $this->nwsum[$k] + ($this->Nterm * $this->beta);
-					$this->phisum[$k][$n] += ($c/$d);
+					$a = $this->nw[$n][$k] + $this->beta; 
+					$b = $this->nwsum[$k] + ($this->Nterm * $this->beta);
+					$this->phisum[$k][$n] += ($a/$b);
 				}
 			}
 			$this->numstat++;

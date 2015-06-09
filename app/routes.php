@@ -11,10 +11,8 @@
 |
 */
 
-Route::get('/', function()
-{
-	return View::make('home');
-});
+
+Route::get('/', 'BaseController@home');
 
 Route::get('hai', function(){
 	return View::make('tabpanel');
@@ -22,7 +20,7 @@ Route::get('hai', function(){
 
 Route::post('read_transkrip', 'TranskripController@read');
 
-Route::post('autentifikasi', 'BaseController@login');
+Route::post('admin', 'BaseController@login');
 
 Route::get('dashboard', 'AdminController@dashboard');
 Route::post('dashboard/topik', 'AdminController@dashboard_topik');

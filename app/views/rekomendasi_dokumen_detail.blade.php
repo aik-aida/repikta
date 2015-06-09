@@ -1,8 +1,8 @@
 @extends('layout.dashgum')
 
 @section('content')
-        <h3><i class="fa fa-angle-right"></i> Dokumen, kata : {{ $term }}</h3>
-          <div class="row mt">
+        <h3><i class="fa fa-angle-right" style="color:black"></i> Dokumen, kata : {{ $term }}</h3>
+          <div class="row mt" style="color:black">
             <div class="col-lg-12">
                       <div class="content-panel">
                       <h4><i class="fa fa-angle-right"></i> Detail Dokumen 

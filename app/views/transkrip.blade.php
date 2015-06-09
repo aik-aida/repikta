@@ -1,7 +1,7 @@
-@extends('layout.dashgum')
+@extends('layout.blank_page')
 
 @section('content')
-            <div class="row mt" >
+            <div class="row mt" style="color:black">
                   <div class="col-md-12">
                       <section class="task-panel tasks-widget">
                     <div class="panel-heading">
@@ -41,7 +41,7 @@
                   </div><!-- /col-md-12-->
             </div><!-- /row -->
 
-            <div class="row mt">
+            <div class="row mt" style="color:black">
             
                <div class="col-lg-6 col-md-6 col-sm-12">
                       <div class="content-panel">
@@ -72,7 +72,7 @@
                           </section>
                       </div><!-- /content-panel -->
                </div><!-- /col-lg-4 -->     
-               <div class="col-lg-6 col-md-6 col-sm-12">
+               <div class="col-lg-6 col-md-6 col-sm-12" style="color:black">
                       <div class="content-panel">
                           <h4><i class="fa fa-angle-right"></i> Tahap Sarjana </h4>
                           <section id="unseen">
