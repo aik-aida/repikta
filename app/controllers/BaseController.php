@@ -80,7 +80,6 @@ class BaseController extends Controller {
 		if($uname==$usr && $pass==$pwd){
 			$request = Request::create('dashboard', 'GET', array());
 			return Route::dispatch($request)->getContent();
-			//return View::make('dashboard');
 		} else {
 			$request = Request::create('/', 'GET', array());
 			return Route::dispatch($request)->getContent();
@@ -89,3 +88,5 @@ class BaseController extends Controller {
 	}
 
 }
+
+?>
