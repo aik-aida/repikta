@@ -151,7 +151,6 @@ Route::get('ekstrak_topik', function(){
 	//HASIL CLUSTERNG YANG DIPAKAI, ID  , ID_GROUP  -- traingin 160
 	$current_use = dbCurrentUse::all();
 	$id_group = $current_use[0]->id_kluster;
-	echo($id_last);
 
 	// $counter = new TimeExecution;
 	// $awal = $counter->getTime();
@@ -159,7 +158,7 @@ Route::get('ekstrak_topik', function(){
 	// //$masing2topik = array(9,4,5);
 	
 	$id_result = DB::table('kmeans_result')->where('id_group', '=' , $id_group)->max('id');
-	echo "Group=".$id_group." - id_result=".$id_result."<br />";
+	//echo "Group=".$id_group." - id_result=".$id_result."<br />";
 	$data_result = dbKmeansResult::find($id_result);
 	$banyak_kluster = $data_result->jumlah_kluster;
 	$hasil_kluster = json_decode($data_result->hasil_kluster);
