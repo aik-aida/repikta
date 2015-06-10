@@ -149,14 +149,14 @@ Route::get('ekstrak_topik', function(){
 	//HASIL CLUSTERNG YANG DIPAKAI, ID 42 , ID_GROUP 41 -- traingin 240
 	//HASIL CLUSTERNG YANG DIPAKAI, ID 4 , ID_GROUP 1 -- traingin 80
 	//HASIL CLUSTERNG YANG DIPAKAI, ID  , ID_GROUP  -- traingin 160
-	$id_group = 1;
-	$maxID = DB::table('lda_saved')->max('percobaan_ke');
-	$no_percobaan = ($maxID+1);
+	$current_use = dbCurrentUse::all();
+	$id_group = $current_use[0]->id_kluster;
+	echo($id_last);
 
-	$counter = new TimeExecution;
-	$awal = $counter->getTime();
+	// $counter = new TimeExecution;
+	// $awal = $counter->getTime();
 
-	$masing2topik = array(9,4,5);
+	// //$masing2topik = array(9,4,5);
 	
 	$id_result = DB::table('kmeans_result')->where('id_group', '=' , $id_group)->max('id');
 	echo "Group=".$id_group." - id_result=".$id_result."<br />";
@@ -164,36 +164,50 @@ Route::get('ekstrak_topik', function(){
 	$banyak_kluster = $data_result->jumlah_kluster;
 	$hasil_kluster = json_decode($data_result->hasil_kluster);
 
-	for ($i=0; $i <$banyak_kluster ; $i++) { 
-	//for ($i=0; $i <1 ; $i++) { 
-		//$k = $masing2topik[2];
-		$k = $masing2topik[$i];
-		$lda = new LdaGibbsSampling();
-		$lda->TopicExtraction($k, $hasil_kluster[$i], $id_result, $i, $id_group, $no_percobaan);
-		//$lda->TopicExtraction($k, $hasil_kluster[2], $id_result, 2, $id_group);
+	$testing = new Testing;
+	//1- 3 , kurang coba 4-240
+	for ($k=1; $k <=3 ; $k++) { 
+		for ($i=0; $i <$banyak_kluster ; $i++) { 
+			$lda = new LdaGibbsSampling();
+			if($k<=count($hasil_kluster[$i])){
+				$maxID = DB::table('lda_saved')->max('percobaan_ke');
+				$no_percobaan = ($maxID+1);
+
+				$lda->TopicExtraction($k, $hasil_kluster[$i], $id_result, $i, $id_group, $no_percobaan);
+				
+				$perplexity = $testing->PerplexityLDA( $no_percobaan, $id_group, $i);
+
+				$id_last = DB::table('lda_saved')->max('id');
+				$update = dbLdaSave::find($id_arr[$i]);
+				$update->perplexity = $perplexity;
+				$update->save();
+				echo "k_topik=".$k." - kluster_ke".$i."<br />";
+			}
+			//$lda->TopicExtraction($k, $hasil_kluster[2], $id_result, 2, $id_group);
+		}
 	}
 
-	$akhir = $counter->getTime();
-	$lama = ($akhir-$awal);
-	echo "SUDAH BISA DILIHAT HASIL LDA-NYA : ".$id_group." , ".$id_result."<br />"." lama : ".$lama." detik <br />";
+	// $akhir = $counter->getTime();
+	// $lama = ($akhir-$awal);
+	// echo "SUDAH BISA DILIHAT HASIL LDA-NYA : ".$id_group." , ".$id_result."<br />"." lama : ".$lama." detik <br />";
 
-	echo "----------------------------------------------------THETA-----------------------------------------------<br />";
-	$theta = $lda->theta;
-	foreach ($theta as $key => $value) {
-		foreach ($value as $key => $val) {
-			echo $val." , ";
-		}
-		echo "<br />";
-	}
-	echo "<br /><br /><br />";
-	echo "----------------------------------------------------PHIII-----------------------------------------------<br />";
-	$phi = $lda->phi;
-	foreach ($phi as $key => $value) {
-		foreach ($value as $key => $val) {
-			echo $val." , ";
-		}
-		echo "<br />";
-	}
+	// echo "----------------------------------------------------THETA-----------------------------------------------<br />";
+	// $theta = $lda->theta;
+	// foreach ($theta as $key => $value) {
+	// 	foreach ($value as $key => $val) {
+	// 		echo $val." , ";
+	// 	}
+	// 	echo "<br />";
+	// }
+	// echo "<br /><br /><br />";
+	// echo "----------------------------------------------------PHIII-----------------------------------------------<br />";
+	// $phi = $lda->phi;
+	// foreach ($phi as $key => $value) {
+	// 	foreach ($value as $key => $val) {
+	// 		echo $val." , ";
+	// 	}
+	// 	echo "<br />";
+	// }
 });
 
 Route::get('clustering',function(){
