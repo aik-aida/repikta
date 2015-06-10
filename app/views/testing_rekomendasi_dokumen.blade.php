@@ -1,4 +1,4 @@
-@extends('layout.blank_page')
+@extends('layout.dashgum')
 
 @section('content')
         <h3><i class="fa fa-angle-right" style="color:black"></i> Daftar Dokumen</h3>
@@ -25,7 +25,7 @@
                                     <td>{{$daftar_doc[$i]->nama}}</td>
                                     <td>{{$daftar_doc[$i]->judul_ta}}</td>
                                     <td>
-                                      {{ Form::open(array('url' => 'rekomendasi/dokumen/detail', 'method' => 'post')) }}
+                                      {{ Form::open(array('url' => 'testing/dokumen/detail', 'method' => 'post')) }}
                                       {{ Form::hidden('iddoc', $daftar_doc[$i]->nrp) }}
                                       {{ Form::hidden('term', $term) }}
                                       {{ Form::submit('Lihat Abstraksi', array('class' => 'btn btn-round btn-primary')) }}

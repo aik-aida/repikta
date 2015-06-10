@@ -1,4 +1,4 @@
-@extends('layout.dashgum')
+@extends('layout.blank_page')
 
 @section('content')
             <div class="row mt" style="color:black">
@@ -64,7 +64,7 @@
                                     @for ($x = 0; $x < $nshow; $x++)
                                         <tr>
                                           <td align="center">
-                                            <a  href={{ URL::to('testing/dokumen', array('kata' =>$topic[$idmuncul[$i]][$x] ))}} target="_blank">{{ $topic[$idmuncul[$i]][$x] }}</a>
+                                            <a  href={{ URL::to('rekomendasi/dokumen', array('kata' =>$topic[$idmuncul[$i]][$x] ))}} target="_blank">{{ $topic[$idmuncul[$i]][$x] }}</a>
                                             
                                           </td>
                                         </tr>
@@ -77,4 +77,5 @@
                 @endif         
               @endfor
             </div><!-- /row -->
+
 @endsection

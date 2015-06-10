@@ -34,7 +34,12 @@
                                   </ul>
                               </div>
                               <div class="add-task-row">
-                                  <button type="button" class="btn btn-primary btn-lg btn-block pull-center">Lihat Rekomendasi Topik TA</button>
+                                  {{ Form::open(array('url' => 'rekomendasi', 'method' => 'post')) }}
+                                      {{ Form::hidden('nrp', $data->nrp) }}
+                                      {{ Form::hidden('nama', $data->nama) }}
+                                      {{ Form::hidden('transkrip', $transkrip_mhs) }}
+                                      {{ Form::submit('Lihat Rekomendasi Topik TA', array('class' => 'btn btn-primary btn-lg btn-block pull-center')) }}
+                                      {{ Form::close() }}
                               </div>
                           </div>
                       </section>

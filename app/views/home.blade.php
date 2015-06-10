@@ -105,7 +105,7 @@
                                               <br ><br >
                                               <h4>Unggah Berkas Transkrip Akademik anda :</h4>
                                               <div class="form-panel-home" style="color:black">
-                                                  {{ Form::open(array('url'=>'read_transkrip','files'=>true)) }}
+                                                  {{ Form::open(array('url'=>'transkrip','files'=>true)) }}
                                                   
                                                   {{ Form::file('file','',array('id'=>'','class'=>'', 'align' => 'right')) }}
                                                   

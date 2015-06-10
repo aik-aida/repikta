@@ -1,4 +1,4 @@
-@extends('layout.blank_page')
+@extends('layout.dashgum')
 
 @section('content')
         <h3><i class="fa fa-angle-right" style="color:black"></i> Dokumen, kata : {{ $term }}</h3>
@@ -6,7 +6,7 @@
             <div class="col-lg-12">
                       <div class="content-panel">
                       <h4><i class="fa fa-angle-right"></i> Detail Dokumen 
-                      <a class="btn btn-warning pull-right" href={{ URL::to('rekomendasi/dokumen', array('kata' =>$term ))}}>kembali</a> </h4> 
+                      <a class="btn btn-warning pull-right" href={{ URL::to('testing/dokumen', array('kata' =>$term ))}}>kembali</a> </h4> 
                           <section id="unseen">
                             <table class="table table-bordered table-striped table-condensed">
                               <thead>

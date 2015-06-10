@@ -35,4 +35,59 @@
                       </section>
                   </div><!-- /col-md-12-->
             </div><!-- /row -->
+
+            <div class="row mt" style="color:black">
+            
+               <div class="col-lg-6 col-md-6 col-sm-12">
+                      <div class="content-panel">
+                          <h4><i class="fa fa-angle-right"></i> Matakuliah Wajib </h4>
+                          <section id="unseen">
+                            <table class="table table-bordered table-striped table-condensed">
+                              <thead>
+                              <tr>
+                                  <th>Kode</th>
+                                  <th>Nama Mata Kuliah</th>
+                                  <th>Nilai</th>
+                              </tr>
+                              </thead>
+                              <tbody>
+                                @foreach($mk_umum as $dt)
+                                <tr>
+                                  <td align="center">{{ $dt->kode }}</td>
+                                  <td align="left">{{ $dt->nama }}</td>
+                                  <td align="center">{{ $dt->nilai }}</td>
+                                </tr>
+                                @endforeach
+                              </tbody>
+                          </table>
+                          </section>
+                      </div><!-- /content-panel -->
+               </div><!-- /col-lg-4 -->     
+               <div class="col-lg-6 col-md-6 col-sm-12" style="color:black">
+                      <div class="content-panel">
+                          <h4><i class="fa fa-angle-right"></i> Matakuliah Bidang Ahli </h4>
+                          <section id="unseen">
+                            <table class="table table-bordered table-striped table-condensed">
+                              <thead>
+                              <tr>
+                                  <th>Kode</th>
+                                  <th>Nama Mata Kuliah</th>
+                                  <th>Nilai</th>
+                              </tr>
+                              </thead>
+                              <tbody>
+                                @foreach($mk_ahli as $dt)
+                                <tr>
+                                  <td align="center">{{ $dt->kode }}</td>
+                                  <td align="left">{{ $dt->nama }}</td>
+                                  <td align="center">{{ $dt->nilai }}</td>
+                                </tr>
+                                @endforeach
+                              </tbody>
+                          </table>
+                          </section>
+                      </div><!-- /content-panel -->
+               </div>
+            
+            </div><!-- /row -->
 @endsection

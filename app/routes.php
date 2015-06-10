@@ -11,14 +11,15 @@
 |
 */
 
-
-Route::get('/', 'BaseController@home');
-
 Route::get('hai', function(){
 	return View::make('tabpanel');
 });
 
-Route::post('read_transkrip', 'TranskripController@read');
+Route::get('/', 'BaseController@home');
+Route::post('transkrip', 'RepiktaController@read_transkrip');
+Route::post('rekomendasi', 'RepiktaController@rekomendasi');
+Route::get('rekomendasi/dokumen/{param}', 'RepiktaController@rekomendasi_katadokumen');
+Route::post('rekomendasi/dokumen/detail', 'RepiktaController@rekomendasi_dokumen');
 
 Route::post('admin', 'BaseController@login');
 
@@ -41,9 +42,10 @@ Route::post('kluster/detail', 'AdminController@kluster_detail');
 Route::get('testing', 'AdminController@testing_list');
 Route::post('testing/transkrip', 'AdminController@testing_transkrip');
 Route::post('testing/rekomendasi', 'AdminController@testing_rekomendasi');
+Route::get('testing/dokumen/{param}', 'AdminController@testing_rekomendasi_katadokumen');
+Route::post('testing/dokumen/detail', 'AdminController@testing_rekomendasi_dokumen');
 
-Route::get('rekomendasi/dokumen/{param}', 'AdminController@rekomendasi_katadokumen');
-Route::post('rekomendasi/dokumen/detail', 'AdminController@rekomendasi_dokumen');
+
 
 Route::get('survey', 'AdminController@survey_login');
 Route::post('survey/penjelasan', 'AdminController@survey_penjelasan');

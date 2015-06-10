@@ -50,12 +50,14 @@
 			$simpan->save();
 		}
 
-		public function Choose_Kluster($nrp, $idgroup){
+		public function Choose_Kluster($mhs_transkrip, $idgroup){
 			//
 			$data = dbTranskripKriteria::where('group','=',$idgroup)->get();
-			$mhs = dbDokumen::find($nrp);
-			$mhs_transkrip = json_decode($mhs->transkrip);
+			// $mhs = dbDokumen::find($nrp);
+			// $mhs_transkrip = json_decode($mhs->transkrip);
 			$arrTranskrip = json_decode($data[0]->kriteria_transkrip);
+
+			//var_dump($mhs_transkrip);
 			
 			$distance = array();
 			for ($i=0; $i < count($arrTranskrip); $i++) { 
@@ -91,6 +93,41 @@
 			}
 
 			return $nrp_closest;
+		}
+
+		public function GetClosestDoc($transkrip_masukan, $id_group, $idk, $n)
+		{
+			//$id_group = 1;
+			//$dokumen_testing = dbDokumen::where('training','=',false)->get();
+			$id_result = DB::table('kmeans_result')->where('id_group', '=' , $id_group)->max('id');
+			$data_kluster = dbKmeansResult::find($id_result);
+			$hasil_kluster = json_decode($data_kluster->hasil_kluster);
+
+			$repikta = new Repikta;
+			//for ($i=0; $i <count($dokumen_testing) ; $i++) { 
+				// $counter = new TimeExecution;
+				// $startTime = $counter->getTime();
+				// $nrp = $dokumen_testing[$i]->nrp;
+				// echo $nrp."<br />";
+				// $idk = $repikta->Choose_Kluster($nrp, $id_group);
+				// echo "dekat ".$idk."<br /> ";
+
+				$distance = array();
+				foreach ($hasil_kluster[$idk] as $key => $nrppembanding) {
+					// $counter_t = new TimeExecution;
+					// $startTime_t = $counter_t->getTime();
+					$pembanding_doc = dbDokumen::find($nrppembanding);
+					$pembanding_tr = json_decode($pembanding_doc->transkrip);
+					$dist = $repikta->EuclideanTranskrip($transkrip_masukan, $pembanding_tr);
+					$distance[$nrppembanding] = $dist;
+				}
+				asort($distance);
+				$nrp_closest = array();
+				foreach ($distance as $key => $value) {
+					array_push($nrp_closest, $key);
+				}
+				return $nrp_closest;
+			//}
 		}
 
 		public function Get20TermTopic($ktopik, $phi, $nterm, $list_term)

@@ -7,6 +7,6 @@
 		protected $connection = 'repikta';
 		protected $table = 'matakuliah';
 		public $timestamps = false ;
-		protected $primaryKey = 'id';
+		protected $primaryKey = 'mk_kode';
 	}
 ?>

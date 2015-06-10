@@ -252,9 +252,67 @@
 			$id = $data['nrp'];
 
 			$dokumen_detail = dbDokumen::find($id);
+			$transkrip = json_decode($dokumen_detail->transkrip);
+			$mk_umum = DB::table('matakuliah')->where('mk_bidang_keahlian', '=' , false)->get();
+			$mk_ahli = DB::table('matakuliah')->where('mk_bidang_keahlian', '=' , true)->get();
+			$arr_kode_mk_umum = array();
+			$arr_kode_mk_ahli = array();
+			$nilai_umum = array();
+			$nilai_ahli = array();
+
+			foreach ($mk_umum as $key => $mk) {
+				array_push($arr_kode_mk_umum, $mk->mk_kode);
+			}
+			foreach ($mk_ahli as $key => $mk) {
+				array_push($arr_kode_mk_ahli, $mk->mk_kode);
+			}
+
+			foreach ($transkrip as $key => $nilai) {
+				if($nilai != 0){
+					switch ($nilai) {
+						case 4:
+							$huruf = 'A';
+							break;
+						case 3.5:
+							$huruf = 'AB';
+							break;
+						case 3:
+							$huruf = 'B';
+							break;
+						case 2.5:
+							$huruf = 'BC';
+							break;
+						case 2:
+							$huruf = 'C';
+							break;
+						case 1:
+							$huruf = 'D';
+							break;
+						case 0:
+							$huruf = 'E';
+							break;
+					}
+
+					$mk_detail = dbMataKuliah::find($key);
+					$add = (object) array();
+					$add->kode = $mk_detail->mk_kode;
+					$add->nama = $mk_detail->mk_nama;
+					$add->nilai = $huruf;
+
+					if(in_array($key, $arr_kode_mk_umum)){
+						array_push($nilai_umum, $add);
+					}
+					elseif(in_array($key, $arr_kode_mk_ahli)){
+						array_push($nilai_ahli, $add);
+					}
+				}
+			}
+
 
 			return View::make('testing_transkrip')
-					->with('data', $dokumen_detail);
+					->with('data', $dokumen_detail)
+					->with('mk_umum', $nilai_umum)
+					->with('mk_ahli', $nilai_ahli);
 			
 		}
 
@@ -328,7 +386,7 @@
 					->with('n', $n);
 		}
 
-		public function rekomendasi_katadokumen($param)
+		public function testing_rekomendasi_katadokumen($param)
 		{
 			$datakata = dbKamusKata::find($param);
 			$list_doc = json_decode($datakata->indoc);
@@ -338,12 +396,12 @@
 				array_push($data_doc, $doc);
 			}
 
-			return View::make('rekomendasi_dokumen')
+			return View::make('testing_rekomendasi_dokumen')
 						->with('term', $param)
 						->with('daftar_doc', $data_doc);
 		}
 
-		public function rekomendasi_dokumen()
+		public function testing_rekomendasi_dokumen()
 		{
 			$data = Input::only(['iddoc']);
 			$id = $data['iddoc'];
@@ -351,7 +409,7 @@
 			$term = $dataterm['term'];
 
 			$dokumen_detail = dbDokumen::find($id);
-			return View::make('rekomendasi_dokumen_detail')
+			return View::make('testing_rekomendasi_dokumen_detail')
 					->with('dokumen', $dokumen_detail)
 					->with('term', $term);
 		}
