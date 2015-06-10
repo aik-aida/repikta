@@ -63,7 +63,14 @@ Route::get('testLDA', function(){
 	//var_dump($data);
 	//$data_matrix = $testing->GetMatriksDataTest($data_id);
 	//var_dump($data_matrix);
-	$testing->PerplexityLDA( 1, 41);
+	$id_arr = array(1,2,3);
+	for ($i=0; $i <3 ; $i++) { 
+		$perplexity = $testing->PerplexityLDA( 1, 41, $i);
+		$update = dbLdaSave::find($id_arr[$i]);
+		$update->perplexity = $perplexity;
+		$update->save();
+	}
+	
 });
 
 Route::get('survey_build', function(){
