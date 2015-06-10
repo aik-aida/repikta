@@ -177,10 +177,10 @@ Route::get('ekstrak_topik', function(){
 				$perplexity = $testing->PerplexityLDA( $no_percobaan, $id_group, $i);
 
 				$id_last = DB::table('lda_saved')->max('id');
-				$update = dbLdaSave::find($id_arr[$i]);
+				$update = dbLdaSave::find($id_last);
 				$update->perplexity = $perplexity;
 				$update->save();
-				echo "k_topik=".$k." - kluster_ke".$i."<br />";
+				echo "k_topik=".$k." - kluster_ke".$i." : ".$perplexity."<br />";
 			}
 			//$lda->TopicExtraction($k, $hasil_kluster[2], $id_result, 2, $id_group);
 		}
