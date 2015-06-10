@@ -145,6 +145,8 @@ Route::get('dokumen_terdekat', function(){
 });
 
 
+
+
 Route::get('ekstrak_topik', function(){
 	//HASIL CLUSTERNG YANG DIPAKAI, ID 42 , ID_GROUP 41 -- traingin 240
 	//HASIL CLUSTERNG YANG DIPAKAI, ID 4 , ID_GROUP 1 -- traingin 80
@@ -164,8 +166,8 @@ Route::get('ekstrak_topik', function(){
 	$hasil_kluster = json_decode($data_result->hasil_kluster);
 
 	$testing = new Testing;
-	//1- 3 , kurang coba 4-240
-	for ($k=1; $k <=3 ; $k++) { 
+	//4-20, kurang coba 21-120
+	for ($k=4; $k <=20 ; $k++) { 
 		$maxID = DB::table('lda_saved')->max('percobaan_ke');
 		$no_percobaan = ($maxID+1);
 
