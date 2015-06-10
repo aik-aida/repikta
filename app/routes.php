@@ -144,7 +144,16 @@ Route::get('dokumen_terdekat', function(){
 	$repikta->GetClosest();
 });
 
-
+Route::get('view_perplexity', function(){
+	$kelompok = 0;
+	$data = dbLdaSave::where('percobaan_ke','>',1)
+		->where('kluster_ke','=',$kelompok)
+		->orderBy('k_topik', 'asc')
+		->get();
+	foreach ($data as $key => $testing) {
+		echo $testing->k_topik." - ".$testing->perplexity."<br />";
+	}
+});
 
 
 Route::get('ekstrak_topik', function(){
@@ -167,7 +176,7 @@ Route::get('ekstrak_topik', function(){
 
 	$testing = new Testing;
 	//4-20, kurang coba 21-120
-	for ($k=4; $k <=20 ; $k++) { 
+	for ($k=21; $k <=120 ; $k++) { 
 		$maxID = DB::table('lda_saved')->max('percobaan_ke');
 		$no_percobaan = ($maxID+1);
 
