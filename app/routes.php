@@ -166,14 +166,14 @@ Route::get('ekstrak_topik', function(){
 	$testing = new Testing;
 	//1- 3 , kurang coba 4-240
 	for ($k=1; $k <=3 ; $k++) { 
+		$maxID = DB::table('lda_saved')->max('percobaan_ke');
+		$no_percobaan = ($maxID+1);
+
 		for ($i=0; $i <$banyak_kluster ; $i++) { 
 			$lda = new LdaGibbsSampling();
 			if($k<=count($hasil_kluster[$i])){
-				$maxID = DB::table('lda_saved')->max('percobaan_ke');
-				$no_percobaan = ($maxID+1);
-
-				$lda->TopicExtraction($k, $hasil_kluster[$i], $id_result, $i, $id_group, $no_percobaan);
 				
+				$lda->TopicExtraction($k, $hasil_kluster[$i], $id_result, $i, $id_group, $no_percobaan);
 				$perplexity = $testing->PerplexityLDA( $no_percobaan, $id_group, $i);
 
 				$id_last = DB::table('lda_saved')->max('id');
