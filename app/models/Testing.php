@@ -218,9 +218,9 @@
 
 				$total = count($list_nrp);
 				$nrp_testing = array();
-				for ($i=0; $i <$total ; $i++) { 
-					if($i%2==0){
-						array_push($nrp_testing, $list_nrp[$i]);
+				for ($x=0; $x <$total ; $x++) { 
+					if($x%2==0){
+						array_push($nrp_testing, $list_nrp[$x]);
 					}
 				}
 
