@@ -152,5 +152,129 @@
 		{
 			return (float) sqrt($this->Similarity_DotProduct($vector, $vector));
 		}
+
+		public function GetDataTestingLDA($idgroup_result)
+		{
+			$idresult = DB::table('kmeans_result')->where('id_group', '=' , $idgroup_result)->max('id');
+			$result = DB::table('kmeans_result')->where('id', '=' , $idresult)->get();
+			$kelompok = json_decode($result[0]->hasil_kluster);
+			$data_test = array();
+			foreach ($kelompok as $key => $klp) {
+				$total = count($klp);
+				$testing = array();
+				for ($i=0; $i <$total ; $i++) { 
+					if($i%2==0){
+						array_push($testing, $klp[$i]);
+					}
+				}
+				array_push($data_test, $testing);
+			}
+			return $data_test;
+		}
+
+		public function GetMatriksDataTest($id_test){
+			$lda = new LdaGibbsSampling;
+			$vocab = $lda->GetTermVocab();
+			$data_test = array();
+			foreach ($id_test as $key => $nrp) {
+				$total = count($nrp);
+				$matrix_m = array();
+				for ($m=0; $m <$total ; $m++) { 
+					$doc = dbDokumen::find($nrp[$m]);
+
+					$katakata = explode(' ', $doc->abstrak_af_preproc);
+					$N = count($katakata);
+					$list = array();
+					for ($t=0; $t <count($vocab) ; $t++) { 
+						$list[$t] = 0;
+					}
+
+					for ($n=0; $n < $N; $n++) { 
+						$idx = array_search(trim($katakata[$n]), $vocab);
+						$list[$idx]++;	
+					}
+					$matrix_m[$m] = $list;
+				}
+				array_push($data_test, $matrix_m);
+			}
+			return $data_test;
+		}
+
+		public function PerplexityLDA($id_hasil_lda, $kluster)
+		{
+			$lda_result = dbLdaSave::where('percobaan_ke','=',$id_hasil_lda)
+								->where('group','=',$kluster)->get();
+
+			$banyak = count($lda_result);
+			echo "banyak : ".$banyak."<br />";
+			for ($i=0; $i <$banyak ; $i++) {
+				echo "string".$i."<br />";
+				$list_nrp = json_decode($lda_result[$i]->daftar_dokumen);		//DAFTAR DOKUMEN PADA KLUSTER TERPILIH
+				$theta_matrix = json_decode($lda_result[$i]->matriks_theta);		//THETA LDA PADA KLUSTER TERPILIH
+				$phi_matrix = json_decode($lda_result[$i]->matriks_phi);			//PHI LDA PADA KLUSTER TERPILIH
+				$kTopik = $lda_result[$i]->k_topik;									//JUMLAH TOPIK PADA KLUSTER TERPILIH
+				$nterm = $lda_result[$i]->n_term;								//BANYAK TERM LDA PADA KLUSTER TERPILIH
+				$list_term = json_decode($lda_result[$i]->matriks_term);			//DAFTAR TERM LDA PADA KLUSTER TERPILIH
+
+				$total = count($list_nrp);
+				$nrp_testing = array();
+				for ($i=0; $i <$total ; $i++) { 
+					if($i%2==0){
+						array_push($nrp_testing, $list_nrp[$i]);
+					}
+				}
+
+				$mDoc = count($list_nrp);
+				$nTerm = count($list_term);
+				$matrix_m_n = array();
+				$logP = array();
+				for ($m=0; $m <$mDoc ; $m++) { 
+					$doc = dbDokumen::find($list_nrp[$m]);
+
+					$katakata = explode(' ', $doc->abstrak_af_preproc);
+					$N = count($katakata);
+					$list = array();
+					for ($t=0; $t <$nTerm ; $t++) { 
+						$list[$t] = 0;
+					}
+
+					for ($n=0; $n < $N; $n++) { 
+						$idx = array_search(trim($katakata[$n]), $list_term);
+						$list[$idx]++;	
+					}
+					$matrix_m_n[$m] = $list;
+					$logP[$m] = 0;
+				}
+
+				
+				for ($m=0; $m <$mDoc ; $m++) { 
+					$nLog = 0;
+					for ($n=0; $n <$nTerm ; $n++) { 
+						$phiTheta = 0;
+						for ($k=0; $k <$kTopik ; $k++) { 
+							$phiTheta += ($phi_matrix[$n][$k]*$theta_matrix[$m][$k]);
+						}
+						$logPhiTheta = log($phiTheta);
+						$nLog += ($matrix_m_n[$m][$n]*$logPhiTheta);
+					}
+					$logP[$m] = $nLog;
+				}
+
+				$num=0;
+				foreach ($logP as $key => $value) {
+					$num += $value;
+				}
+
+				$den = 0;
+				for ($m=0; $m <$mDoc ; $m++) { 
+					for ($n=0; $n <$nTerm ; $n++) { 
+						$den += $matrix_m_n[$m][$n];
+					}
+				}
+
+				$result = exp((-$num)/$den);
+				echo "PerplexityLDA ".$i." = ".$result."<br />";
+			}
+		}
 	}
 ?>

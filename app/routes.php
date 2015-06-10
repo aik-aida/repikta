@@ -45,8 +45,6 @@ Route::post('testing/rekomendasi', 'AdminController@testing_rekomendasi');
 Route::get('testing/dokumen/{param}', 'AdminController@testing_rekomendasi_katadokumen');
 Route::post('testing/dokumen/detail', 'AdminController@testing_rekomendasi_dokumen');
 
-
-
 Route::get('survey', 'AdminController@survey_login');
 Route::post('survey/penjelasan', 'AdminController@survey_penjelasan');
 Route::post('survey/dokumen', 'AdminController@survey_dokumen');
@@ -58,6 +56,15 @@ Route::get('akurasi', 'AdminController@akurasi');
 
 Route::get('lihatPHI', 'RepiktaController@show_phi');
 Route::get('lihatTETA', 'RepiktaController@show_theta');
+
+Route::get('testLDA', function(){
+	$testing = new Testing;
+	//$data_id = $testing->GetDataTestingLDA(41); 
+	//var_dump($data);
+	//$data_matrix = $testing->GetMatriksDataTest($data_id);
+	//var_dump($data_matrix);
+	$testing->PerplexityLDA( 1, 41);
+});
 
 Route::get('survey_build', function(){
 	$lda_percobaan_ke = 1;
