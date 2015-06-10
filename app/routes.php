@@ -70,7 +70,7 @@ Route::get('testLDA', function(){
 		$update->perplexity = $perplexity;
 		$update->save();
 	}
-	
+	echo "check!!!";
 });
 
 Route::get('survey_build', function(){

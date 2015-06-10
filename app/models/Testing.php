@@ -162,7 +162,6 @@
 			// $banyak = count($lda_result);
 			// echo "banyak : ".$banyak."<br />";
 			// for ($i=0; $i <$banyak ; $i++) {
-				echo "string".$i."<br />";
 				$list_nrp = json_decode($lda_result[0]->daftar_dokumen);		//DAFTAR DOKUMEN PADA KLUSTER TERPILIH
 				$theta_matrix = json_decode($lda_result[0]->matriks_theta);		//THETA LDA PADA KLUSTER TERPILIH
 				$phi_matrix = json_decode($lda_result[0]->matriks_phi);			//PHI LDA PADA KLUSTER TERPILIH
