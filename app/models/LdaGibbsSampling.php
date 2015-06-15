@@ -34,8 +34,8 @@
 
 		public function __construct() {
 			$this->vocab = $this->GetTermVocab();
-
 			$this->beta = 0.01;
+			// $this->beta = 2;
 			$this->sampleLAG = 2;	//100 //2
 			$this->ITERATIONS = 2000;	//100	//2000
 			$this->burnIN = 10;	//50	//100
@@ -44,17 +44,19 @@
 		public function TopicExtraction($k, $list_doc, $id, $ke, $grup, $no_percobaan){
 			$counter = new TimeExecution;
 			$awal = $counter->getTime();
-
+			
+			
 			$this->FillMatrixCorpus($list_doc);
-			
-			
+
 			$this->Ktopic = $k;
+			// $this->alpha = (3/$this->Ktopic);
 			$this->alpha = (50/$this->Ktopic);
-			//$this->beta = (200/$this->Nterm);
+			//--$this->beta = (200/$this->Nterm);
+
 			$this->PrepareVariabel($this->Mdoc, $this->Nterm, $this->Ktopic);
 			$randTopic = $this->RandomTopicFirst($this->Mdoc, $this->corpus, $this->Ktopic);
 
-
+			// var_dump($this->corpus);
 			
 			//echo "ITERASI";
 			//iterasi penetapan topik yang lebih tepat dengan metode komulatif multinomial sampling (random)
@@ -102,6 +104,27 @@
 			$simpan->lama_eksekusi = $lama;
 			$simpan->save();
 
+		}
+
+		public function StaticRandomZ($randZget, $M, $C, $K)
+		{
+			$this->zTopic = $randZget;	//menentukan random topik untuk masing-masing kata pada masing-masing dokumen
+			$k = ($K-1);
+			for ($m=0; $m<$M ; $m++) { 
+				$N = count($C[$m]);
+
+				for ($n=0; $n<$N ; $n++) { 
+					$idTerm = $C[$m][$n];
+
+					$idTopic = mt_rand(0,$k);
+					
+					$this->nw[$idTerm][$idTopic]++;		//menambahkan jumlah term idTerm yang bertopik idTopic
+					$this->nd[$m][$idTopic]++;			//menambahkan jumlah topik idTopic yang muncul pada dokumen m
+					$this->nwsum[$idTopic]++;			//menambahkan jumlah topik idTopic yang muncul dalam corpus dokumen
+
+				}
+				$this->ndsum[$m] = $N;	//menambahkan banyak kemunculan topic untuk setiap dokumen m		
+			}
 		}
 
 		public function CalculatePhi() {
@@ -383,14 +406,22 @@
 				$this->corpus[$m] = array();
 
 				$nilai_tfidf = json_decode($dokumen->nilai_tfidf);
-				$tfidf_sorted = array();
-				foreach ($nilai_tfidf as $key => $value) {
-					$tfidf_sorted[$key] = $value;
-				}
-				arsort($tfidf_sorted);
 
+				// $tfidf_sorted = array();
+				// foreach ($nilai_tfidf as $key => $value) {
+				// 	$tfidf_sorted[$key] = $value;
+				// }
+				// arsort($tfidf_sorted);
 				// $N = 50;
 				// $top = array_slice($tfidf_sorted,0,$N);
+
+				$intijudul = array();
+				foreach ($nilai_tfidf as $key => $value) {
+					if($value>=0.015){
+						array_push($intijudul, $key);
+					}
+				}
+
 				// $katakata = array_keys($top);
 
 				// $katakata = array();
@@ -403,18 +434,60 @@
 				// 	}
 				// }
 
+			
+
+				$katajudul = explode(' ', $dokumen->judul_af_preproc);
 				$katakata = explode(' ', $dokumen->abstrak_af_preproc);
+
 				$N = count($katakata);
+				$jumlahjudul = count($katajudul);
 
 				for ($n=0; $n < $N; $n++) { 
-					$idx = array_search(trim($katakata[$n]), $this->vocab);
-					if(strlen(trim($katakata[$n]))!=0){
-						array_push($this->corpus[$m], $idx);
-						//echo trim($katakata[$n])."<br />";
+					$term = $katakata[$n];
+					if(in_array($term, $intijudul)){
+						$idx = array_search(trim($term), $this->vocab);
+						if(strlen(trim($term))!=0){
+							$kataKamus = dbKamusKata::find($term);
+							if($kataKamus->jumlah_dokumen<=43){
+									array_push($this->corpus[$m], $idx);
+								
+							}
+						}
 					}
-					
 				}
-				//echo "banyak kata dokumen ".($m+1)." adalah ".count($this->corpus[$m])."<br />";
+				for ($j=0; $j <$jumlahjudul ; $j++) { 
+					$term = $katajudul[$j];
+					if(in_array($term, $intijudul)){
+						$id = array_search(trim($term), $this->vocab);
+						if(strlen(trim($term))!=0){
+							array_push($this->corpus[$m], $id);
+							$kataKamus = dbKamusKata::find($term);
+							$munculJudul = dbKamusJudul::find($term);
+							// //<-- Menambahkan kelipatan kemunculan kata dalam judul yang terkandung dalam kurang dari = 20 dokumen
+							if($munculJudul->jumlah_dokumen<=50 && $munculJudul->jumlah_dokumen>10){
+								if($kataKamus->jumlah_dokumen<=26){
+									for ($x=0; $x <2 ; $x++) { 
+										array_push($this->corpus[$m], $id);
+									}
+								}
+							}
+							if($munculJudul->jumlah_dokumen<=10 && $munculJudul->jumlah_dokumen>5){
+								if($kataKamus->jumlah_dokumen<=26){
+									for ($x=0; $x <3 ; $x++) { 
+										array_push($this->corpus[$m], $id);
+									}
+								}
+							}
+							if($kataKamus->jumlah_dokumen <= 5){
+								if($kataKamus->jumlah_dokumen<=13){
+									for ($x=0; $x <9 ; $x++) { 
+										array_push($this->corpus[$m], $id);
+									}
+								}
+							}
+						}
+					}
+				}
 			}
 
 			$this->Mdoc = $M;

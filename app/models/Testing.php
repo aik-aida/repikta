@@ -91,7 +91,7 @@
 			$jumlah = count($kumpulan);
 			//echo($jumlah);
 
-			$lda_result = dbLdaSave::where('group','=',$id_hasil_lda)
+			$lda_result = dbLdaSave::where('percobaan_ke','=',$id_hasil_lda)
 								->where('kluster_ke','=',$kluster)->get();
 			$list_nrp = json_decode($lda_result[0]->daftar_dokumen);		//DAFTAR DOKUMEN PADA KLUSTER TERPILIH
 			$theta_matrix = json_decode($lda_result[0]->matriks_theta);		//THETA LDA PADA KLUSTER TERPILIH
@@ -119,9 +119,59 @@
 			return $vectorTopik;
 		}
 
+		public function CossineRekomendasi20($vTopik, $vDokumen)
+		{
+			$tfidf_sorted = array();
+				foreach ($vDokumen as $key => $value) {
+					$tfidf_sorted[$key] = $value;
+				}
+				arsort($tfidf_sorted);
+				$N = 20;
+				$top = array_slice($tfidf_sorted,0,$N);
+
+			$katakata = array_keys($top);
+
+			$vTopik_katakata = array();
+			foreach ($katakata as $key => $term) {
+				$vTopik_katakata[$term] = $vTopik->$term;
+			}
+
+			$similarity = $this->CossineSimilarityManual($top, $vTopik_katakata, $katakata);
+
+			return $similarity;
+		}
+
 		public function CosineValRekomendasi($vTopik, $vDokumen)
 		{
 			return $this->CossineSimilarity($vTopik, $vDokumen);
+		}
+
+		public function CossineSimilarityManual($v1, $v2, $vocab)
+		{
+			$dot = $this->Similarity_DotProduct_Manual($v1, $v2, $vocab);
+			$mg1 = $this->Similarity_Magnitude_Manual($v1, $vocab);
+			$mg2 = $this->Similarity_Magnitude_Manual($v2, $vocab);
+			if(($mg1*$mg2)==0){
+				return 0;
+			}
+			else {
+				$cos = $dot/($mg1*$mg2);
+				return $cos;
+			}
+		}
+
+		public function Similarity_DotProduct_Manual($arr1, $arr2, $vocab)
+		{
+			$dotprod = 0.0;
+			foreach ($vocab as $key => $kata) {
+				$dotprod += (($arr1[$kata])*($arr2[$kata]));
+			}
+			return (float) $dotprod;
+		}
+
+		public function Similarity_Magnitude_Manual($vector, $vocab)	
+		{
+			return (float) sqrt($this->Similarity_DotProduct_Manual($vector, $vector, $vocab));
 		}
 
 		public function CossineSimilarity($v1, $v2)
@@ -153,15 +203,108 @@
 			return (float) sqrt($this->Similarity_DotProduct($vector, $vector));
 		}
 
+		public function Kemunculan($id_hasil_lda, $kluster, $kmuncul, $daftarmuncul, $katajudul, $vDokumen)
+		{
+			$repikta = new Repikta;
+			$lda_result = dbLdaSave::where('percobaan_ke','=',$id_hasil_lda)
+								->where('kluster_ke','=',$kluster)->get();
+
+			$list_nrp = json_decode($lda_result[0]->daftar_dokumen);		//DAFTAR DOKUMEN PADA KLUSTER TERPILIH
+			$theta_matrix = json_decode($lda_result[0]->matriks_theta);		//THETA LDA PADA KLUSTER TERPILIH
+			$phi_matrix = json_decode($lda_result[0]->matriks_phi);			//PHI LDA PADA KLUSTER TERPILIH
+			$k = $lda_result[0]->k_topik;									//JUMLAH TOPIK PADA KLUSTER TERPILIH
+			$nterm = $lda_result[0]->n_term;								//BANYAK TERM LDA PADA KLUSTER TERPILIH
+			$list_term = json_decode($lda_result[0]->matriks_term);			//DAFTAR TERM LDA PADA KLUSTER TERPILIH
+
+			$topic = $repikta->Get20TermTopic($k, $phi_matrix, $nterm, $list_term); //LIST TERM TIAP TOPIK YANG AKAN DITAMPILKAN
+			
+			$katakata = explode(' ', $katajudul);
+			$total_kata_judul = count($katakata);
+			$kemunculan_kata_judul =0;
+			$topiks = count($topic);
+			$banyakkata = count($topic[0]);
+			foreach ($katakata as $key => $kata) {
+				for ($k=0; $k <$topiks ; $k++) { 
+					for ($n=0; $n <$banyakkata ; $n++) { 
+						if($topic[$k][$n]==$kata){
+							$kemunculan_kata_judul++;
+						}
+					}
+				}
+			}
+
+			$tfidf_sorted = array();
+				foreach ($vDokumen as $key => $value) {
+					$tfidf_sorted[$key] = $value;
+				}
+				arsort($tfidf_sorted);
+				$N = 20;
+				$top = array_slice($tfidf_sorted,0,$N);
+
+			$katakatatfidf = array_keys($top);
+			$kemunculan_kata_tfidf =0;
+			foreach ($katakatatfidf as $key => $kata) {
+				for ($k=0; $k <$topiks ; $k++) { 
+					for ($n=0; $n <$banyakkata ; $n++) { 
+						if($topic[$k][$n]==$kata){
+							$kemunculan_kata_tfidf++;
+						}
+					}
+				}
+			}
+
+
+			$stringmuncul = $kemunculan_kata_judul.'/'.$total_kata_judul;
+			$muncultfidf = $kemunculan_kata_tfidf.'/20';
+			return array($stringmuncul, ($kemunculan_kata_judul/$total_kata_judul), $muncultfidf, ($kemunculan_kata_tfidf/20));
+
+		}
+
+		public function Kemunculan_20teratas()
+		{
+			$repikta = new Repikta;
+			$lda_result = dbLdaSave::where('percobaan_ke','=',$id_hasil_lda)
+								->where('kluster_ke','=',$kluster)->get();
+
+			$list_nrp = json_decode($lda_result[0]->daftar_dokumen);		//DAFTAR DOKUMEN PADA KLUSTER TERPILIH
+			$theta_matrix = json_decode($lda_result[0]->matriks_theta);		//THETA LDA PADA KLUSTER TERPILIH
+			$phi_matrix = json_decode($lda_result[0]->matriks_phi);			//PHI LDA PADA KLUSTER TERPILIH
+			$k = $lda_result[0]->k_topik;									//JUMLAH TOPIK PADA KLUSTER TERPILIH
+			$nterm = $lda_result[0]->n_term;								//BANYAK TERM LDA PADA KLUSTER TERPILIH
+			$list_term = json_decode($lda_result[0]->matriks_term);			//DAFTAR TERM LDA PADA KLUSTER TERPILIH
+
+			$topic = $repikta->Get20TermTopic($k, $phi_matrix, $nterm, $list_term); //LIST TERM TIAP TOPIK YANG AKAN DITAMPILKAN
+			
+			$katakata = explode(' ', $katajudul);
+			$total_kata_judul = count($katakata);
+			$kemunculan_kata_judul =0;
+			$topiks = count($topic);
+			$banyakkata = count($topic[0]);
+			foreach ($katakata as $key => $kata) {
+				for ($k=0; $k <$topiks ; $k++) { 
+					for ($n=0; $n <$banyakkata ; $n++) { 
+						if($topic[$k][$n]==$kata){
+							$kemunculan_kata_judul++;
+						}
+					}
+				}
+			}
+
+			$stringmuncul = $kemunculan_kata_judul.'/'.$total_kata_judul;
+			return array($stringmuncul, ($kemunculan_kata_judul/$total_kata_judul));
+		}
+
 		public function PerplexityLDA($id_hasil_lda, $group, $kluster)
 		{
 			$lda_result = dbLdaSave::where('percobaan_ke','=',$id_hasil_lda)
 								->where('kluster_ke','=',$kluster)
 								->where('group','=',$group)->get();
 
+			//echo $lda_result[0]->id."<br />";
 			// $banyak = count($lda_result);
 			// echo "banyak : ".$banyak."<br />";
 			// for ($i=0; $i <$banyak ; $i++) {
+
 				$list_nrp = json_decode($lda_result[0]->daftar_dokumen);		//DAFTAR DOKUMEN PADA KLUSTER TERPILIH
 				$theta_matrix = json_decode($lda_result[0]->matriks_theta);		//THETA LDA PADA KLUSTER TERPILIH
 				$phi_matrix = json_decode($lda_result[0]->matriks_phi);			//PHI LDA PADA KLUSTER TERPILIH
@@ -176,13 +319,12 @@
 						array_push($nrp_testing, $list_nrp[$x]);
 					}
 				}
-
-				$mDoc = count($list_nrp);
+				$mDoc = count($nrp_testing);
 				$nTerm = count($list_term);
 				$matrix_m_n = array();
 				$logP = array();
 				for ($m=0; $m <$mDoc ; $m++) { 
-					$doc = dbDokumen::find($list_nrp[$m]);
+					$doc = dbDokumen::find($nrp_testing[$m]);
 
 					$katakata = explode(' ', $doc->abstrak_af_preproc);
 					$N = count($katakata);
@@ -198,7 +340,6 @@
 					$matrix_m_n[$m] = $list;
 					$logP[$m] = 0;
 				}
-
 				
 				for ($m=0; $m <$mDoc ; $m++) { 
 					$nLog = 0;
@@ -208,11 +349,12 @@
 							$phiTheta += ($phi_matrix[$n][$k]*$theta_matrix[$m][$k]);
 						}
 						$logPhiTheta = log($phiTheta);
+						// echo $logPhiTheta."<br />";
 						$nLog += ($matrix_m_n[$m][$n]*$logPhiTheta);
 					}
 					$logP[$m] = $nLog;
 				}
-
+				//var_dump($logP);
 				$num=0;
 				foreach ($logP as $key => $value) {
 					$num += $value;
@@ -224,6 +366,8 @@
 						$den += $matrix_m_n[$m][$n];
 					}
 				}
+				//echo $num."<br />";
+				//echo $den."<br />";
 
 				$result = exp((-$num)/$den);
 				return $result;

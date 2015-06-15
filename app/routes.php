@@ -115,11 +115,23 @@ Route::get('rekomendasi', function(){
 Route::get('catat', function(){
 	$pra = new Testing;
 	//$pra->TfIdf(0.2,0.8);
-	$idgroup_result = 1;
-	$id_hasil_lda = 1;
+
+	$current_use = dbCurrentUse::all();
+	$idgroup_result = $current_use[0]->id_kluster;
+	$id_hasil_lda = $current_use[0]->id_lda;
+	echo "ID LDA = ".$id_hasil_lda."<br />";
+	// $idgroup_result = 1;
+	// $id_hasil_lda = 1;
+
+
 	$dokumens = dbDokumen::where('training','=',false)->get();
+	$array_hasil = array();
 	foreach ($dokumens as $key => $mhs) {
+
 		$nrp = $mhs->nrp;
+
+		$hasil = (object) array();
+		$hasil->nrp = $nrp;
 
 		$main = new Repikta;
 		$kluster_topkri = $main->RekomendasiTopik($nrp, $idgroup_result, $id_hasil_lda);
@@ -129,16 +141,58 @@ Route::get('catat', function(){
 		$mahasiswa = dbDokumen::find($nrp);
 		$dokumenVektor = json_decode($mahasiswa->nilai_tfidf);
 		//echo count($dokumenVektor)." - ".count($topikVektor),"<br />";
+
+
+		$rekom = dbTestingRekomendasi::where('id_lda','=',$id_hasil_lda)
+									->where('nrp_testing','=',$nrp)->get();
+		$bidang = $rekom[0]->kluster_bidang;
+		$k= $rekom[0]->k_topik;
+		$daftar = json_encode($rekom[0]->daftar_topik_terpilih);
+		$id_data = $rekom[0]->id;
+
+		$muncul_nilai = $testing->Kemunculan($id_hasil_lda, $bidang, $k, $daftar, $mahasiswa->judul_af_preproc, $dokumenVektor);
+		$update = dbTestingRekomendasi::find($id_data);
+		$update->kemunculan_judul = $muncul_nilai[0];
+		$update->nilai_judul = $muncul_nilai[1];
+		$update->kemunculan_tfidf20 = $muncul_nilai[2];
+		$update->nilai_tfidf20 = $muncul_nilai[3];
+		$update->save();
+
+		$hasil->muncul_judul = $muncul_nilai[0];
+		$hasil->nilai_judul = $muncul_nilai[1];
+		$hasil->muncul_tfidf = $muncul_nilai[2];
+		$hasil->nilai_tfidf = $muncul_nilai[3];
+
+		$akurasi20 = $testing->CossineRekomendasi20($topikVektor, $dokumenVektor);
 		$akurasi = $testing->CosineValRekomendasi($topikVektor, $dokumenVektor);
-		echo $nrp." --- ".$akurasi." ---<br />";
+
+		$hasil->similarity_all = $akurasi;
+		$hasil->similarity_tfidf = $akurasi20;
+
 
 		$simpan = new dbTestingAkurasi;
 		$simpan->lda_ke = $id_hasil_lda;
 		$simpan->nrp_testing = $nrp;
 		$simpan->topik_vektor = json_encode($topikVektor);
 		$simpan->cosine_similarity = $akurasi;
+		$simpan->cosine_similarity_20 = $akurasi20;
 		$simpan->save();
+
+		array_push($array_hasil, $hasil);
 	}
+
+	foreach ($array_hasil as $key => $value) {
+		echo "[1]  ".$value->nrp."&nbsp;&nbsp;&nbsp;&nbsp;---&nbsp;&nbsp;&nbsp;&nbsp;".$value->similarity_all."<br />";
+	}echo "<br /><br /><br />";
+	foreach ($array_hasil as $key => $value) {
+		echo "[2]  ".$value->nrp."&nbsp;&nbsp;&nbsp;&nbsp;---&nbsp;&nbsp;&nbsp;&nbsp;".$value->similarity_tfidf."<br />";
+	}echo "<br /><br /><br />";
+	foreach ($array_hasil as $key => $value) {
+		echo "[3]  ".$value->nrp."&nbsp;&nbsp;&nbsp;&nbsp;---&nbsp;&nbsp;&nbsp;&nbsp;".$value->muncul_judul."&nbsp;&nbsp;&nbsp;&nbsp;---&nbsp;&nbsp;&nbsp;&nbsp;".$value->nilai_judul."<br />";
+	}echo "<br /><br /><br />";
+	foreach ($array_hasil as $key => $value) {
+		echo "[4]  ".$value->nrp."&nbsp;&nbsp;&nbsp;&nbsp;---&nbsp;&nbsp;&nbsp;&nbsp;".$value->muncul_tfidf."&nbsp;&nbsp;&nbsp;&nbsp;---&nbsp;&nbsp;&nbsp;&nbsp;".$value->nilai_tfidf."<br />";
+	}echo "<br /><br /><br />";
 });
 
 Route::get('dokumen_terdekat', function(){
@@ -147,17 +201,57 @@ Route::get('dokumen_terdekat', function(){
 });
 
 Route::get('view_perplexity', function(){
-	// $kelompok = 0;
-	// $data = dbLdaSave::where('percobaan_ke','>',1)
-	// 	->where('kluster_ke','=',$kelompok)
-	// 	->orderBy('k_topik', 'asc')
-	// 	->get();
-	// foreach ($data as $key => $testing) {
-	// 	echo $testing->k_topik." - ".$testing->perplexity."<br />";
-	// }
+	$kelompok = 2;
+	$data = dbLdaSave::where('percobaan_ke','>',20)
+		->where('kluster_ke','=',$kelompok)
+		->orderBy('k_topik', 'asc')
+		->get();
+	foreach ($data as $key => $testing) {
+		echo $testing->k_topik." - ".$testing->perplexity."<br />";
+	}
 
-	$angka = 10;
-	echo ((-$angka*7)+50);
+
+	// $testing = new Testing;
+		
+			
+	// 			$perplexity = $testing->PerplexityLDA( 1, 41, 0);
+
+	// 			$lda_result = dbLdaSave::where('percobaan_ke','=',1)
+	// 							->where('kluster_ke','=',0)
+	// 							->where('group','=',41)->get();
+	// 			$id_last = $lda_result[0]->id;
+	// 			$update = dbLdaSave::find($id_last);
+	// 			$update->perplexity = $perplexity;
+	// 			$update->save();
+	// 			echo $perplexity."<br />";
+});
+
+Route::get('stopwordLDA', function(){
+	$all = dbDokumen::all();
+	foreach ($all as $key => $value) {
+		$dokumen = dbDokumen::find($value->nrp);
+		$teks = $dokumen->abstrak_af_preproc;
+		$judul = $dokumen->judul_af_preproc;
+
+		//stopword removal sastrawi
+		$stopwordRemoval= new \Sastrawi\StopWordRemover\StopWordRemoverFactory();
+		$removal  = $stopwordRemoval->createStopWordRemover();
+		$teks_afremoval = $removal->remove($teks);
+		$judul_afremoval = $removal->remove($judul);
+
+		$dokumen->judul_for_lda = $judul_afremoval;
+		$dokumen->abstrak_for_lda = $teks_afremoval;
+		$dokumen->save();
+
+		// $katajudul = explode(' ', $judul_afremoval);
+		// $katakata = explode(' ', $teks_afremoval);
+
+		// $N = count($katakata);
+		// $jumlahjudul = count($katajudul);
+
+	}
+				
+>>>>>>> 2d5e17691ccd816f9ec9db5e8344e8b1f8d2cc90
 });
 
 
@@ -171,7 +265,8 @@ Route::get('ekstrak_topik', function(){
 	// $counter = new TimeExecution;
 	// $awal = $counter->getTime();
 
-	// //$masing2topik = array(9,4,5);
+	$masing2topik = array(9,4,5);
+	// $masing2topik = array(5,3,4);
 	
 	$id_result = DB::table('kmeans_result')->where('id_group', '=' , $id_group)->max('id');
 	//echo "Group=".$id_group." - id_result=".$id_result."<br />";
@@ -180,15 +275,15 @@ Route::get('ekstrak_topik', function(){
 	$hasil_kluster = json_decode($data_result->hasil_kluster);
 
 	$testing = new Testing;
-	//4-20, kurang coba 21-120
-	for ($k=21; $k <=120 ; $k++) { 
+	// 19
+	// for ($k=1; $k <=10 ; $k++) { 
 		$maxID = DB::table('lda_saved')->max('percobaan_ke');
 		$no_percobaan = ($maxID+1);
 
 		for ($i=0; $i <$banyak_kluster ; $i++) { 
 			$lda = new LdaGibbsSampling();
-			if($k<=count($hasil_kluster[$i])){
-				
+			// if($k<=count($hasil_kluster[$i])){
+				$k = $masing2topik[$i];
 				$lda->TopicExtraction($k, $hasil_kluster[$i], $id_result, $i, $id_group, $no_percobaan);
 				$perplexity = $testing->PerplexityLDA( $no_percobaan, $id_group, $i);
 
@@ -197,10 +292,9 @@ Route::get('ekstrak_topik', function(){
 				$update->perplexity = $perplexity;
 				$update->save();
 				echo "k_topik=".$k." - kluster_ke".$i." : ".$perplexity."<br />";
-			}
-			//$lda->TopicExtraction($k, $hasil_kluster[2], $id_result, 2, $id_group);
+			// }
 		}
-	}
+	// }
 
 	// $akhir = $counter->getTime();
 	// $lama = ($akhir-$awal);
@@ -224,6 +318,38 @@ Route::get('ekstrak_topik', function(){
 	// 	echo "<br />";
 	// }
 });
+
+Route::get('tolong', function(){
+
+ 	$vocab = array();
+			$temp_vocab = array();
+			$kamuskata = dbKamusKata::get();
+
+			foreach ($kamuskata as $key => $datakata) {
+				array_push($vocab, $datakata->kata_dasar);
+			}
+
+			
+ 	echo "bismillah";
+ 	$dokumen = dbDokumen::find('5109100010');
+ 	$katakata = explode(' ', $dokumen->abstrak_af_preproc);
+				$N = count($katakata);
+				for ($n=0; $n < $N; $n++) { 
+					$term = $katakata[$n];
+					// if(in_array($term, $intijudul)){
+						$idx = array_search(trim($term), $vocab);
+						echo $idx." - ".(strlen(trim($term)))."<br />";
+						if(strlen(trim($term)!=0)){
+						// 	$kataKamus = dbKamusKata::find($term);
+						// 	if($kataKamus->jumlah_dokumen<=43){
+								 	echo "string";
+									//array_push($this->corpus[$m], $idx);
+								
+						// 	}
+						}
+					// }
+				}
+ });
 
 Route::get('clustering',function(){
 	$counter = new TimeExecution;
@@ -491,6 +617,53 @@ Route::get('distance_list_kluster_terdekat', function(){
 			$nrp_tr = json_decode($dokumen_testing[$i]->transkrip);
 			$pembanding_tr = json_decode($pembanding_doc->transkrip);
 			$dist = $repikta->EuclideanTranskrip($nrp_tr, $pembanding_tr);
+			array_push($distance, $dist);
+			//echo $nrppembanding."-".$dist."<br />";
+			$endTime_t = $counter_t->getTime();
+			$simpan = new dbTranskripDistanceKluster;
+			$simpan->group = $id_group;
+			$simpan->id_kluster = $id_result;
+			$simpan->index = $idk;
+			$simpan->nrp = $nrp;
+			$simpan->pembanding = $nrppembanding;
+			$simpan->distance = $dist;
+			$simpan->lama = ($endTime_t-$startTime_t);
+			$simpan->save();
+		}
+
+		$index = array_search(min($distance), $distance);
+		echo "TERDEKAT ".$hasil_kluster[$idk][$index]."<br />";
+		$endTime = $counter->getTime();
+		echo ($endTime-$startTime)." detik <br />";
+		echo "<br />";
+	}
+});
+
+ Route::get('distanceAHLI_list_kluster_terdekat', function(){
+ 	echo "ahli<br />";
+	$id_group = 41;
+	$dokumen_testing = dbDokumen::where('training','=',false)->get();
+	$id_result = DB::table('kmeans_result')->where('id_group', '=' , $id_group)->max('id');
+	$data_kluster = dbKmeansResult::find($id_result);
+	$hasil_kluster = json_decode($data_kluster->hasil_kluster);
+	$repikta = new Repikta;
+	for ($i=0; $i <count($dokumen_testing) ; $i++) { 
+		$counter = new TimeExecution;
+		$startTime = $counter->getTime();
+		$nrp = $dokumen_testing[$i]->nrp;
+		echo $nrp."<br />";
+		$nrp_tr = json_decode($dokumen_testing[$i]->transkrip);
+		$idk = $repikta->Choose_Kluster($nrp_tr, $id_group);
+		echo "dekat ".$idk."<br /> ";
+
+		$distance = array();
+		foreach ($hasil_kluster[$idk] as $key => $nrppembanding) {
+			$counter_t = new TimeExecution;
+			$startTime_t = $counter_t->getTime();
+			$pembanding_doc = dbDokumen::find($nrppembanding);
+			
+			$pembanding_tr = json_decode($pembanding_doc->transkrip);
+			$dist = $repikta->EuclideanTranskripAhli($nrp_tr, $pembanding_tr);
 			array_push($distance, $dist);
 			//echo $nrppembanding."-".$dist."<br />";
 			$endTime_t = $counter_t->getTime();
