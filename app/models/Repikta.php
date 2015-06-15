@@ -50,6 +50,20 @@
 			$simpan->save();
 		}
 
+		public function TranskripAhli($transkrip)
+		{
+			$transkrip_ahli = (object) array();
+			$mk_ahli = DB::table('matakuliah')->where('mk_bidang_keahlian', '=' , true)->get();
+			foreach ($variable as $key => $value) {
+				$kode = $value->mk_kode;
+				if($transkrip->$kode != 0){
+					$transkrip_ahli->$kode = $transkrip->$kode;
+				}
+			}
+			return $transkrip_ahli;
+
+		}
+
 		public function Choose_Kluster($mhs_transkrip, $idgroup){
 			//
 			$data = dbTranskripKriteria::where('group','=',$idgroup)->get();
@@ -70,6 +84,17 @@
 			return $index;
 		}
 
+		public function EuclideanTranskripAhli($nrp, $pembanding){
+			$matakuliah = DB::table('matakuliah')->where('mk_bidang_keahlian', '=' , true)->get();
+			$fill = 0.0;
+			foreach ($matakuliah as $key => $mk) {
+				$kode = $mk->mk_kode;
+				$fill += pow(($nrp->$kode - $pembanding->$kode), 2);
+			}
+			$d = sqrt($fill);
+			return $d;
+		}		
+
 		public function EuclideanTranskrip($nrp, $pembanding){
 			$matakuliah = dbMataKuliah::all();
 			$fill = 0.0;
@@ -82,7 +107,7 @@
 		}
 
 		public function GetClosest($nrp, $id_kluster, $n){
-			$data = dbTranskripDistanceKluster::where('nrp','=',$nrp)
+			$data = dbTranskripAhliDistanceKluster::where('nrp','=',$nrp)
 											->where('index','=',$id_kluster)
 											->orderBy('distance', 'asc')
 											->take($n)->get();
@@ -152,10 +177,12 @@
 
 		public function RekomendasiTopik($nrp, $idgroup_result, $id_hasil_lda)
 		{
-			$n = 5;
+			$n = 1;
+			$mhs = dbDokumen::find($nrp);
+			$mhs_transkrip = json_decode($mhs->transkrip);
 
 			//MENCARI KLUSTER PILIHAN
-			$kluster = $this->Choose_Kluster($nrp,$idgroup_result);
+			$kluster = $this->Choose_Kluster($mhs_transkrip, $idgroup_result);
 
 			//GET DATA MAHASISWA
 			$mahasiswa = dbDokumen::find($nrp);
@@ -164,7 +191,7 @@
 			$nrp_terdekat_kluster = $this->GetClosest($nrp, $kluster,$n);
 
 			//MENDAPATKAN LDA TOPIK PADA KLUSTER TERPILIH
-			$lda_result = dbLdaSave::where('group','=',$id_hasil_lda)
+			$lda_result = dbLdaSave::where('percobaan_ke','=',$id_hasil_lda)
 								->where('kluster_ke','=',$kluster)->get();
 
 			$list_nrp = json_decode($lda_result[0]->daftar_dokumen);		//DAFTAR DOKUMEN PADA KLUSTER TERPILIH
