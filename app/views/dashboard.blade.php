@@ -9,19 +9,10 @@
                           <div class="" align="center"><h4></i> Sistem Rekomendasi Topik Tugas Akhir </h4></div>
                     </div>
                           <div class="panel-body" align="center">
-                              <div class="task-content">
-
-                                  <ul class="task-list">
-                                      <li>
-                                          <div class="task-title">
-                                              <h4>
-                                              </h4>
-                                          </div>
-                                      </li>                                 
-                                  </ul>
-                              </div>
-                              <div class="add-task-row">
-                                   
+                              <div class="add-task-row"><b>
+                                {{ Form::open(array('url' => 'dashboard/dokumen', 'method' => 'get')) }}
+                                {{ Form::submit('Lihat Daftar Dokumen', array('class' => 'btn btn-round btn-primary btn-lg pull-center')) }}
+                                {{ Form::close() }}</b>
                               </div>
                           </div>
                       </section>
@@ -29,17 +20,24 @@
             </div><!-- /row -->
 
              @for ($i = 0; $i < $n_bidang; $i++)
-                                    {{ Form::open(array('url' => 'dashboard/topik', 'method' => 'post')) }}
-                                    <div class="col-lg-4 col-md-4 col-sm-4 mb">
+                                   
+                                    <div class="col-lg-4 col-md-4 col-sm-4 mb pull-left">
+                                    {{ Form::open(array('url' => 'dashboard/transkrip', 'method' => 'post')) }}
+                                    <h4><b>
+                                          {{ Form::hidden('id_klaster', $i) }}
+                                          {{ Form::submit('Kriteria Transkrip', array('class' => 'btn btn-info pull-left')) }}
+                                          {{ Form::close() }}
+                                      </b></h4>
                                       <div class="steps pn">
+                                       {{ Form::open(array('url' => 'dashboard/topik', 'method' => 'post')) }}
                                           {{ Form::hidden('id_klaster', $i) }}
                                           {{ Form::submit($nama_bidang[$i], array('class' => '')) }}
+                                          {{ Form::close() }}
                                           @for ($j = 0; $j < count($nama_topik_bidang[$i]); $j++)
                                           <label>{{ $nama_topik_bidang[$i][$j] }}</label>
                                           @endfor
                                       </div>
                                     </div>
-                                    {{ Form::close() }}
                                     @endfor
 @endsection
 

@@ -51,10 +51,9 @@
 		}
 
 		public function Choose_Kluster($mhs_transkrip, $idgroup){
-			//
+			
 			$data = dbTranskripKriteria::where('group','=',$idgroup)->get();
-			// $mhs = dbDokumen::find($nrp);
-			// $mhs_transkrip = json_decode($mhs->transkrip);
+			
 			$arrTranskrip = json_decode($data[0]->kriteria_transkrip);
 
 			//var_dump($mhs_transkrip);
@@ -63,7 +62,6 @@
 			for ($i=0; $i < count($arrTranskrip); $i++) { 
 				$d = $this->EuclideanTranskrip($arrTranskrip[$i], $mhs_transkrip);
 				$distance[$i] = $d;
-				//echo "[".$i."] ".$d."<br />";
 			}
 
 			$index = array_search(min($distance), $distance);

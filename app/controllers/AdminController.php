@@ -43,6 +43,104 @@
 						->with('nama_topik_bidang', $nama_topik_bidang);
 		}
 
+		public function dashboard_dokummen()
+		{
+
+			$current_use = dbCurrentUse::all();
+			$idgroup_result = $current_use[0]->id_kluster;
+			$id_hasil_lda = $current_use[0]->id_lda;
+
+			$idresult = DB::table('kmeans_result')->where('id_group', '=' , $idgroup_result)->max('id');
+			$data_last = DB::table('kmeans_result')->where('id', '=' , $idresult)->get();
+
+			$hasil_kluster = json_decode($data_last[0]->hasil_kluster);
+			$main = new Repikta;
+			for ($i=0; $i < count($hasil_kluster); $i++) { 
+				$penamaan[$i]['nama'] = $main->GetKlusterName($i);
+				$penamaan[$i]['kode'] = 'kelompok'.($i+1);
+				$penamaan[$i]['href'] = '#kelompok'.($i+1);
+				$penamaan[$i]['file'] = array();
+				foreach ($hasil_kluster[$i] as $key => $iddoc) {
+					$dokumen = DB::table('dokumen')->select('judul_ta')->where('nrp', '=' , $iddoc)->get();
+					array_push($penamaan[$i]['file'], $dokumen[0]);
+				}
+			}
+
+			return View::make('dashboard_dokumen_detail')
+					->with('datamain', $data_last[0])
+					->with('datakluster', $penamaan);
+		}
+
+		public function dashboard_transkrip()
+		{
+			$data = Input::only(['id_klaster']);
+			$id = $data['id_klaster'];
+
+			$current_use = dbCurrentUse::all();
+			$idgroup_result = $current_use[0]->id_kluster;
+			$id_hasil_lda = $current_use[0]->id_lda;
+
+			$main = new Repikta;
+			$nama_bidang = $main->GetKlusterName($id);
+
+			$dt_transkrip = dbTranskripKriteria::where('group','=',$idgroup_result)->get();
+			$all_transkrip = json_decode($dt_transkrip[0]->kriteria_transkrip);
+			$transkrip = $all_transkrip[$id];
+			//$transkrip = json_decode($dokumen_detail->transkrip);
+			$mk_umum = DB::table('matakuliah')->where('mk_bidang_keahlian', '=' , false)->get();
+			$mk_ahli = DB::table('matakuliah')->where('mk_bidang_keahlian', '=' , true)->get();
+			$arr_kode_mk_umum = array();
+			$arr_kode_mk_ahli = array();
+			$nilai_umum = array();
+			$nilai_ahli = array();
+
+			foreach ($mk_umum as $key => $mk) {
+				array_push($arr_kode_mk_umum, $mk->mk_kode);
+			}
+			foreach ($mk_ahli as $key => $mk) {
+				array_push($arr_kode_mk_ahli, $mk->mk_kode);
+			}
+
+			// var_dump($transkrip);
+
+
+			foreach ($transkrip as $key => $nilai) {
+				if($nilai != 0){
+					if($nilai>3.5){
+						$huruf = 'A';
+					}elseif ($nilai>3 && $nilai<=3.5) {
+						$huruf = 'AB';
+					}elseif ($nilai>2.5 && $nilai<=3) {
+						$huruf = 'B';
+					}elseif ($nilai>2 && $nilai<=2.5) {
+						$huruf = 'BC';
+					}elseif ($nilai>1 && $nilai<=2) {
+						$huruf = 'C';
+					}elseif ($nilai>0 && $nilai<=1) {
+						$huruf = 'D';
+					}
+					
+					$mk_detail = dbMataKuliah::find($key);
+					$add = (object) array();
+					$add->kode = $mk_detail->mk_kode;
+					$add->nama = $mk_detail->mk_nama;
+					$add->nilai = $huruf;
+
+					if(in_array($key, $arr_kode_mk_umum)){
+						array_push($nilai_umum, $add);
+					}
+					elseif(in_array($key, $arr_kode_mk_ahli)){
+						array_push($nilai_ahli, $add);
+					}
+				}
+			}
+
+			return View::make('dashboard_transkrip')
+						->with('nama_bidang', $nama_bidang)
+						->with('mk_umum', $nilai_umum)
+						->with('mk_ahli', $nilai_ahli);
+		}
+
 		public function dashboard_topik()
 		{
 			$data = Input::only(['id_klaster']);
@@ -97,15 +195,27 @@
 		public function dokumen_tf(){
 			$data = Input::only(['iddoc']);
 			$id = $data['iddoc'];
-
-			$kamus = dbKamusKata::get();
 			$dokumen_detail = dbDokumen::find($id);
-			$vectortf = json_decode($dokumen_detail->nilai_tf);
+
+			$vectortfjudul = json_decode($dokumen_detail->nilai_tf_judul);
+			$vectortfabstrak = json_decode($dokumen_detail->nilai_tf_abstrak);
+			$sort_judul = array();
+			$sort_abstrak = array();
+			foreach ($vectortfjudul as $key => $value) {
+				$sort_judul[$key] = $value;
+			}
+			foreach ($vectortfabstrak as $key => $value) {
+				$sort_abstrak[$key] = $value;
+			}
+			arsort($sort_judul); arsort($sort_abstrak);
+			$urut_judul = array_keys($sort_judul); $urut_abstrak = array_keys($sort_abstrak);
 
 			return View::make('dokumen_tf')
 					->with('id', $id)
-					->with('kamus', $kamus)
-					->with('vectortf', $vectortf);
+					->with('kamus_abstrak', $urut_abstrak)
+					->with('kamus_judul', $urut_judul)
+					->with('vectortfjudul', $sort_judul)
+					->with('vectortfabstrak', $sort_abstrak);
 		}
 
 		public function dokumen_tfidf(){
@@ -115,21 +225,13 @@
 			$kamus = dbKamusKata::get();
 			$dokumen_detail = dbDokumen::find($id);
 			$vectortfidf = json_decode($dokumen_detail->nilai_tfidf);
-			//var_dump($vectortfidf);
+			
 			$sort_tfidf = array();
 			foreach ($vectortfidf as $key => $value) {
 				$sort_tfidf[$key] = $value;
 			}
 			arsort($sort_tfidf);
 			$uruterm = array_keys($sort_tfidf);
-			//var_dump($uruterm);
-			//var_dump($sort_tfidf);
-			// $kata = $uruterm;
-			// $urut = $sort_tfidf;
-			// for ($i = 0; $i < count($uruterm); $i++){
-			// 	$term = $kata[$i];
-			// 	echo $urut[$term]."<br />";
-			// }
 
 			return View::make('dokumen_tfidf')
 					->with('id', $id)
@@ -329,7 +431,9 @@
 			$repikta = new Repikta;
 
 			//MENCARI KLUSTER PILIHAN
-			$kluster = $repikta->Choose_Kluster($nrp,$idgroup_result);
+			$mhs = dbDokumen::find($nrp);
+			$mhs_transkrip = json_decode($mhs->transkrip);
+			$kluster = $repikta->Choose_Kluster($mhs_transkrip,$idgroup_result);
 			$nama_bidang = $repikta->GetKlusterName($kluster);
 
 			//MENDAPATKAN LDA TOPIK PADA KLUSTER TERPILIH

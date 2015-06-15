@@ -8,7 +8,6 @@
                           <div class="" align="center"><h2><i class="fa fa-tasks"></i> Daftar Topik Bidang {{ $nama_bidang }} [{{$ktopik}} topik] </h2></div>
                     </div>
                     <div class="panel-body" align="center">
-                        <div class="task-content">
                           <ul class="task-list">
                             <li>
                               <div class="task-title">
@@ -18,38 +17,33 @@
                               </div>
                             </li>                                 
                           </ul>
-                        </div>
+
+                          <div class="add-task-row" style="color:black">
+                              <br />(*)tekan pada salah satu kata untuk memahami lebih mengenai topik<br />
+                                <table class="table table-bordered table-striped table-condensed">
+                                      <thead>
+                                      <tr>
+                                          <th>Topik</th>
+                                          <th>Kata-Kata Topik</th>
+                                      </thead>
+                                      <tbody>
+                                      
+                                      @for ($i = 0; $i < $ktopik; $i++)
+                                        <tr>
+                                          <td> Topik {{ ($i+1) }}</td>
+                                          <td>
+                                            @for ($x = 0; $x < count($list_topic[$i]); $x++)
+                                              <a  href={{ URL::to('rekomendasi/dokumen', array('kata' =>$list_topic[$i][$x] ))}}>{{ $list_topic[$i][$x] }}</a>, &nbsp;
+                                            @endfor
+                                          </td>
+                                        </tr>  
+                                      @endfor
+                                                                      
+                                      </tbody>
+                                </table>
+                              </div>
                     </div>
                   </section>
                   </div><!-- /col-md-12-->
             </div><!-- /row -->
-
-            <div class="row mt">
-             @for ($i = 0; $i < $ktopik; $i++)
-                   <div class="col-lg-2 col-md-2 col-sm-12">
-                          <div class="content-panel">
-                              <h4><i class="fa fa-angle-right"></i> Topik {{ ($i+1) }}</h4>
-                              <section id="unseen">
-                                <table class="table table-bordered table-striped table-condensed">
-                                  <thead>
-                                  <tr>
-                                      <th>Daftar Kata</th>
-                                  </tr>
-                                  </thead>
-                                  <tbody>
-                                    @for ($x = 0; $x < count($list_topic[$i]); $x++)
-                                        <tr>
-                                          <td align="center">
-                                            <a  href={{ URL::to('rekomendasi/dokumen', array('kata' =>$list_topic[$i][$x] ))}}>{{ $list_topic[$i][$x] }}</a>
-                                            
-                                          </td>
-                                        </tr>
-                                    @endfor
-                                  </tbody>
-                              </table>
-                              </section>
-                          </div>
-                   </div>   
-              @endfor
-            </div>
 @endsection

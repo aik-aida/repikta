@@ -24,6 +24,8 @@ Route::post('rekomendasi/dokumen/detail', 'RepiktaController@rekomendasi_dokumen
 Route::post('admin', 'BaseController@login');
 
 Route::get('dashboard', 'AdminController@dashboard');
+Route::get('dashboard/dokumen', 'AdminController@dashboard_dokummen');
+Route::post('dashboard/transkrip', 'AdminController@dashboard_transkrip');
 Route::post('dashboard/topik', 'AdminController@dashboard_topik');
 
 Route::get('centroid', 'AdminController@centroid_list');
@@ -145,14 +147,17 @@ Route::get('dokumen_terdekat', function(){
 });
 
 Route::get('view_perplexity', function(){
-	$kelompok = 0;
-	$data = dbLdaSave::where('percobaan_ke','>',1)
-		->where('kluster_ke','=',$kelompok)
-		->orderBy('k_topik', 'asc')
-		->get();
-	foreach ($data as $key => $testing) {
-		echo $testing->k_topik." - ".$testing->perplexity."<br />";
-	}
+	// $kelompok = 0;
+	// $data = dbLdaSave::where('percobaan_ke','>',1)
+	// 	->where('kluster_ke','=',$kelompok)
+	// 	->orderBy('k_topik', 'asc')
+	// 	->get();
+	// foreach ($data as $key => $testing) {
+	// 	echo $testing->k_topik." - ".$testing->perplexity."<br />";
+	// }
+
+	$angka = 10;
+	echo ((-$angka*7)+50);
 });
 
 
@@ -557,6 +562,60 @@ Route::get('masukkan', function(){
 });
 	
 Route::get('cek',function(){
+	//<-- cek RMK dokumen testing
+	// $hasil_rekomendasi = dbTestingRekomendasi::all();
+	// foreach ($hasil_rekomendasi as $key => $value) {
+	// 	//echo $value->nrp_testing."<br />";
+	// 	// echo $value->kluster_bidang."<br />";
+	// 	$nrp = $value->nrp_testing;
+	// 	$dokumen = dbDokumen::find($nrp);
+	// 	echo $dokumen->kode_rmk."<br />";
+	// }
+
+	// <-- dapatkan bidang ilmu dengan distance
+	$current_use = dbCurrentUse::all();
+	$id_group = $current_use[0]->id_kluster;
+	$dokumen_testing = dbDokumen::where('training','=',false)->get();
+	$repikta = new Repikta;
+	foreach ($dokumen_testing as $key => $value) {
+		$nrp = $value->nrp;
+		$dokumen = dbDokumen::find($nrp);
+		$mhs_transkrip = json_decode($dokumen->transkrip);
+		$data = dbTranskripKriteria::where('group','=',$id_group)->get();			
+		$arrTranskrip = json_decode($data[0]->kriteria_transkrip);
+		$distance = array();
+		for ($i=0; $i < count($arrTranskrip); $i++) { 
+			$d = $repikta->EuclideanTranskrip($arrTranskrip[$i], $mhs_transkrip);
+			$distance[$i] = $d;
+		}
+		$index = array_search(min($distance), $distance);
+		//echo $nrp." - ".$index." - ".(min($distance))."<br />";
+		echo $nrp." - ".($distance[2])."<br />";
+	}
+
+	//<-- lihat kata penting dalam judul
+	// $all_judul = dbKamusJudul::all();	
+	// foreach ($all_judul as $key => $value) {
+	// 	if($value->jumlah_dokumen<=10){
+	// 		$katakamus = dbKamusKata::find($value->kata_dasar);
+	// 		echo $value->kata_dasar." - ".$value->jumlah_dokumen." - ".$katakamus->jumlah_dokumen."<br />";
+	// 	}
+	// }
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
 	// $dokumens = dbDokumen::where('training','=',false)->get();
 	// foreach ($dokumens as $key => $dokumen) {
 	// 	$tfidf = json_decode($dokumen->nilai_tfidf);
@@ -600,14 +659,14 @@ Route::get('cek',function(){
 	// 	echo $value->cosine_similarity."<br />";
 	// }
 
-	$data = dbKamusKata::all();
-	foreach ($data as $key => $value) {
-		$indoc = json_decode($value->indoc);
-		$update = dbKamusKata::find($value->kata_dasar);
-		$update->jumlah_dokumen = count($indoc);
-		$update->save();
-		echo $value->cosine_similarity."<br />";
-	}
+	// $data = dbKamusKata::all();
+	// foreach ($data as $key => $value) {
+	// 	$indoc = json_decode($value->indoc);
+	// 	$update = dbKamusKata::find($value->kata_dasar);
+	// 	$update->jumlah_dokumen = count($indoc);
+	// 	$update->save();
+	// 	echo $value->cosine_similarity."<br />";
+	// }
 });
 
 ?>
