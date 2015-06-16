@@ -76,13 +76,13 @@ Route::get('testLDA', function(){
 });
 
 Route::get('survey_build', function(){
-	$lda_percobaan_ke = 1;
-	$treshold = 0.2;
+	$lda_percobaan_ke = 19;
+	$treshold = 0.62;
 	$dokumen_survey = dbTestingAkurasi::where('lda_ke','=',$lda_percobaan_ke)
-									-> where('cosine_similarity','>=',$treshold)
-									->orderBy('cosine_similarity', 'desc')->get();
+									->orderBy('cosine_similarity_20', 'desc')->take(10)->get();
 	$dokumen_survey_nrp = array();
 	$dokumen_survey_data = array();
+
 	foreach ($dokumen_survey as $key => $doc) {
 		array_push($dokumen_survey_nrp, $doc->nrp_testing);
 		$data_survey = dbTestingRekomendasi::where('id_lda','=',$lda_percobaan_ke)
@@ -90,7 +90,11 @@ Route::get('survey_build', function(){
 											->get();
 		array_push($dokumen_survey_data, $data_survey[0]);
 	}
-
+	var_dump($dokumen_survey_nrp);
+	// foreach ($dokumen_survey_nrp as $key => $value) {
+	// 	$doc = dbDokumen::find($value);
+	// 	echo $doc->judul_ta."<br />";
+	// }
 	$simpan_survey = new dbSurveyDaftar;
 	$simpan_survey->id_group_lda = $lda_percobaan_ke;
 	$simpan_survey->dokumen_survey = json_encode($dokumen_survey_nrp);
@@ -250,8 +254,6 @@ Route::get('stopwordLDA', function(){
 		// $jumlahjudul = count($katajudul);
 
 	}
-
-
 });
 
 
