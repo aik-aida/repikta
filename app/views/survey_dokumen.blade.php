@@ -30,18 +30,18 @@
                                     </ul>
                                   <div class="add-task-row" align="center">
                                     <table class="table table-hover">
-                                      <!-- <thead align="center">
+                                      <thead align="center" style="color:blue">
                                       <tr align="center">
-                                          <th align="center">Bobot</th>
-                                          <th align="center">Identitas</th>
-                                          <th align="center">Kata-Kata yang merepresentasikan Topik</th>
+                                          <th align="center">PROSENTASI REKOMENDASI</th>
+                                          <th align="center">NAMA TOPIK</th>
+                                          <th align="center">KATA-KATA YANG MEREPRESENTASIKAN TOPIK</th>
                                       </tr>
-                                      </thead> -->
+                                      </thead>
                                       <tbody>
                                       @for ($i = 0; $i < $ntopik; $i++)
                                         <tr>
                                           <td>{{ $bobot[$i] }}%</td>
-                                          <td>Topik {{ ($nama_topic[$i]+1) }}</td>
+                                          <td><b >{{ $nama_topic[$i] }}</b></td>
                                           <td>
                                             @foreach ($daftar[$i] as $kata)
                                               {{ $kata }}, &nbsp;
@@ -94,7 +94,7 @@
                         </div>
                         <div class="details">
                           <p>Sangat Mendekati</b><br/>
-                             (*) <b>bidang TA cocok</b>, & intisari TA ditemukan pada kata-kata <b>2 topik rekomendasi teratas</b> <br/>
+                             (*) <b>bidang TA cocok</b>, Topik sesuai, &kata-kata penting ditemukan <br/>
                           </p>
                         </div>
                       </div>
@@ -105,7 +105,7 @@
                         </div>
                         <div class="details">
                           <p>Mendekati</b><br/>
-                             (*) <b>bidang TA cocok</b>, & intisari TA ditemukan pada kata-kata topik rekomendasi <br/>
+                             (*) <b>bidang TA cocok</b>, & Topik sesuai <br/>
                           </p>
                         </div>
                       </div>
@@ -116,7 +116,7 @@
                         </div>
                         <div class="details">
                           <p>Tidak Mendekati</b><br/>
-                             (*) <b>bidang TA cocok</b>, tetapi intisari TA susah ditemukan <br/>
+                             (*) <b>bidang TA cocok</b>, namun topik tidak cocok <br/>
                           </p>
                         </div>
                       </div>

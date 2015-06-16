@@ -590,6 +590,9 @@
 										->get();
 
 			$kluster = $data[0]->kluster_bidang;
+			$get_nama_topic = dbNamaTopik::where('id_percobaan_lda','=',$id_hasil_lda)
+										->where('id_kelompok','=',$kluster)
+										->orderBy('id_topik','asc')->get();
 			$kemunculan_topik = json_decode($data[0]->kemunculan_topik);
 
 			$n = 5;
@@ -629,7 +632,7 @@
 
 			for ($i = 0; $i < $k; $i++){
                 if($jumlah_muncul[$i]!=0) {
-                	array_push($daftar_nama_topic, ($idtopic_muncul[$i]+1) ); //id topik
+                	array_push($daftar_nama_topic, $get_nama_topic[$idtopic_muncul[$i]]->nama_topik);
                 	array_push($daftar_bobot,  (($jumlah_muncul[$i]/$n)*100) ); //bobot
                 	$kata_topik = array();
 					for ($x = 0; $x < $nshow; $x++){
