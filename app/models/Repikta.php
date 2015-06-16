@@ -175,7 +175,7 @@
 
 		public function RekomendasiTopik($nrp, $idgroup_result, $id_hasil_lda)
 		{
-			$n = 1;
+			$n = 5;
 			$mhs = dbDokumen::find($nrp);
 			$mhs_transkrip = json_decode($mhs->transkrip);
 

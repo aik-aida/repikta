@@ -250,8 +250,8 @@ Route::get('stopwordLDA', function(){
 		// $jumlahjudul = count($katajudul);
 
 	}
-				
->>>>>>> 2d5e17691ccd816f9ec9db5e8344e8b1f8d2cc90
+
+
 });
 
 
@@ -265,7 +265,7 @@ Route::get('ekstrak_topik', function(){
 	// $counter = new TimeExecution;
 	// $awal = $counter->getTime();
 
-	$masing2topik = array(9,4,5);
+	$masing2topik = array(3,5, 4);
 	// $masing2topik = array(5,3,4);
 	
 	$id_result = DB::table('kmeans_result')->where('id_group', '=' , $id_group)->max('id');
