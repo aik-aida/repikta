@@ -348,17 +348,29 @@
 					->with('nshow', $nshow)
 					->with('topic', $topic)
 					->with('ktopik', $k)
-					->with('n', $n);
+					->with('n', $n)
+					->with('id_klp', $kluster);
 		}
 
-		public function rekomendasi_katadokumen($param)
+		public function rekomendasi_katadokumen($param, $klp)
 		{
 			$datakata = dbKamusKata::find($param);
 			$list_doc = json_decode($datakata->indoc);
 			$data_doc = array();
+
+			$current_use = dbCurrentUse::all();
+			$id_group = $current_use[0]->id_kluster;
+			$id_result = DB::table('kmeans_result')->where('id_group', '=' , $id_group)->max('id');
+			$data_result = dbKmeansResult::find($id_result);
+			$hasil_kluster = json_decode($data_result->hasil_kluster);
+			$in_klp = array();
+			$in_klp = $hasil_kluster[$klp];
+
 			foreach ($list_doc as $key => $nrp) {
-				$doc = dbDokumen::find($nrp);
-				array_push($data_doc, $doc);
+				if(in_array($nrp, $in_klp)){
+					$doc = dbDokumen::find($nrp);
+					array_push($data_doc, $doc);
+				}
 			}
 
 			return View::make('rekomendasi_dokumen')

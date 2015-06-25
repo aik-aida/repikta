@@ -32,7 +32,12 @@
 			for ($i=0; $i <$banyak_bidang ; $i++) { 
 				$nama_topik = array();
 				for ($j=0; $j < $banyak_topik_bidang[$i]; $j++) { 
-					array_push($nama_topik, ('Topik '.($j+1)));
+					$topic_name = dbNamaTopik::where('id_percobaan_lda','=',$id_hasil_lda)
+											->where('id_kelompok','=',$i)
+											->where('id_topik','=',$j)
+											->get();
+					//array_push($nama_topik, ('Topik '.($j+1)));
+					array_push($nama_topik, ($topic_name[0]->nama_topik));
 				}
 				array_push($nama_topik_bidang, $nama_topik);
 			}
@@ -161,13 +166,22 @@
 			$k = $lda_result[0]->k_topik;									//JUMLAH TOPIK PADA KLUSTER TERPILIH
 			$nterm = $lda_result[0]->n_term;								//BANYAK TERM LDA PADA KLUSTER TERPILIH
 			$list_term = json_decode($lda_result[0]->matriks_term);			//DAFTAR TERM LDA PADA KLUSTER TERPILIH
-
+			$nama_topik = array();
 			$topic = $main->Get20TermTopic($k, $phi_matrix, $nterm, $list_term);
+			for ($i=0; $i <$k ; $i++) { 
+				$topic_name = dbNamaTopik::where('id_percobaan_lda','=',$id_hasil_lda)
+											->where('id_kelompok','=',$id)
+											->where('id_topik','=',$i)
+											->get();
+				array_push($nama_topik, $topic_name[0]->nama_topik);
+			}
 			
 			return View::make('dashboard_topic')
 						->with('nama_bidang', $nama_bidang)
 						->with('ktopik', $k)
-						->with('list_topic', $topic);
+						->with('list_topic', $topic)
+						->with('nama_topik', $nama_topik)
+						->with('id_klp', $id);
 		}
 
 		public function kamus_list(){
@@ -487,17 +501,29 @@
 					->with('nshow', $nshow)
 					->with('topic', $topic)
 					->with('ktopik', $k)
-					->with('n', $n);
+					->with('n', $n)
+					->with('id_klp', $kluster);
 		}
 
-		public function testing_rekomendasi_katadokumen($param)
+		public function testing_rekomendasi_katadokumen($param, $klp)
 		{
 			$datakata = dbKamusKata::find($param);
 			$list_doc = json_decode($datakata->indoc);
 			$data_doc = array();
+
+			$current_use = dbCurrentUse::all();
+			$id_group = $current_use[0]->id_kluster;
+			$id_result = DB::table('kmeans_result')->where('id_group', '=' , $id_group)->max('id');
+			$data_result = dbKmeansResult::find($id_result);
+			$hasil_kluster = json_decode($data_result->hasil_kluster);
+			$in_klp = array();
+			$in_klp = $hasil_kluster[$klp];
+
 			foreach ($list_doc as $key => $nrp) {
-				$doc = dbDokumen::find($nrp);
-				array_push($data_doc, $doc);
+				if(in_array($nrp, $in_klp)){
+					$doc = dbDokumen::find($nrp);
+					array_push($data_doc, $doc);
+				}
 			}
 
 			return View::make('testing_rekomendasi_dokumen')

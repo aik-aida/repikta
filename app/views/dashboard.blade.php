@@ -28,14 +28,17 @@
                                           {{ Form::submit('Kriteria Transkrip', array('class' => 'btn btn-info pull-left')) }}
                                           {{ Form::close() }}
                                       </b></h4>
-                                      <div class="steps pn">
+                                      <div class="steps pn"  style="color:black">
                                        {{ Form::open(array('url' => 'dashboard/topik', 'method' => 'post')) }}
                                           {{ Form::hidden('id_klaster', $i) }}
                                           {{ Form::submit($nama_bidang[$i], array('class' => '')) }}
                                           {{ Form::close() }}
-                                          @for ($j = 0; $j < count($nama_topik_bidang[$i]); $j++)
-                                          <label>{{ $nama_topik_bidang[$i][$j] }}</label>
-                                          @endfor
+                                          <ol>
+                                            @for ($j = 0; $j < count($nama_topik_bidang[$i]); $j++)
+                                            <li><h5>{{ $nama_topik_bidang[$i][$j] }}</h5></li>
+                                            @endfor
+                                          </ol>
+                                          
                                       </div>
                                     </div>
                                     @endfor

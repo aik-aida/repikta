@@ -30,10 +30,10 @@
                                       
                                       @for ($i = 0; $i < $ktopik; $i++)
                                         <tr>
-                                          <td> Topik {{ ($i+1) }}</td>
+                                          <td>{{ $nama_topik[$i] }}</td>
                                           <td>
                                             @for ($x = 0; $x < count($list_topic[$i]); $x++)
-                                              <a  href={{ URL::to('rekomendasi/dokumen', array('kata' =>$list_topic[$i][$x] ))}}>{{ $list_topic[$i][$x] }}</a>, &nbsp;
+                                              <a  href={{ URL::to('rekomendasi/dokumen', array('kata' =>$list_topic[$i][$x], 'kelompok'=>$id_klp ))}}>{{ $list_topic[$i][$x] }}</a>, &nbsp;
                                             @endfor
                                           </td>
                                         </tr>  

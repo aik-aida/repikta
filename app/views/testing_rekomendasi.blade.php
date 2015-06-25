@@ -47,7 +47,7 @@
                                           <td>{{ ($muncul_topik[$i]/$n)*100 }}%</td>
                                           <td>
                                             @for ($x = 0; $x < $nshow; $x++)
-                                              <a  href={{ URL::to('testing/dokumen', array('kata' =>$topic[$idmuncul[$i]][$x] ))}} target="_blank">{{ $topic[$idmuncul[$i]][$x] }}</a>, &nbsp;
+                                              <a  href={{ URL::to('testing/dokumen', array('kata' =>$topic[$idmuncul[$i]][$x], 'kelompok'=>$id_klp ))}} target="_blank">{{ $topic[$idmuncul[$i]][$x] }}</a>, &nbsp;
                                             @endfor
                                           </td>
                                         </tr>  
