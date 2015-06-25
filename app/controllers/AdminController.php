@@ -467,6 +467,10 @@
 			//MENCARI n DOKUMEN TERDEKAT PADA KLUSTER TERPILIH
 			$nrp_terdekat_kluster = $repikta->GetClosest($nrp, $kluster,$n);
 
+			$get_nama_topic = dbNamaTopik::where('id_percobaan_lda','=',$id_hasil_lda)
+										->where('id_kelompok','=',$kluster)
+										->orderBy('id_topik','asc')->get();
+
 			$topik_terdekat = array();		//DAFTAR TOPIK n DOKUMEN TERDEKAT URUT BERDASARKAN DOKUMEN TERDEKAT
 			$kemunculan_topik = array();	//JUMLAH KEMUNCULAN MASING-MASING TOPIK DALAM n DOKUMEN TERDEKAT
 			
@@ -491,6 +495,23 @@
 				array_push($jumlah_muncul, $value);
 			}
 
+			$daftar_nama_topic = array();
+			$daftar_topic = array();
+			$daftar_bobot = array();
+
+			for ($i = 0; $i < $k; $i++){
+                if($jumlah_muncul[$i]!=0) {
+                	array_push($daftar_nama_topic, $get_nama_topic[$idtopic_muncul[$i]]->nama_topik);
+                	array_push($daftar_bobot,  (($jumlah_muncul[$i]/$n)*100) ); //bobot
+                	$kata_topik = array();
+					for ($x = 0; $x < $nshow; $x++){
+						array_push($kata_topik, $topic[$idtopic_muncul[$i]][$x] );  //kata
+					}
+					array_push($daftar_topic, $kata_topik);
+				}
+			}
+			$ntopik = count($daftar_bobot);
+
 			$dokumen_detail = dbDokumen::find($nrp);
 
 			return View::make('testing_rekomendasi')
@@ -502,7 +523,11 @@
 					->with('topic', $topic)
 					->with('ktopik', $k)
 					->with('n', $n)
-					->with('id_klp', $kluster);
+					->with('id_klp', $kluster)
+					->with('daftar', $daftar_topic)
+					->with('bobot', $daftar_bobot)
+					->with('ntopik', $ntopik)
+					->with('nama_topic', $daftar_nama_topic);
 		}
 
 		public function testing_rekomendasi_katadokumen($param, $klp)

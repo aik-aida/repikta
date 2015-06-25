@@ -40,18 +40,17 @@
                                       </thead>
                                       <tbody>
                                       
-                                      @for ($i = 0; $i < $ktopik; $i++)
-                                      @if($muncul_topik[$i]!=0)
+                                      @for ($i = 0; $i < $ntopik; $i++)
+                                      
                                         <tr>
-                                          <td> Topik {{ ($idmuncul[$i]+1) }}</td>
-                                          <td>{{ ($muncul_topik[$i]/$n)*100 }}%</td>
+                                          <td>{{ $nama_topic[$i] }}</td>
+                                          <td>{{ $bobot[$i] }}%</td>
                                           <td>
-                                            @for ($x = 0; $x < $nshow; $x++)
-                                              <a  href={{ URL::to('testing/dokumen', array('kata' =>$topic[$idmuncul[$i]][$x], 'kelompok'=>$id_klp ))}} target="_blank">{{ $topic[$idmuncul[$i]][$x] }}</a>, &nbsp;
-                                            @endfor
+                                            @foreach ($daftar[$i] as $kata)
+                                              <a  href={{ URL::to('testing/dokumen', array('kata' =>$kata, 'kelompok'=>$id_klp ))}} target="_blank">{{ $kata }}</a>, &nbsp;
+                                            @endforeach
                                           </td>
                                         </tr>  
-                                      @endif         
                                       @endfor
                                                                       
                                       </tbody>

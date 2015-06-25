@@ -135,21 +135,22 @@
 				// $idk = $repikta->Choose_Kluster($nrp, $id_group);
 				// echo "dekat ".$idk."<br /> ";
 
-				$distance = array();
-				foreach ($hasil_kluster[$idk] as $key => $nrppembanding) {
-					// $counter_t = new TimeExecution;
-					// $startTime_t = $counter_t->getTime();
-					$pembanding_doc = dbDokumen::find($nrppembanding);
-					$pembanding_tr = json_decode($pembanding_doc->transkrip);
-					$dist = $repikta->EuclideanTranskrip($transkrip_masukan, $pembanding_tr);
-					$distance[$nrppembanding] = $dist;
-				}
-				asort($distance);
-				$nrp_closest = array();
-				foreach ($distance as $key => $value) {
-					array_push($nrp_closest, $key);
-				}
-				return $nrp_closest;
+			$distance = array();
+			foreach ($hasil_kluster[$idk] as $key => $nrppembanding) {
+				// $counter_t = new TimeExecution;
+				// $startTime_t = $counter_t->getTime();
+				$pembanding_doc = dbDokumen::find($nrppembanding);
+				$pembanding_tr = json_decode($pembanding_doc->transkrip);
+				$dist = $repikta->EuclideanTranskripAhli($transkrip_masukan, $pembanding_tr);
+				$distance[$nrppembanding] = $dist;
+			}
+			asort($distance);
+			$topN = array_slice($distance,0,5);
+			$nrp_closest = array();
+			foreach ($topN as $key => $value) {
+				array_push($nrp_closest, $key);
+			}
+			return $nrp_closest;
 			//}
 		}
 
