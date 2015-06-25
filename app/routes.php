@@ -204,6 +204,41 @@ Route::get('dokumen_terdekat', function(){
 	$repikta->GetClosest();
 });
 
+Route::get('hasil_survey', function(){
+	$data_survey = dbSurveyData::all();
+	$data_penguji = dbSurveyData::select('nrp_penguji')->distinct()->get();
+	$daftar_data = dbSurveyDaftar::find(1);
+	$data_test = json_decode($daftar_data->dokumen_survey);
+	echo "<table>";
+	echo "<tr>";
+	echo "<td>penguji</td>";
+	foreach ($data_test as $key => $value) {
+		echo "<td>";
+		echo $value;
+		echo "</td>";
+	}
+	echo "<tr>";
+	foreach ($data_penguji as $key => $value) {
+		$nrp = $value->nrp_penguji;
+		if($nrp!='5111100020' && $nrp!='5113100039'){
+			echo "<tr>";
+					echo "<td>";
+					echo $nrp;
+					echo "</td>";
+				foreach ($data_test as $key => $dokumen) {
+					$data_hasil = dbSurveyData::where('nrp_penguji','=',$nrp)
+											->where('dokumen','=',$dokumen)->get();
+					echo "<td>";
+					echo $data_hasil[0]->nilai;
+					echo "</td>";
+				}
+			echo "</tr>";
+		}
+	}
+	echo "</table>";
+	
+});
+
 Route::get('view_perplexity', function(){
 	$kelompok = 2;
 	$data = dbLdaSave::where('percobaan_ke','>',20)
@@ -267,7 +302,7 @@ Route::get('ekstrak_topik', function(){
 	// $counter = new TimeExecution;
 	// $awal = $counter->getTime();
 
-	$masing2topik = array(9,4,5);
+	$masing2topik = array(3,5, 4);
 	// $masing2topik = array(5,3,4);
 	
 	$id_result = DB::table('kmeans_result')->where('id_group', '=' , $id_group)->max('id');
