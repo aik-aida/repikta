@@ -32,7 +32,6 @@
                                     </div>
                                   </li>                                 
                                 </ul>
-                            
                               <div class="add-task-row">
                               <br /><h5><b>Berikut Topik yang direkomendasikan menurut prosentase kedekatan :</h5></b>
                               (*)tekan pada salah satu kata untuk memahami lebih mengenai topik<br />
@@ -45,18 +44,16 @@
                                       </thead>
                                       <tbody>
                                       
-                                      @for ($i = 0; $i < $ktopik; $i++)
-                                      @if($muncul_topik[$i]!=0)
+                                      @for ($i = 0; $i < $ntopik; $i++)
                                         <tr>
-                                          <td> Topik {{ ($idmuncul[$i]+1) }}</td>
-                                          <td>{{ ($muncul_topik[$i]/$n)*100 }}%</td>
+                                          <td> {{ $nama_topic[$i] }}</td>
+                                          <td>{{ $bobot[$i] }}%</td>
                                           <td>
-                                            @for ($x = 0; $x < $nshow; $x++)
-                                              <a  href={{ URL::to('testing/dokumen', array('kata' =>$topic[$idmuncul[$i]][$x] ))}} target="_blank">{{ $topic[$idmuncul[$i]][$x] }}</a>, &nbsp;
-                                            @endfor
+                                            @foreach ($daftar[$i] as $kata)
+                                              <a  href={{ URL::to('testing/dokumen', array('kata' =>$kata ))}} target="_blank">{{ $kata }}</a>, &nbsp;
+                                            @endforeach
                                           </td>
-                                        </tr>  
-                                      @endif         
+                                        </tr>   
                                       @endfor
                                                                       
                                       </tbody>
